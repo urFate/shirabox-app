@@ -3,7 +3,9 @@ package com.tomuki.tomuki
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 
 import androidx.compose.material.icons.outlined.Bookmark
@@ -44,13 +46,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
+@Preview(name = "main")
 @Composable
 fun Menu(){
     val bottomNavItems = listOf(
         BottomNavItem(
             name = "Обзор",
-            route = "overview",
+            route = "explore",
             icon = Icons.Outlined.Explore,
         ),
         BottomNavItem(
@@ -64,8 +66,10 @@ fun Menu(){
             icon = Icons.Outlined.Settings,
         ),
     )
+
     val navController = rememberNavController()
     val backStackEntry = navController.currentBackStackEntryAsState()
+
     TomukiTheme {
         Scaffold(
             bottomBar = {
@@ -93,9 +97,12 @@ fun Menu(){
                 }
             },
             content = {
-                // тут типа хз чё, на
-                // Text( text = "hello world")
-                // ошибка
+                Row(
+                    modifier = Modifier.padding(it),
+                    content = {
+                        Text( text = "hello world")
+                    }
+                )
             }
         )
     }
