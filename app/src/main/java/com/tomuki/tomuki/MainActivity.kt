@@ -4,13 +4,27 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+
+import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.tomuki.tomuki.ui.theme.TomukiTheme
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,25 +36,68 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    Menu()
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+fun Menu(){
+    val bottomNavItems = listOf(
+        BottomNavItem(
+            name = "Обзор",
+            route = "overview",
+            icon = Icons.Outlined.Explore,
+        ),
+        BottomNavItem(
+            name = "Избранное",
+            route = "saved",
+            icon = Icons.Outlined.Bookmark,
+        ),
+        BottomNavItem(
+            name = "Настройки",
+            route = "settings",
+            icon = Icons.Outlined.Settings,
+        ),
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
+    val navController = rememberNavController()
+    val backStackEntry = navController.currentBackStackEntryAsState()
     TomukiTheme {
-        Greeting("Android")
+        Scaffold(
+            bottomBar = {
+                androidx.compose.material3.NavigationBar {
+                    bottomNavItems.forEach { item ->
+                        val selected = item.route == backStackEntry.value?.destination?.route
+
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = { navController.navigate(item.route) },
+                            label = {
+                                Text(
+                                    text = item.name,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = "${item.name} Icon",
+                                )
+                            }
+                        )
+                    }
+                }
+            },
+            content = {
+                // тут типа хз чё, на
+                // Text( text = "hello world")
+                // ошибка
+            }
+        )
     }
+
 }
