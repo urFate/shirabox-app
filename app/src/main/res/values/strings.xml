@@ -21,4 +21,11 @@
     <string name="anime">Аниме</string>
     <string name="manga">Манга</string>
     <string name="ranobe">Ранобэ</string>
+
+    <!--
+        Explore page
+    -->
+    <string name="anime_actual">Сейчас на экранах</string>
+    <string name="books_actual">Среди новинок</string>
+    <string name="popular">Популярно</string>
 </resources>
