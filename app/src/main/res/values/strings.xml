@@ -14,4 +14,11 @@
     <string name="search_by_name">Поиск по названию</string>
     <string name="search_in_favourites">Поиск в избранном</string>
     <string name="search_in_history">Поиск в истории</string>
+
+    <!--
+        Media Types
+    -->
+    <string name="anime">Аниме</string>
+    <string name="manga">Манга</string>
+    <string name="ranobe">Ранобэ</string>
 </resources>
