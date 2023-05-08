@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Tomuki</string>
+
+    <!--
+        Bottom navigation
+    -->
+    <string name="explore">Обзор</string>
+    <string name="favourites">Избранное</string>
+    <string name="profile">Профиль</string>
+
+    <!--
+        Search bar placeholders
+    -->
+    <string name="search_by_name">Поиск по названию</string>
+    <string name="search_in_favourites">Поиск в избранном</string>
+    <string name="search_in_history">Поиск в истории</string>
 </resources>
