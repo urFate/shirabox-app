@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,35 +18,18 @@ import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.twotone.Help
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.theme.TomukiTheme
-
-@Composable
-fun MenuItem(icon: ImageVector, text: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null, // Set appropriate content description
-            modifier = Modifier.size(32.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(text = text)
-    }
-}
-
 
 @Composable
 @Preview
@@ -74,32 +56,68 @@ fun ProfileScreen(){
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Вход не выполнен",
+                            text = stringResource(id = R.string.unauthorized),
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = "Войти в аккаунт TomuID",
+                            text = stringResource(id = R.string.unauthorized_suggestion),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
             }
-
-            Divider(thickness = 1.dp, 
+            Column {
+                Divider(thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(horizontal = 48.dp, vertical = 8.dp))
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.history)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.History,
+                            contentDescription = "History Icon",
+                        )
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(id = R.string.donate) ) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Savings,
+                            contentDescription = "Savings icon",
+                        )
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(id = R.string.settings)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Settings,
+                            contentDescription = "Settings icon",
+                        )
+                    }
+                )
+                Divider(thickness = 1.dp,
                 modifier = Modifier
                     .padding(horizontal = 48.dp, vertical = 8.dp))
-            Column {
-                MenuItem(icon = Icons.Filled.History, text = "История")
-                MenuItem(icon = Icons.Filled.Savings, text = "Поддержать проект")
-                MenuItem(icon = Icons.Filled.Settings, text = "Настройки")
-            }
-            Divider(thickness = 1.dp,
-                modifier = Modifier
-                    .padding(horizontal = 48.dp, vertical = 8.dp))
-            Column {
-                MenuItem(icon = Icons.Filled.SystemUpdate, text = "Проверить обновления")
-                MenuItem(icon = Icons.TwoTone.Help, text = "Помощь")
-
+                ListItem(
+                    headlineContent = { Text(stringResource(id = R.string.updates_check) ) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.SystemUpdate,
+                            contentDescription = "SystemUpdate icon",
+                        )
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(id = R.string.help)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.TwoTone.Help,
+                            contentDescription = "Help icon",
+                        )
+                    }
+                )
             }
         }
     }
