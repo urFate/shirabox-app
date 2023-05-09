@@ -23,9 +23,24 @@
     <string name="ranobe">Ранобэ</string>
 
     <!--
-        Explore page
+        Explore Screen
     -->
     <string name="anime_actual">Сейчас на экранах</string>
     <string name="books_actual">Среди новинок</string>
     <string name="popular">Популярно</string>
+    
+    <!-- 
+        Profile Screen Options
+    -->
+    <string name="history">История</string>
+    <string name="donate">Поддержать проект</string>
+    <string name="settings">Настройки</string>
+    <string name="updates_check">Проверить обновления</string>
+    <string name="help">Помощь</string>
+
+    <!--
+        Login Card
+    -->
+    <string name="unauthorized">Вход не выполнен</string>
+    <string name="unauthorized_suggestion">Войти в аккаунт TomuID</string>
 </resources>
