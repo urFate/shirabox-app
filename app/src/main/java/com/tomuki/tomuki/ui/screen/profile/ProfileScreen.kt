@@ -1,5 +1,6 @@
 package com.tomuki.tomuki.ui.screen.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,14 +27,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.tomuki.tomuki.R
+import com.tomuki.tomuki.ui.component.navigation.ProfileNavItems
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 
 @Composable
-@Preview
-fun ProfileScreen(){
+fun ProfileScreen(navController: NavController){
     TomukiTheme {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -72,6 +73,8 @@ fun ProfileScreen(){
                         .padding(horizontal = 48.dp, vertical = 8.dp))
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.history)) },
+                    modifier = Modifier.clickable(onClick = { navController.navigate(ProfileNavItems.History.route) }),
+
                     leadingContent = {
                         Icon(
                             Icons.Filled.History,
@@ -81,6 +84,7 @@ fun ProfileScreen(){
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.donate) ) },
+                    modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
                             Icons.Filled.Savings,
@@ -90,6 +94,7 @@ fun ProfileScreen(){
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.settings)) },
+                    modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
                             Icons.Filled.Settings,
@@ -102,6 +107,7 @@ fun ProfileScreen(){
                     .padding(horizontal = 48.dp, vertical = 8.dp))
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.updates_check) ) },
+                    modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
                             Icons.Filled.SystemUpdate,
@@ -111,6 +117,7 @@ fun ProfileScreen(){
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.help)) },
+                    modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
                             Icons.TwoTone.Help,
