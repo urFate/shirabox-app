@@ -39,7 +39,7 @@ fun History(){
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TopBar(hint = "Поиск в истории")
+        TopBar(hint = stringResource(R.string.search_in_history))
         MediaTypesBar()
 
         Column(
