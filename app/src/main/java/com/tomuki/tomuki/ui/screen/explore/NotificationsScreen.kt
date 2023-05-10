@@ -26,7 +26,7 @@ import com.tomuki.tomuki.ui.component.top.TopBar
 
 @Composable
 @Preview
-fun History(){
+fun NotificationsScreen(){
     Column(
         modifier = Modifier
             .fillMaxSize()

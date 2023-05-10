@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.tomuki.tomuki.ui.screen.explore.ExploreScreen
+import com.tomuki.tomuki.ui.screen.explore.NotificationsScreen
 import com.tomuki.tomuki.ui.screen.favourites.FavouritesScreen
 import com.tomuki.tomuki.ui.screen.profile.History
 import com.tomuki.tomuki.ui.screen.profile.ProfileScreen
@@ -18,5 +19,6 @@ fun TomukiNavHost(navController: NavHostController){
         composable(BottomNavItems.Favourites.route) { FavouritesScreen(navController) }
         composable(BottomNavItems.Profile.route) { ProfileScreen(navController) }
         composable(NestedNavItems.History.route) { History(navController) }
+        composable(NestedNavItems.Notifications.route) { NotificationsScreen() }
     }
 }
