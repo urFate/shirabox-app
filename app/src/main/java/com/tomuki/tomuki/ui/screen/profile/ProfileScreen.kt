@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Savings
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.twotone.Help
+import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -52,7 +52,8 @@ fun ProfileScreen(navController: NavController){
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Login,
-                        contentDescription = "Login Icon"
+                        contentDescription = "Login Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
@@ -79,6 +80,7 @@ fun ProfileScreen(navController: NavController){
                         Icon(
                             Icons.Filled.History,
                             contentDescription = "History Icon",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -87,8 +89,9 @@ fun ProfileScreen(navController: NavController){
                     modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
-                            Icons.Filled.Savings,
+                            Icons.Outlined.Savings,
                             contentDescription = "Savings icon",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -97,8 +100,9 @@ fun ProfileScreen(navController: NavController){
                     modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
-                            Icons.Filled.Settings,
+                            Icons.Outlined.Settings,
                             contentDescription = "Settings icon",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -110,8 +114,9 @@ fun ProfileScreen(navController: NavController){
                     modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
-                            Icons.Filled.SystemUpdate,
+                            Icons.Outlined.SystemUpdate,
                             contentDescription = "SystemUpdate icon",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -120,8 +125,9 @@ fun ProfileScreen(navController: NavController){
                     modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
-                            Icons.TwoTone.Help,
+                            Icons.Outlined.HelpOutline,
                             contentDescription = "Help icon",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
