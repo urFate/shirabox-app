@@ -26,24 +26,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.component.top.MediaTypesBar
 import com.tomuki.tomuki.ui.component.top.TopBar
 
 @ExperimentalMaterial3Api
-@Preview
 @Composable
-fun ExploreScreen() {
+fun ExploreScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TopBar(stringResource(R.string.search_by_name))
+        TopBar(stringResource(R.string.search_by_name), navController)
         MediaTypesBar()
 
         Column(

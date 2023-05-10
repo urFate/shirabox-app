@@ -74,7 +74,8 @@ fun ProfileScreen(navController: NavController){
                         .padding(horizontal = 48.dp, vertical = 8.dp))
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.history)) },
-                    modifier = Modifier.clickable(onClick = { navController.navigate(NestedNavItems.History.route) }),
+                    modifier = Modifier.clickable(onClick = {
+                        navController.navigate(NestedNavItems.History.route) }),
 
                     leadingContent = {
                         Icon(

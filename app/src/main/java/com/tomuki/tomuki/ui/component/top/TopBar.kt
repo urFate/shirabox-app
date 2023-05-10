@@ -17,10 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.tomuki.tomuki.ui.component.navigation.NestedNavItems
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(hint: String){
+fun TopBar(hint: String, navController: NavController?){
     Row (
         modifier = Modifier
             .padding(16.dp, 0.dp),
@@ -43,7 +45,7 @@ fun TopBar(hint: String){
             }) {}
 
         IconButton(
-            onClick = { /*TODO*/ }
+            onClick = { navController?.navigate(NestedNavItems.Notifications.route) }
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),

@@ -14,9 +14,9 @@ import com.tomuki.tomuki.ui.screen.profile.ProfileScreen
 @Composable
 fun TomukiNavHost(navController: NavHostController){
     NavHost(navController = navController, startDestination = BottomNavItems.Explore.route){
-        composable(BottomNavItems.Explore.route) { ExploreScreen() }
-        composable(BottomNavItems.Favourites.route) { FavouritesScreen() }
+        composable(BottomNavItems.Explore.route) { ExploreScreen(navController) }
+        composable(BottomNavItems.Favourites.route) { FavouritesScreen(navController) }
         composable(BottomNavItems.Profile.route) { ProfileScreen(navController) }
-        composable(NestedNavItems.History.route) { History() }
+        composable(NestedNavItems.History.route) { History(navController) }
     }
 }
