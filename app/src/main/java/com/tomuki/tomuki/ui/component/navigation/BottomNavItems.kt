@@ -14,14 +14,17 @@ sealed class BottomNavItems(
     val name: Int,
     val route: String,
     val icon: ImageVector,
-    val selectedIcon: ImageVector
+    val selectedIcon: ImageVector,
+    val children: List<String> = emptyList()
 ) {
     object Explore : BottomNavItems(R.string.explore, "explore",
         Icons.Outlined.Explore, Icons.Filled.Explore)
     object Favourites : BottomNavItems(R.string.favourites, "favourites",
         Icons.Outlined.BookmarkBorder, Icons.Filled.Bookmark)
     object Profile : BottomNavItems(R.string.profile, "profile",
-        Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle)
+        Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle,
+        listOf(NestedNavItems.History.route)
+    )
 }
 
 val navItems = listOf(

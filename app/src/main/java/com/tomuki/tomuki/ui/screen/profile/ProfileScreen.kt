@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.tomuki.tomuki.R
-import com.tomuki.tomuki.ui.component.navigation.ProfileNavItems
+import com.tomuki.tomuki.ui.component.navigation.NestedNavItems
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 
 @Composable
@@ -73,7 +73,7 @@ fun ProfileScreen(navController: NavController){
                         .padding(horizontal = 48.dp, vertical = 8.dp))
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.history)) },
-                    modifier = Modifier.clickable(onClick = { navController.navigate(ProfileNavItems.History.route) }),
+                    modifier = Modifier.clickable(onClick = { navController.navigate(NestedNavItems.History.route) }),
 
                     leadingContent = {
                         Icon(
