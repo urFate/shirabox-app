@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +58,7 @@ class ResourceActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ShowResource(MaterialTheme.colorScheme.background)
+                    ShowResource()
                 }
             }
         }
@@ -78,32 +79,25 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                     .padding(top = 0.dp)
                     .fillMaxWidth()
                     .height(512.dp)
+                    .graphicsLayer(alpha = 0.99f)
                     .drawWithCache {
-                        val gradient = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                backgroundColor
-                            ), // TODO: make white gradient
-                            startY = 0f,
-                            endY = size.height
-                        )
                         onDrawWithContent {
                             drawContent()
-                            drawRect(gradient, blendMode = BlendMode.Multiply)
+                            drawRect(Brush.verticalGradient(listOf(Color.Transparent, backgroundColor)), blendMode = BlendMode.SrcAtop)
                         }
                     },
                 painter = painterResource(id = R.drawable.blank),
                 contentDescription = "blank",
                 contentScale = ContentScale.FillWidth)
-                Image(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .width(215.dp)
-                        .height(300.dp)
-                        .clip(RoundedCornerShape(32.dp)),
-                    painter = painterResource(id = R.drawable.blank),
-                    contentDescription = "blank",
-                    contentScale = ContentScale.Crop)
+            Image(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .width(215.dp)
+                    .height(300.dp)
+                    .clip(RoundedCornerShape(32.dp)),
+                painter = painterResource(id = R.drawable.blank),
+                contentDescription = "blank",
+                contentScale = ContentScale.Crop)
 
             IconButton(
                 onClick = { /*TODO*/ },
