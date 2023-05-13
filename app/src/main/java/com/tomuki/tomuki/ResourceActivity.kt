@@ -6,8 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,10 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -116,35 +120,67 @@ fun ShowResource(){
                 Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
             }
         }
+
         Text(
             modifier = Modifier.padding(16.dp, 0.dp),
             text = "Название ресурса",
             fontSize = 22.sp,
             fontWeight = FontWeight.W800
         )
+
         Text(
             modifier = Modifier.padding(16.dp, 0.dp),
             text = "Оригинальное название",
             fontSize = 15.sp,
             fontWeight = FontWeight.W300
         )
-        Button(
-            modifier = Modifier
-                .padding(16.dp)
-                .width(156.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4141)),
-            onClick = { /* Do something! */ },
-            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
 
-        ){
-            Icon( // TODO: сделать размер кнопки по макету
-                Icons.Filled.Favorite,
-                contentDescription = "Localized description",
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text("Сохранить")
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth().padding(8.dp))
+        {
+            Button(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .width(156.dp)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4141)),
+                onClick = { /* Do something! */ },
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+
+            ){
+                Icon( // TODO: сделать размер кнопки по макету
+                    Icons.Outlined.Favorite,
+                    contentDescription = "Localized description",
+                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text("Сохранить")
+            }
+
+            Button(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .width(156.dp)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4)),
+                onClick = { /* Do something! */ },
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+
+            ){
+                Icon(
+                    Icons.Outlined.PlayArrow,
+                    contentDescription = "Localized description",
+                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text("Смотреть")
+            }
         }
+
+        Divider(thickness = 1.dp,
+            modifier = Modifier
+                .padding(horizontal = 48.dp, vertical = 8.dp))
 
     }
 }
