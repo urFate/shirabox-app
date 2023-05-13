@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,8 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tomuki.tomuki.ui.theme.BrandBrown
-import com.tomuki.tomuki.ui.theme.BrandBrownLight
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 
 class ResourceActivity : ComponentActivity() {
@@ -60,7 +57,7 @@ class ResourceActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ShowResource()
+                    ShowResource(MaterialTheme.colorScheme.background)
                 }
             }
         }
@@ -69,17 +66,15 @@ class ResourceActivity : ComponentActivity() {
 
 @Composable
 @Preview
-fun ShowResource(){
+fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        val gradientColor = if (isSystemInDarkTheme()) BrandBrownLight else BrandBrown
         Box{
             Image(
                 modifier = Modifier
-                    .clickable { }
                     .padding(top = 0.dp)
                     .fillMaxWidth()
                     .height(512.dp)
@@ -87,7 +82,7 @@ fun ShowResource(){
                         val gradient = Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                gradientColor
+                                backgroundColor
                             ), // TODO: make white gradient
                             startY = 0f,
                             endY = size.height
@@ -102,7 +97,6 @@ fun ShowResource(){
                 contentScale = ContentScale.FillWidth)
                 Image(
                     modifier = Modifier
-                        .clickable { }
                         .align(Alignment.Center)
                         .width(215.dp)
                         .height(300.dp)
