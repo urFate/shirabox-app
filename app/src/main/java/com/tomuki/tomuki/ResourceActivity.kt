@@ -1,10 +1,10 @@
 package com.tomuki.tomuki
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,17 +20,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,6 +70,7 @@ class ResourceActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
@@ -73,7 +79,8 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        Box{
+        Box {
+            val activity = (LocalContext.current as? Activity)
             Image(
                 modifier = Modifier
                     .padding(top = 0.dp)
@@ -83,12 +90,41 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                     .drawWithCache {
                         onDrawWithContent {
                             drawContent()
-                            drawRect(Brush.verticalGradient(listOf(Color.Transparent, backgroundColor)), blendMode = BlendMode.SrcAtop)
+                            drawRect(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Transparent,
+                                        backgroundColor
+                                    )
+                                ), blendMode = BlendMode.SrcAtop
+                            )
                         }
                     },
                 painter = painterResource(id = R.drawable.blank),
                 contentDescription = "blank",
-                contentScale = ContentScale.FillWidth)
+                contentScale = ContentScale.FillWidth
+            )
+
+            TopAppBar (
+                title = { },
+                navigationIcon = {
+                    IconButton(
+                        onClick = { activity?.finish() },
+                    ) {
+                        Icon(Icons.Outlined.ArrowBack, "MoreVert Icon")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
+                actions = {
+                    IconButton(
+                        onClick = { /*TODO*/ },
+                    ) {
+                        Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
+                    }
+                }
+
+            )
+
             Image(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -97,18 +133,9 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                     .clip(RoundedCornerShape(32.dp)),
                 painter = painterResource(id = R.drawable.blank),
                 contentDescription = "blank",
-                contentScale = ContentScale.Crop)
-
-            IconButton(
-                onClick = { /*TODO*/ },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .clickable { }
-            ) {
-                Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
-            }
+                contentScale = ContentScale.Crop
+            )
         }
-
         Text(
             modifier = Modifier.padding(16.dp, 0.dp),
             text = "Название ресурса",
@@ -125,7 +152,9 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
 
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth().padding(8.dp))
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp))
         {
             Button(
                 modifier = Modifier
@@ -172,3 +201,4 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
 
     }
 }
+
