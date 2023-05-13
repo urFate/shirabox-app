@@ -29,7 +29,7 @@
     <string name="books_actual">Среди новинок</string>
     <string name="popular">Популярно</string>
     <string name="notifications">Уведомления</string>
-    
+
     <!-- 
         Profile Screen Options
     -->
@@ -44,4 +44,5 @@
     -->
     <string name="unauthorized">Вход не выполнен</string>
     <string name="unauthorized_suggestion">Войти в аккаунт TomuID</string>
+    <string name="title_activity_resource">ResourceActivity</string>
 </resources>

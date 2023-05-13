@@ -12,6 +12,11 @@
         android:theme="@style/Theme.Tomuki"
         tools:targetApi="31">
         <activity
+            android:name=".ResourceActivity"
+            android:exported="false"
+            android:label="@string/title_activity_resource"
+            android:theme="@style/Theme.Tomuki" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:hardwareAccelerated="true"

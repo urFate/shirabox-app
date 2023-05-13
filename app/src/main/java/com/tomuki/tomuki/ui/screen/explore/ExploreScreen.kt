@@ -1,5 +1,6 @@
 package com.tomuki.tomuki.ui.screen.explore
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.tomuki.tomuki.R
+import com.tomuki.tomuki.ResourceActivity
 import com.tomuki.tomuki.ui.component.top.MediaTypesBar
 import com.tomuki.tomuki.ui.component.top.TopBar
 
@@ -42,6 +45,8 @@ fun ExploreScreen(navController: NavController) {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        val context = LocalContext.current
+
         TopBar(stringResource(R.string.search_by_name), navController)
         MediaTypesBar()
 
@@ -67,7 +72,7 @@ fun ExploreScreen(navController: NavController) {
 
                     ) {
                         Image(
-                            modifier = Modifier.clickable {  },
+                            modifier = Modifier.clickable { context.startActivity(Intent(context, ResourceActivity::class.java)) },
                             painter = painterResource(id = R.drawable.blank),
                             contentDescription = "blank",
                             contentScale = ContentScale.Crop)
