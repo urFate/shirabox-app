@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,18 +17,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,7 +79,7 @@ class ResourceActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
+fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,12 +100,12 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                                 Brush.verticalGradient(
                                     listOf(
                                         Color(
-                                            backgroundColor.red,
-                                            backgroundColor.green,
-                                            backgroundColor.blue,
+                                            colorScheme.background.red,
+                                            colorScheme.background.green,
+                                            colorScheme.background.blue,
                                             0.7f
                                         ),
-                                        backgroundColor
+                                        colorScheme.background
                                     )
                                 ), blendMode = BlendMode.SrcAtop
                             )
@@ -141,6 +147,7 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                 contentScale = ContentScale.Crop
             )
         }
+
         Text(
             modifier = Modifier.padding(16.dp, 0.dp),
             text = "Название ресурса",
@@ -172,7 +179,7 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
 
             ){
-                Icon( // TODO: сделать размер кнопки по макету
+                Icon(
                     Icons.Outlined.Favorite,
                     contentDescription = "Localized description",
                     modifier = Modifier.size(ButtonDefaults.IconSize)
@@ -187,7 +194,7 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                     .fillMaxWidth()
                     .height(55.dp)
                     .weight(weight = 1f, fill = false),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4)),
+                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.surfaceTint),
                 onClick = { /* Do something! */ },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
 
@@ -206,6 +213,76 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
             modifier = Modifier
                 .padding(horizontal = 48.dp, vertical = 8.dp))
 
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Movie,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Unknown Studio, 1997", // Replace with your desired text
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Movie,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Сериал, выпуск продолжается", // Replace with your desired text
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.LiveTv,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "0 из 12 эп. по ~20 мин.", // Replace with your desired text
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .padding(start = 16.dp)
+        ){
+            for(i in 1..3) {
+                FilledTonalButton(
+                    onClick = { /* Button 1 click logic */ },
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .width(IntrinsicSize.Min),
+                    colors = ButtonDefaults.filledTonalButtonColors(colorScheme.secondaryContainer)
+                ) {
+                    Text("Экшн",
+                        fontWeight = FontWeight.W500,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp)
+                }
+            }
+        }
     }
 }
 
