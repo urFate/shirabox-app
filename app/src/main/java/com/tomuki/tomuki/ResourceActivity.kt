@@ -22,11 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.EventAvailable
-import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MovieCreation
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ColorScheme
@@ -36,11 +37,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,18 +57,23 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tomuki.tomuki.ui.component.general.CardListItem
 import com.tomuki.tomuki.ui.theme.TomukiTheme
+import kotlinx.coroutines.launch
 
 class ResourceActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -80,6 +94,13 @@ class ResourceActivity : ComponentActivity() {
 @Composable
 @Preview
 fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
+    val coroutineScope = rememberCoroutineScope()
+    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -180,7 +201,7 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
 
             ){
                 Icon(
-                    Icons.Outlined.Favorite,
+                    Icons.Outlined.FavoriteBorder,
                     contentDescription = "Localized description",
                     modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
@@ -195,7 +216,7 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                     .height(55.dp)
                     .weight(weight = 1f, fill = false),
                 colors = ButtonDefaults.buttonColors(containerColor = colorScheme.surfaceTint),
-                onClick = { /* Do something! */ },
+                onClick = { openBottomSheet = true },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
 
             ){
@@ -237,6 +258,29 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                             fontSize = 12.sp)
                     },
                     onClick = { /*TODO*/ })
+            }
+        }
+    }
+
+    if(openBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                coroutineScope.launch { bottomSheetState.hide() }
+                openBottomSheet = false
+            },
+            sheetState = bottomSheetState,
+        ) {
+            repeat(4) {
+                CardListItem(
+                    headlineString = "Источник #$it",
+                    supportingString = "$it Серий",
+                    overlineString = "Обновлено 3 дня назад",
+                    coverImage = ImageBitmap.imageResource(id = R.drawable.blank),
+                    trailingIcon = Icons.Outlined.PushPin,
+                    onTrailingIconClick = { /*TODO*/ }
+                ) {
+                    /* TODO */
+                }
             }
         }
     }
