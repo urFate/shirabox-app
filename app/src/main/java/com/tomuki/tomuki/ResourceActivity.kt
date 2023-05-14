@@ -8,7 +8,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,25 +16,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.MovieCreation
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,6 +49,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -132,8 +132,8 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                     ) {
                         Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
                     }
-                }
-
+                },
+                scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
             )
 
             Image(
@@ -213,54 +213,13 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
             modifier = Modifier
                 .padding(horizontal = 48.dp, vertical = 8.dp))
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(16.dp)
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Movie,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Unknown Studio, 1997", // Replace with your desired text
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Movie,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Сериал, выпуск продолжается", // Replace with your desired text
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.LiveTv,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "0 из 12 эп. по ~20 мин.", // Replace with your desired text
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            ResourceDataLabel(icon = Icons.Outlined.MovieCreation, text = "Unknown Studio, 1997")
+            ResourceDataLabel(icon = Icons.Outlined.EventAvailable, text = "Сериал, выпуск продолжается")
+            ResourceDataLabel(icon = Icons.Outlined.LiveTv, text = "0 из 12 эп. по ~20 мин.")
         }
 
         Row(
@@ -268,21 +227,38 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
             modifier = Modifier
                 .padding(start = 16.dp)
         ){
-            for(i in 1..3) {
-                FilledTonalButton(
-                    onClick = { /* Button 1 click logic */ },
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .width(IntrinsicSize.Min),
-                    colors = ButtonDefaults.filledTonalButtonColors(colorScheme.secondaryContainer)
-                ) {
-                    Text("Экшн",
-                        fontWeight = FontWeight.W500,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 12.sp)
-                }
+            repeat(4){
+                InputChip(
+                    selected = true,
+                    label = {
+                        Text("Жанр $it",
+                            fontWeight = FontWeight.W500,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontSize = 12.sp)
+                    },
+                    onClick = { /*TODO*/ })
             }
         }
+    }
+}
+
+@Composable
+fun ResourceDataLabel(icon: ImageVector, text: String){
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
