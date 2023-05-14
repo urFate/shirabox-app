@@ -67,7 +67,6 @@ fun TomukiTheme(
             WindowCompat.setDecorFitsSystemWindows(window, false)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
             window.statusBarColor = Color.Transparent.toArgb()
-            window.navigationBarColor = Color.Transparent.toArgb()
         }
     }
     MaterialTheme(
