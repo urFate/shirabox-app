@@ -93,7 +93,12 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
                             drawRect(
                                 Brush.verticalGradient(
                                     listOf(
-                                        Color.Transparent,
+                                        Color(
+                                            backgroundColor.red,
+                                            backgroundColor.green,
+                                            backgroundColor.blue,
+                                            0.7f
+                                        ),
                                         backgroundColor
                                     )
                                 ), blendMode = BlendMode.SrcAtop
@@ -159,8 +164,9 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
             Button(
                 modifier = Modifier
                     .padding(16.dp)
-                    .width(156.dp)
-                    .height(55.dp),
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .weight(weight = 1f, fill = false),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4141)),
                 onClick = { /* Do something! */ },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
@@ -178,8 +184,9 @@ fun ShowResource(backgroundColor: Color = MaterialTheme.colorScheme.background){
             Button(
                 modifier = Modifier
                     .padding(16.dp)
-                    .width(156.dp)
-                    .height(55.dp),
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .weight(weight = 1f, fill = false),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6750A4)),
                 onClick = { /* Do something! */ },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
