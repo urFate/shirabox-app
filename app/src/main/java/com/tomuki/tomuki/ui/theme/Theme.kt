@@ -43,6 +43,7 @@ fun TomukiTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    transparentStatusBar: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -62,11 +63,13 @@ fun TomukiTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
-    SideEffect {
-        with(view.context as Activity) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-            window.statusBarColor = Color.Transparent.toArgb()
+    if(transparentStatusBar) {
+        SideEffect {
+            with(view.context as Activity) {
+                WindowCompat.setDecorFitsSystemWindows(window, false)
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+                window.statusBarColor = Color.Transparent.toArgb()
+            }
         }
     }
     MaterialTheme(

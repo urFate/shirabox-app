@@ -68,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import com.tomuki.tomuki.ui.component.general.CardListItem
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import kotlinx.coroutines.launch
@@ -76,9 +77,13 @@ class ResourceActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
-            TomukiTheme {
-                // A surface container using the 'background' color from the theme
+            TomukiTheme(
+                transparentStatusBar = true
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
