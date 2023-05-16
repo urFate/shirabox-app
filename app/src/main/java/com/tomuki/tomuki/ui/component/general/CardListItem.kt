@@ -113,3 +113,18 @@ fun CardListItem(
         }
     )
 }
+@Composable
+fun CardListItem(
+    headlineString: String,
+    overlineString: String,
+    trailingString: String,
+    onClick: () -> Unit) {
+    ListItem(
+        modifier = Modifier.clickable(onClick = onClick),
+        overlineContent = { Text(overlineString) },
+        headlineContent = { Text(headlineString) },
+        trailingContent = {
+            Text(trailingString)
+        }
+    )
+}
