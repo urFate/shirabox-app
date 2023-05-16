@@ -45,4 +45,14 @@
     <string name="unauthorized">Вход не выполнен</string>
     <string name="unauthorized_suggestion">Войти в аккаунт TomuID</string>
     <string name="title_activity_resource">ResourceActivity</string>
+
+    <!--
+        Resource Activity
+    -->
+    <string name="add_favourite">Сохранить</string>
+    <string name="watch">Смотреть</string>
+    <string name="read">Читать</string>
+    <string name="resource_status">%d из %d эп. по ~%d мин.</string>
+    <string name="rating">Рейтинг</string>
+    <string name="votes">%d Голосов</string>
 </resources>
