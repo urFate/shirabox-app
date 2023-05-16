@@ -8,6 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,12 +66,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.tomuki.tomuki.ui.component.general.CardListItem
+import com.tomuki.tomuki.ui.component.general.RatingView
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import kotlinx.coroutines.launch
 
@@ -95,7 +99,7 @@ class ResourceActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 @Preview
 fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
@@ -148,7 +152,7 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                     IconButton(
                         onClick = { activity?.finish() },
                     ) {
-                        Icon(Icons.Outlined.ArrowBack, "MoreVert Icon")
+                        Icon(Icons.Outlined.ArrowBack, "ArrowBack Icon")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
@@ -211,7 +215,7 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                     modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Сохранить")
+                Text(stringResource(id = R.string.add_favourite))
             }
 
             Button(
@@ -231,40 +235,80 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                     modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Смотреть")
+                Text(stringResource(id = R.string.watch))
             }
         }
 
         Divider(thickness = 1.dp,
             modifier = Modifier
-                .padding(horizontal = 48.dp, vertical = 8.dp))
+                .padding(48.dp, 0.dp, 48.dp, 16.dp))
 
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(16.dp, 0.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ResourceDataLabel(icon = Icons.Outlined.MovieCreation, text = "Unknown Studio, 1997")
-            ResourceDataLabel(icon = Icons.Outlined.EventAvailable, text = "Сериал, выпуск продолжается")
-            ResourceDataLabel(icon = Icons.Outlined.LiveTv, text = "0 из 12 эп. по ~20 мин.")
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ResourceDataLabel(icon = Icons.Outlined.MovieCreation, text = "Unknown Studio, 1997")
+                ResourceDataLabel(icon = Icons.Outlined.EventAvailable, text = "Сериал, выпуск продолжается")
+                ResourceDataLabel(icon = Icons.Outlined.LiveTv, text = 
+                    stringResource(
+                        id = R.string.resource_status,
+                        0, 12, 20
+                    )
+                )
+            }
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ){
+                repeat(8){
+                    InputChip(
+                        selected = true,
+                        label = {
+                            Text("Жанр $it",
+                                fontWeight = FontWeight.W500,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontSize = 12.sp)
+                        },
+                        onClick = { /*TODO*/ })
+                }
+            }
+
+            Text(
+                text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor " +
+                        "incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud" +
+                        " exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                fontWeight = FontWeight.Thin
+            )
         }
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Divider(thickness = 1.dp,
             modifier = Modifier
-                .padding(start = 16.dp)
-        ){
-            repeat(4){
-                InputChip(
-                    selected = true,
-                    label = {
-                        Text("Жанр $it",
-                            fontWeight = FontWeight.W500,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 12.sp)
-                    },
-                    onClick = { /*TODO*/ })
-            }
+                .padding(horizontal = 48.dp, vertical = 16.dp))
+
+        Column(
+            modifier = Modifier.padding(16.dp, 0.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.rating),
+                fontSize = 21.sp,
+                fontWeight = FontWeight.W800
+            )
+
+            RatingView(averageRating = 8.1, votes = 147, values = mapOf(
+                10 to 0.6f,
+                9 to 0.4f,
+                8 to 0.5f,
+                7 to 0.8f,
+                6 to 0.3f,
+                5 to 0.1f
+            ))
         }
+
+        Spacer(Modifier.height(128.dp))
     }
 
     if(openBottomSheet) {
