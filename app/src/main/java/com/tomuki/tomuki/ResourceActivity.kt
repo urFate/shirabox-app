@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -297,6 +299,43 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
             ))
         }
 
+        Divider(thickness = 1.dp,
+            modifier = Modifier
+                .padding(horizontal = 48.dp, vertical = 16.dp))
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                modifier = Modifier.padding(16.dp, 0.dp),
+                text = stringResource(id = R.string.related),
+                fontSize = 21.sp,
+                fontWeight = FontWeight.W800
+            )
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(4){
+                    if(it == 0) Spacer(modifier = Modifier.width(16.dp))
+
+                    Surface(
+                        modifier = Modifier.size(140.dp, 190.dp),
+                        shape = RoundedCornerShape(15)
+
+                    ) {
+                        Image(
+                            modifier = Modifier.clickable { /* TODO */ },
+                            painter = painterResource(id = R.drawable.blank),
+                            contentDescription = "blank",
+                            contentScale = ContentScale.Crop)
+                    }
+
+                    if(it == 3) Spacer(modifier = Modifier.width(16.dp))
+                }
+            }
+        }
+
         Spacer(Modifier.height(128.dp))
 
         sourcesBottomSheet.BottomSheetComponent {
@@ -327,8 +366,6 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
             }
         }
     }
-
-
 }
 
 @Composable

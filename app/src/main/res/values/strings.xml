@@ -55,4 +55,5 @@
     <string name="resource_status">%d из %d эп. по ~%d мин.</string>
     <string name="rating">Рейтинг</string>
     <string name="votes">%d Голосов</string>
+    <string name="related">Связанное</string>
 </resources>
