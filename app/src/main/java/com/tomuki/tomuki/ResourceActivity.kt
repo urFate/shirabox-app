@@ -327,7 +327,10 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                     overlineString = "Обновлено 3 дня назад",
                     coverImage = ImageBitmap.imageResource(id = R.drawable.blank),
                     trailingIcon = Icons.Outlined.PushPin,
-                    onTrailingIconClick = { openBottomSheetEpisodes = true }) {
+                    onTrailingIconClick = {
+                        openBottomSheetEpisodes = true
+                        coroutineScope.launch { bottomSheetState.hide() }
+                        openBottomSheet = false }) {
                     /* TODO */
                 }
             }
@@ -339,12 +342,13 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
             onDismissRequest = {
                 coroutineScope.launch { bottomSheetStateEpisodes.hide() }
                 openBottomSheetEpisodes = false
+
             },
             sheetState = bottomSheetState,
         ) {
             repeat(4) {
                 CardListItem(
-                    headlineString = "Источник #$it",
+                    headlineString = "Название #$it",
                     trailingString = "$it Серий",
                     overlineString = "Обновлено 3 дня назад"
                 ) {
