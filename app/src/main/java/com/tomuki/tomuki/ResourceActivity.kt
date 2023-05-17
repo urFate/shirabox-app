@@ -80,9 +80,13 @@ class ResourceActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
-            TomukiTheme {
-                // A surface container using the 'background' color from the theme
+            TomukiTheme(
+                transparentStatusBar = true
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
