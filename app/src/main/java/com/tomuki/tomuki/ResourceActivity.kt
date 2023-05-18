@@ -62,12 +62,14 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.tomuki.tomuki.ui.component.general.BottomSheet
 import com.tomuki.tomuki.ui.component.general.CardListItem
+import com.tomuki.tomuki.ui.component.general.ExpandableBox
 import com.tomuki.tomuki.ui.component.general.RatingView
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 
@@ -267,12 +269,24 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                 }
             }
 
-            Text(
-                text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor " +
-                        "incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud" +
-                        " exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-                fontWeight = FontWeight.Thin
-            )
+            ExpandableBox(startHeight = 128.dp) {
+                Text(
+                    text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod" +
+                            " tempor incididunt ut labore et dolore magna aliqua. Eget duis at " +
+                            "tellus at. Scelerisque viverra mauris in aliquam sem fringilla. " +
+                            "Vitae suscipit tellus mauris a. Ac tortor vitae purus faucibus " +
+                            "ornare suspendisse sed nisi lacus. Sollicitudin ac orci phasellus " +
+                            "egestas tellus rutrum tellus. Quis blandit turpis cursus in. " +
+                            "Condimentum mattis pellentesque id nibh tortor. " +
+                            "Consequat interdum varius sit amet mattis vulputate enim nulla aliquet. " +
+                            "Diam sit amet nisl suscipit adipiscing bibendum. Faucibus turpis in " +
+                            "eu mi bibendum neque egestas congue quisque. Mauris nunc congue nisi" +
+                            " vitae suscipit tellus. Eu consequat ac felis donec et odio. Semper " +
+                            "quis lectus nulla at volutpat diam.",
+                    fontWeight = FontWeight.Thin,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
 
         Divider(thickness = 1.dp,
