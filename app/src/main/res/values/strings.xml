@@ -57,4 +57,9 @@
     <string name="votes">%d Голосов</string>
     <string name="related">Связанное</string>
     <string name="discussion">Обсуждение</string>
+
+    <!--
+        Reader Activity
+    -->
+    <string name="title_activity_reader">ReaderActivity</string>
 </resources>
