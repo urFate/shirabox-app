@@ -56,4 +56,5 @@
     <string name="rating">Рейтинг</string>
     <string name="votes">%d Голосов</string>
     <string name="related">Связанное</string>
+    <string name="discussion">Обсуждение</string>
 </resources>

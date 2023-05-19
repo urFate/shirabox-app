@@ -269,7 +269,9 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
                 }
             }
 
-            ExpandableBox(startHeight = 128.dp) {
+            ExpandableBox(
+                startHeight = 128.dp
+            ) {
                 Text(
                     text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod" +
                             " tempor incididunt ut labore et dolore magna aliqua. Eget duis at " +
@@ -350,14 +352,47 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
             }
         }
 
-        Spacer(Modifier.height(128.dp))
+        Divider(thickness = 1.dp,
+            modifier = Modifier
+                .padding(horizontal = 48.dp, vertical = 16.dp))
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                modifier = Modifier.padding(16.dp, 0.dp),
+                text = stringResource(id = R.string.discussion),
+                fontSize = 21.sp,
+                fontWeight = FontWeight.W800
+            )
+
+            ExpandableBox(
+                startHeight = 98.dp,
+                fadeEffect = false,
+                disposable = true
+            ) {
+                Column {
+                    repeat(4) {
+                        CommentComponent(
+                            username = "Пользователь $it",
+                            avatar = ImageBitmap.imageResource(id = R.drawable.blank),
+                            timestamp = "$it дней назад",
+                            text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, " +
+                                    "sed do eiusmod"
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(64.dp))
 
         sourcesBottomSheet.BottomSheetComponent {
             repeat(5) {
                 CardListItem(
-                    headlineString = "Источник #$it",
-                    supportingString = "$it Серий",
-                    overlineString = "Обновлено 3 дня назад",
+                    headlineContent = { Text("Источник #$it") },
+                    supportingContent = { Text("$it Серий") },
+                    overlineContent = { Text("Обновлено 3 дня назад") },
                     coverImage = ImageBitmap.imageResource(id = R.drawable.blank),
                     trailingIcon = Icons.Outlined.PushPin,
                     onTrailingIconClick = { /*TODO*/ }
@@ -400,5 +435,31 @@ fun ResourceDataLabel(icon: ImageVector, text: String){
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+@Composable
+fun CommentComponent(username: String, avatar: ImageBitmap, timestamp: String, text: String) {
+    CardListItem(
+        headlineContent = {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    text = username
+                )
+                Text(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    text = timestamp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        },
+        supportingContent = { Text(text) },
+        coverImage = avatar,
+        clickable = false,
+        trailingIcon = null,
+    )
 }
 

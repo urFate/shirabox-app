@@ -79,37 +79,43 @@ fun CardListItem(
 
 @Composable
 fun CardListItem(
-    headlineString: String,
-    overlineString: String,
-    supportingString: String,
-    coverImage: ImageBitmap,
-    trailingIcon: ImageVector,
-    onTrailingIconClick: () -> Unit,
-    onClick: () -> Unit) {
+    headlineContent: @Composable () -> Unit,
+    overlineContent: @Composable () -> Unit = {},
+    supportingContent: @Composable () -> Unit = {},
+    coverImage: ImageBitmap?,
+    trailingIcon: ImageVector?,
+    clickable: Boolean = true,
+    onTrailingIconClick: () -> Unit = {},
+    onClick: () -> Unit = {}
+    ) {
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        overlineContent = { Text(overlineString) },
-        headlineContent = { Text(headlineString) },
-        supportingContent = { Text(supportingString) },
+        modifier = if(clickable) Modifier.clickable(onClick = onClick) else Modifier,
+        overlineContent = overlineContent,
+        headlineContent = headlineContent,
+        supportingContent = supportingContent,
         trailingContent = {
-            Surface(onTrailingIconClick) {
-                Icon(
-                    imageVector = trailingIcon,
-                    contentDescription = headlineString,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            trailingIcon?.let{
+                Surface(onTrailingIconClick) {
+                    Icon(
+                        imageVector = trailingIcon,
+                        contentDescription = "Trailing Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         },
         leadingContent = {
-            Image(
-                modifier = Modifier
-                    .height(40.dp)
-                    .width(40.dp)
-                    .clip(RoundedCornerShape(100)),
-                painter = BitmapPainter(coverImage),
-                contentDescription = stringResource(id = R.string.history),
-                contentScale = ContentScale.Crop
-            )
+            coverImage?.let{
+                Image(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(40.dp)
+                        .clip(RoundedCornerShape(100)),
+                    painter = BitmapPainter(coverImage),
+                    contentDescription = "Composable Image",
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
     )
 }

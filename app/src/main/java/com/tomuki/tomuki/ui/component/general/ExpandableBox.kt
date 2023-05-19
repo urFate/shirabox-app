@@ -36,6 +36,7 @@ fun ExpandableBox(
     startHeight: Dp,
     fadeEffect: Boolean = true,
     disposable: Boolean = false,
+    onExpand: () -> Unit = {},
     content: @Composable BoxScope.() -> Unit
 ){
     var isExpanded by remember { mutableStateOf(false) }
@@ -47,7 +48,10 @@ fun ExpandableBox(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
-            ) { isExpanded = if(disposable) true else !isExpanded }
+            ) {
+                isExpanded = if(disposable) true else !isExpanded
+                onExpand.invoke()
+            }
             .fillMaxWidth()
             .animateContentSize()
             .then(modifier)
