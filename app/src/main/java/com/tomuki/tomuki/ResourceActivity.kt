@@ -1,6 +1,7 @@
 package com.tomuki.tomuki
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -404,13 +405,15 @@ fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
         }
 
         contentBottomSheet.BottomSheetComponent {
+            val context = LocalContext.current
+
             repeat(6) {
                 CardListItem(
                     headlineString = "Название #$it",
                     trailingString = "$it Серий",
                     overlineString = "Обновлено 3 дня назад"
                 ) {
-                    /* TODO */
+                    context.startActivity(Intent(context, ReaderActivity::class.java))
                 }
             }
         }
