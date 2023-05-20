@@ -30,9 +30,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,25 +76,35 @@ fun ReaderScaffold(){
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
+            val pages = listOf(
+                ImageBitmap.imageResource(id = R.drawable.blank),
+                ImageBitmap.imageResource(id = R.drawable.blank),
+                ImageBitmap.imageResource(id = R.drawable.blank)
+            )
+
             ReaderPager(
                 mode = ReaderMode.HORIZONTAL,
                 pagerState = pagerState,
-                pages = listOf(
+                pages = pages.map { bitmap: ImageBitmap ->
                     {
                         Image(
                             modifier = Modifier.fillMaxSize(),
-                            painter = painterResource(id = R.drawable.blank),
-                            contentDescription = null
-                        )
-                    },
-                    {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            painter = painterResource(id = R.drawable.blank),
-                            contentDescription = null
+                            bitmap = bitmap,
+                            contentDescription = "Page $it"
                         )
                     }
-                )
+                }
+            )
+
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
+                text = "${pagerState.currentPage}/${pages.size}",
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
         }
     }
