@@ -3,6 +3,9 @@ package com.tomuki.tomuki
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -44,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import soup.compose.photo.ExperimentalPhotoApi
 import soup.compose.photo.PhotoBox
+import soup.compose.photo.PhotoState
 import soup.compose.photo.rememberPhotoState
 
 class ReaderActivity : ComponentActivity() {
@@ -62,14 +66,17 @@ class ReaderActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalPhotoApi::class)
 @Composable
 fun ReaderScaffold(){
     val pagerState = rememberPagerState()
+    val photoState = rememberPhotoState()
+
+    photoState.setPhotoIntrinsicSize(Size.Unspecified)
 
     Scaffold(
-        topBar = { ReaderTopBar("Том 1 Глава 1") },
-        bottomBar = { ReaderBottomBar() }
+        topBar = { ReaderTopBar("Том 1 Глава 1", photoState) },
+        bottomBar = { ReaderBottomBar(photoState) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -85,6 +92,7 @@ fun ReaderScaffold(){
             ReaderPager(
                 mode = ReaderMode.HORIZONTAL,
                 pagerState = pagerState,
+                photoState = photoState,
                 pages = pages.map { bitmap: ImageBitmap ->
                     {
                         Image(
@@ -110,77 +118,95 @@ fun ReaderScaffold(){
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPhotoApi::class)
 @Composable
-fun ReaderTopBar(title: String){
-    TopAppBar(
-        title = { Text(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            text = title,
-            overflow = TextOverflow.Ellipsis
-        ) },
-        navigationIcon = {
-            IconButton(
-                onClick = { /*TODO*/ }
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
-                    contentDescription = "Arrow Back",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_captive_portal),
-                    contentDescription = "Open In Web",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors()
-    )
+fun ReaderTopBar(title: String, photoState: PhotoState){
+    AnimatedVisibility(
+        visible = !photoState.isScaled,
+        enter = slideInVertically(initialOffsetY = { -it }),
+        exit = slideOutVertically(targetOffsetY = { -it }),
+    ) {
+        TopAppBar(
+            title = { Text(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                text = title,
+                overflow = TextOverflow.Ellipsis
+            ) },
+            navigationIcon = {
+                IconButton(
+                    onClick = { /*TODO*/ }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowBack,
+                        contentDescription = "Arrow Back",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_captive_portal),
+                        contentDescription = "Open In Web",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors()
+        )
+    }
 }
 
+@OptIn(ExperimentalPhotoApi::class)
 @Composable
-fun ReaderBottomBar(){
-    BottomAppBar {
+fun ReaderBottomBar(photoState: PhotoState){
+    AnimatedVisibility(
+        visible = !photoState.isScaled,
+        enter = slideInVertically(initialOffsetY = { it }),
+        exit = slideOutVertically(targetOffsetY = { it }),
+    ) {
+        BottomAppBar {
 
-        // Reading mode
-        IconButton(onClick = { /* TODO */ }) {
-            Icon(
-                imageVector = Icons.Outlined.ControlCamera,
-                contentDescription = "Reading Mode",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+            // Reading mode
+            IconButton(onClick = { /* TODO */ }) {
+                Icon(
+                    imageVector = Icons.Outlined.ControlCamera,
+                    contentDescription = "Reading Mode",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-        // Screen rotation
-        IconButton(onClick = { /* TODO */ }) {
-            Icon(
-                imageVector = Icons.Outlined.ScreenRotation,
-                contentDescription = "Screen Rotation",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+            // Screen rotation
+            IconButton(onClick = { /* TODO */ }) {
+                Icon(
+                    imageVector = Icons.Outlined.ScreenRotation,
+                    contentDescription = "Screen Rotation",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-        // Add to bookmarks
-        IconButton(onClick = { /* TODO */ }) {
-            Icon(
-                imageVector = Icons.Outlined.BookmarkAdd,
-                contentDescription = "Bookmark Add",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Add to bookmarks
+            IconButton(onClick = { /* TODO */ }) {
+                Icon(
+                    imageVector = Icons.Outlined.BookmarkAdd,
+                    contentDescription = "Bookmark Add",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalPhotoApi::class)
 @Composable
-fun ReaderPager(mode: ReaderMode, pagerState: PagerState, pages: List<@Composable (Int) -> Unit>){
+fun ReaderPager(
+    mode: ReaderMode,
+    pagerState: PagerState,
+    photoState: PhotoState,
+    pages: List<@Composable (Int) -> Unit>
+){
     when(mode){
         ReaderMode.HORIZONTAL -> {
             HorizontalPager(
@@ -188,9 +214,6 @@ fun ReaderPager(mode: ReaderMode, pagerState: PagerState, pages: List<@Composabl
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
             ) {
-                val photoState = rememberPhotoState()
-                photoState.setPhotoIntrinsicSize(Size.Unspecified)
-
                 PhotoBox(
                     state = photoState
                 ) { pages[it].invoke(it) }
@@ -202,9 +225,6 @@ fun ReaderPager(mode: ReaderMode, pagerState: PagerState, pages: List<@Composabl
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
             ) {
-                val photoState = rememberPhotoState()
-                photoState.setPhotoIntrinsicSize(Size.Unspecified)
-
                 PhotoBox(
                     state = photoState
                 ) { pages[it].invoke(it) }
