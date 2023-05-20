@@ -1,13 +1,23 @@
 package com.tomuki.tomuki
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateRotation
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,10 +43,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,10 +69,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.tomuki.tomuki.ui.theme.TomukiTheme
-import soup.compose.photo.ExperimentalPhotoApi
-import soup.compose.photo.PhotoBox
-import soup.compose.photo.PhotoState
-import soup.compose.photo.rememberPhotoState
+import kotlin.math.abs
+import kotlin.math.withSign
+
 
 class ReaderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,19 +89,21 @@ class ReaderActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalPhotoApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReaderScaffold(){
     val pagerState = rememberPagerState()
-    val photoState = rememberPhotoState()
+    val hideSystemBars = remember {
+        mutableStateOf(false)
+    }
+    val scrollEnabled = remember { mutableStateOf(true) }
     val systemUiController = rememberSystemUiController()
 
-    photoState.setPhotoIntrinsicSize(Size.Unspecified)
-    systemUiController.isSystemBarsVisible = !photoState.isScaled
+    systemUiController.isSystemBarsVisible = hideSystemBars.value
 
     Scaffold(
-        topBar = { ReaderTopBar("Том 1 Глава 1", photoState) },
-        bottomBar = { ReaderBottomBar(photoState) },
+        topBar = { ReaderTopBar("Том 1 Глава 1", hideSystemBars.value) },
+        bottomBar = { ReaderBottomBar(hideSystemBars.value) },
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -95,7 +119,8 @@ fun ReaderScaffold(){
             ReaderPager(
                 mode = ReaderMode.HORIZONTAL,
                 pagerState = pagerState,
-                photoState = photoState,
+                hideSystemBars = hideSystemBars,
+                scrollEnabled = scrollEnabled,
                 pages = pages.map { bitmap: ImageBitmap ->
                     {
                         Image(
@@ -112,7 +137,7 @@ fun ReaderScaffold(){
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(16.dp),
-                text = "${pagerState.currentPage}/${pages.size}",
+                text = "${pagerState.currentPage + 1}/${pages.size}",
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -121,11 +146,11 @@ fun ReaderScaffold(){
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPhotoApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReaderTopBar(title: String, photoState: PhotoState){
+fun ReaderTopBar(title: String, isVisible: Boolean){
     AnimatedVisibility(
-        visible = !photoState.isScaled,
+        visible = isVisible,
         enter = slideInVertically(initialOffsetY = { -it }),
         exit = slideOutVertically(targetOffsetY = { -it }),
     ) {
@@ -162,11 +187,10 @@ fun ReaderTopBar(title: String, photoState: PhotoState){
     }
 }
 
-@OptIn(ExperimentalPhotoApi::class)
 @Composable
-fun ReaderBottomBar(photoState: PhotoState){
+fun ReaderBottomBar(isVisible: Boolean) {
     AnimatedVisibility(
-        visible = !photoState.isScaled,
+        visible = isVisible,
         enter = slideInVertically(initialOffsetY = { it }),
         exit = slideOutVertically(targetOffsetY = { it }),
     ) {
@@ -202,14 +226,16 @@ fun ReaderBottomBar(photoState: PhotoState){
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalPhotoApi::class)
+@SuppressLint("InflateParams")
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReaderPager(
     modifier: Modifier = Modifier,
     mode: ReaderMode,
     pagerState: PagerState,
-    photoState: PhotoState,
-    pages: List<@Composable (Int) -> Unit>
+    hideSystemBars: MutableState<Boolean>,
+    pages: List<@Composable (Int) -> Unit>,
+    scrollEnabled: MutableState<Boolean>
 ){
     when(mode){
         ReaderMode.HORIZONTAL -> {
@@ -217,11 +243,13 @@ fun ReaderPager(
                 modifier = modifier,
                 pageCount = pages.size,
                 state = pagerState,
-                flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
+                flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
+                userScrollEnabled = scrollEnabled.value
             ) {
-                PhotoBox(
-                    state = photoState
-                ) { pages[it].invoke(it) }
+                ZoomablePagerImage(painter = painterResource(id = R.drawable.blank),
+                    hideSystemBars = hideSystemBars,
+                    scrollEnabled = scrollEnabled,
+                    modifier = Modifier.fillMaxSize())
             }
         }
         ReaderMode.VERTICAL -> {
@@ -229,11 +257,13 @@ fun ReaderPager(
                 modifier = modifier,
                 pageCount = pages.size,
                 state = pagerState,
-                flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
+                flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
+                userScrollEnabled = scrollEnabled.value
             ) {
-                PhotoBox(
-                    state = photoState
-                ) { pages[it].invoke(it) }
+                ZoomablePagerImage(painter = painterResource(id = R.drawable.blank),
+                    hideSystemBars = hideSystemBars,
+                    scrollEnabled = scrollEnabled,
+                    modifier = Modifier.fillMaxSize())
             }
         }
     }
@@ -249,4 +279,100 @@ fun ReaderPreview() {
 
 enum class ReaderMode {
     HORIZONTAL, VERTICAL
+}
+
+// TODO: думаю хорошо бы это вынесты в отдельный файл
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ZoomablePagerImage(
+    modifier: Modifier = Modifier,
+    painter: Painter,
+    scrollEnabled: MutableState<Boolean>,
+    minScale: Float = 1f,
+    maxScale: Float = 5f,
+    contentScale: ContentScale = ContentScale.Fit,
+    isRotation: Boolean = false,
+    hideSystemBars: MutableState<Boolean>
+) {
+    var targetScale by remember { mutableStateOf(1f) }
+    val scale = animateFloatAsState(targetValue = maxOf(minScale, minOf(maxScale, targetScale)))
+    var rotationState by remember { mutableStateOf(1f) }
+    var offsetX by remember { mutableStateOf(1f) }
+    var offsetY by remember { mutableStateOf(1f) }
+    val configuration = LocalConfiguration.current
+    val screenWidthPx = with(LocalDensity.current) { configuration.screenWidthDp.dp.toPx() }
+    Box(
+        modifier = Modifier
+            .clip(RectangleShape)
+            .background(Color.Transparent)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = { },
+                onDoubleClick = {
+                    if (targetScale >= 1.5f) {
+                        targetScale = 1f
+                        offsetX = 1f
+                        offsetY = 1f
+                        scrollEnabled.value = true
+                        hideSystemBars.value = true
+                    } else targetScale = 3f
+                },
+            )
+            .pointerInput(Unit) {
+                // note: можно заменить на новее аналог, но пока вышло только так
+                forEachGesture {
+                    awaitPointerEventScope {
+                        awaitFirstDown()
+                        do {
+                            val event = awaitPointerEvent()
+                            val zoom = event.calculateZoom()
+                            targetScale *= zoom
+                            val offset = event.calculatePan()
+                            if (targetScale <= 1) {
+                                offsetX = 1f
+                                offsetY = 1f
+                                targetScale = 1f
+                                scrollEnabled.value = true
+                                hideSystemBars.value = true
+                            } else {
+                                offsetX += offset.x
+                                offsetY += offset.y
+                                if (zoom > 1) {
+                                    scrollEnabled.value = false
+                                    hideSystemBars.value = false
+                                    rotationState += event.calculateRotation()
+                                }
+                                val imageWidth = screenWidthPx * scale.value
+                                val borderReached = imageWidth - screenWidthPx - 2 * abs(offsetX)
+                                scrollEnabled.value = borderReached <= 0
+                                hideSystemBars.value = scrollEnabled.value
+                                if (borderReached < 0) {
+                                    offsetX = ((imageWidth - screenWidthPx) / 2f).withSign(offsetX)
+                                    if (offset.x != 0f) offsetY -= offset.y
+                                }
+                            }
+                        } while (event.changes.any { it.pressed })
+                    }
+                }
+            }
+
+    ) {
+        Image(
+            painter = painter,
+            contentDescription = null,
+            contentScale = contentScale,
+            modifier = modifier
+                .align(Alignment.Center)
+                .graphicsLayer {
+                    this.scaleX = scale.value
+                    this.scaleY = scale.value
+                    if (isRotation) {
+                        rotationZ = rotationState
+                    }
+                    this.translationX = offsetX
+                    this.translationY = offsetY
+                }
+        )
+    }
 }
