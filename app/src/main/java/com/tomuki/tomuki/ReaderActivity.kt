@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import soup.compose.photo.ExperimentalPhotoApi
 import soup.compose.photo.PhotoBox
@@ -71,12 +72,14 @@ class ReaderActivity : ComponentActivity() {
 fun ReaderScaffold(){
     val pagerState = rememberPagerState()
     val photoState = rememberPhotoState()
+    val systemUiController = rememberSystemUiController()
 
     photoState.setPhotoIntrinsicSize(Size.Unspecified)
+    systemUiController.isSystemBarsVisible = !photoState.isScaled
 
     Scaffold(
         topBar = { ReaderTopBar("Том 1 Глава 1", photoState) },
-        bottomBar = { ReaderBottomBar(photoState) }
+        bottomBar = { ReaderBottomBar(photoState) },
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -202,6 +205,7 @@ fun ReaderBottomBar(photoState: PhotoState){
 @OptIn(ExperimentalFoundationApi::class, ExperimentalPhotoApi::class)
 @Composable
 fun ReaderPager(
+    modifier: Modifier = Modifier,
     mode: ReaderMode,
     pagerState: PagerState,
     photoState: PhotoState,
@@ -210,6 +214,7 @@ fun ReaderPager(
     when(mode){
         ReaderMode.HORIZONTAL -> {
             HorizontalPager(
+                modifier = modifier,
                 pageCount = pages.size,
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
@@ -221,6 +226,7 @@ fun ReaderPager(
         }
         ReaderMode.VERTICAL -> {
             VerticalPager(
+                modifier = modifier,
                 pageCount = pages.size,
                 state = pagerState,
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
