@@ -62,4 +62,5 @@
         Player Activity
     -->
     <string name="title_activity_player">PlayerActivity</string>
+    <string name="episode_string">Серия %d</string>
 </resources>
