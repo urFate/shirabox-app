@@ -193,6 +193,8 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerTopBar(title: String, episode: Int){
+    val activity = LocalContext.current as Activity
+
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         title = {
@@ -209,7 +211,7 @@ fun PlayerTopBar(title: String, episode: Int){
             }
         },
         navigationIcon = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { activity.finish() }) {
                 Icon(
                     imageVector = Icons.Outlined.ArrowBack,
                     contentDescription = null
