@@ -7,7 +7,12 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,9 +44,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,6 +69,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.tomuki.tomuki.ui.theme.BrandRed
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 class PlayerActivity : ComponentActivity() {
@@ -97,6 +105,11 @@ fun VideoPlayer(stream: String){
     val context = LocalContext.current
     val playerView = PlayerView(context)
 
+    val controlsVisibilityState = remember {
+        mutableStateOf(true)
+    }
+    val coroutineScope = rememberCoroutineScope()
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(
@@ -108,9 +121,29 @@ fun VideoPlayer(stream: String){
     }
 
     Box(
-        modifier = Modifier.background(Color(0xFF000000))
+        modifier = Modifier
+            .background(Color(0xFF000000))
+            .clickable(
+                interactionSource = MutableInteractionSource(),
+                indication = null
+            ) {
+                coroutineScope.launch {
+                    controlsVisibilityState.value = !controlsVisibilityState.value
+
+                    delay(3000).let {
+                        if (exoPlayer.isPlaying)
+                            controlsVisibilityState.value = !controlsVisibilityState.value
+                    }
+                }
+            }
     ) {
-        DisposableEffect(key1 = Unit) { onDispose { exoPlayer.release() } }
+        DisposableEffect(key1 = Unit) {
+            exoPlayer.addListener(
+                PlayerLoadingStateListener(coroutineScope, exoPlayer, controlsVisibilityState)
+            )
+
+            onDispose { exoPlayer.release() }
+        }
 
         AndroidView(
             factory = {
@@ -126,12 +159,24 @@ fun VideoPlayer(stream: String){
             }
         )
 
-        ControlsScaffold(title = "Название", episode = 1, exoPlayer)
+        AnimatedVisibility(
+            visible = controlsVisibilityState.value,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            ControlsScaffold(
+                title = "Название",
+                episode = 1,
+                exoPlayer = exoPlayer,
+                controlsVisibilityState = controlsVisibilityState
+            )
+        }
     }
 }
 
 @Composable
-fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer){
+fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer,
+                     controlsVisibilityState: MutableState<Boolean>){
     var isPlaying by remember {
         mutableStateOf(exoPlayer.isPlaying)
     }
@@ -147,6 +192,7 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer){
     var playbackState by remember {
         mutableStateOf(exoPlayer.playbackState)
     }
+    val coroutineScope = rememberCoroutineScope()
 
     /**
      * FIXME: Any better solution to update timeline?
@@ -182,6 +228,13 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer){
                 onSkipPrevious = { exoPlayer.seekToPrevious() },
                 onPlayToggle = {
                     exoPlayer.playWhenReady = !exoPlayer.isPlaying
+
+                    coroutineScope.launch {
+                        if(exoPlayer.isPlaying)
+                            delay(3000).let {
+                                controlsVisibilityState.value = !controlsVisibilityState.value
+                            }
+                    }
                 },
                 onSkipNext = { exoPlayer.seekToNext() }
             )
