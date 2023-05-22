@@ -19,12 +19,12 @@
             android:label="@string/title_activity_player"
             android:theme="@style/Theme.Tomuki" />
         <activity
-            android:name=".ResourceActivity"
+            android:name=".ui.activity.ResourceActivity"
             android:exported="false"
             android:label="@string/title_activity_resource"
             android:theme="@style/Theme.Tomuki" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:exported="true"
             android:hardwareAccelerated="true"
             android:theme="@style/Theme.Tomuki">

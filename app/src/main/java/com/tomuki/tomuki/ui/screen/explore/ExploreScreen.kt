@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.tomuki.tomuki.R
-import com.tomuki.tomuki.ResourceActivity
+import com.tomuki.tomuki.ui.activity.ResourceActivity
 import com.tomuki.tomuki.ui.component.top.MediaTypesBar
 import com.tomuki.tomuki.ui.component.top.TopBar
 
