@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.FullscreenExit
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,6 +65,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -226,6 +229,7 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer,
             PlaybackControls(
                 modifier = Modifier.padding(it),
                 isPlaying = isPlaying,
+                isLoaded = playbackState == Player.STATE_READY,
                 onSkipPrevious = { exoPlayer.seekToPrevious() },
                 onPlayToggle = {
                     exoPlayer.playWhenReady = !exoPlayer.isPlaying
@@ -293,6 +297,7 @@ fun PlayerTopBar(title: String, episode: Int){
 fun PlaybackControls(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
+    isLoaded: Boolean,
     onSkipPrevious: () -> Unit,
     onPlayToggle: () -> Unit,
     onSkipNext: () -> Unit
@@ -304,32 +309,34 @@ fun PlaybackControls(
             ),
         contentAlignment = Alignment.Center
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(48.dp)
+        AnimatedVisibility(
+            visible = !isLoaded,
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
-            IconButton(onClick = onSkipPrevious) {
-                Icon(
-                    modifier = Modifier.size(42.dp),
+            CircularProgressIndicator()
+        }
+
+        AnimatedVisibility(
+            visible = isLoaded,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(48.dp)
+            ) {
+                PlaybackIconButton(
                     imageVector = Icons.Outlined.SkipPrevious,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.inverseOnSurface
+                    onClick = onSkipPrevious
                 )
-            }
-            IconButton(onClick = onPlayToggle) {
-                Icon(
-                    modifier = Modifier.size(42.dp),
+                PlaybackIconButton(
                     imageVector = if(isPlaying)
                         Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.inverseOnSurface
+                    onClick = onPlayToggle
                 )
-            }
-            IconButton(onClick = onSkipNext) {
-                Icon(
-                    modifier = Modifier.size(42.dp),
+                PlaybackIconButton(
                     imageVector = Icons.Outlined.SkipNext,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.inverseOnSurface
+                    onClick = onSkipNext
                 )
             }
         }
@@ -401,6 +408,18 @@ fun PlayerBottomBar(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun PlaybackIconButton(imageVector: ImageVector, onClick: () -> Unit){
+    IconButton(onClick = onClick) {
+        Icon(
+            modifier = Modifier.size(42.dp),
+            imageVector = imageVector,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.inverseOnSurface
+        )
     }
 }
 
