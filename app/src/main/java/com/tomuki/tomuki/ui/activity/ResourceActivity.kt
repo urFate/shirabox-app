@@ -1,4 +1,4 @@
-package com.tomuki.tomuki
+package com.tomuki.tomuki.ui.activity
 
 import android.app.Activity
 import android.os.Bundle
@@ -67,6 +67,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.component.general.BottomSheet
 import com.tomuki.tomuki.ui.component.general.CardListItem
 import com.tomuki.tomuki.ui.component.general.ExpandableBox

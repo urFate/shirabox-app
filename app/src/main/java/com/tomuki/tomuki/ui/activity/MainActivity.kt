@@ -1,4 +1,4 @@
-package com.tomuki.tomuki
+package com.tomuki.tomuki.ui.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
