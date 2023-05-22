@@ -12,11 +12,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
-import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -89,6 +89,7 @@ class ReaderActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReaderScaffold(){
@@ -104,10 +105,10 @@ fun ReaderScaffold(){
     Scaffold(
         topBar = { ReaderTopBar("Том 1 Глава 1", hideSystemBars.value) },
         bottomBar = { ReaderBottomBar(hideSystemBars.value) },
-    ) { paddingValues ->
+    ) {
         Box(
             modifier = Modifier
-                .padding(paddingValues)
+                .padding(0.dp)
                 .fillMaxSize()
         ) {
             val pages = listOf(
@@ -320,40 +321,37 @@ fun ZoomablePagerImage(
                 },
             )
             .pointerInput(Unit) {
-                // note: можно заменить на новее аналог, но пока вышло только так
-                forEachGesture {
-                    awaitPointerEventScope {
-                        awaitFirstDown()
-                        do {
-                            val event = awaitPointerEvent()
-                            val zoom = event.calculateZoom()
-                            targetScale *= zoom
-                            val offset = event.calculatePan()
-                            if (targetScale <= 1) {
-                                offsetX = 1f
-                                offsetY = 1f
-                                targetScale = 1f
-                                scrollEnabled.value = true
-                                hideSystemBars.value = true
-                            } else {
-                                offsetX += offset.x
-                                offsetY += offset.y
-                                if (zoom > 1) {
-                                    scrollEnabled.value = false
-                                    hideSystemBars.value = false
-                                    rotationState += event.calculateRotation()
-                                }
-                                val imageWidth = screenWidthPx * scale.value
-                                val borderReached = imageWidth - screenWidthPx - 2 * abs(offsetX)
-                                scrollEnabled.value = borderReached <= 0
-                                hideSystemBars.value = scrollEnabled.value
-                                if (borderReached < 0) {
-                                    offsetX = ((imageWidth - screenWidthPx) / 2f).withSign(offsetX)
-                                    if (offset.x != 0f) offsetY -= offset.y
-                                }
+                awaitEachGesture {
+                    awaitFirstDown()
+                    do {
+                        val event = awaitPointerEvent()
+                        val zoom = event.calculateZoom()
+                        targetScale *= zoom
+                        val offset = event.calculatePan()
+                        if (targetScale <= 1) {
+                            offsetX = 1f
+                            offsetY = 1f
+                            targetScale = 1f
+                            scrollEnabled.value = true
+                            hideSystemBars.value = true
+                        } else {
+                            offsetX += offset.x
+                            offsetY += offset.y
+                            if (zoom > 1) {
+                                scrollEnabled.value = false
+                                hideSystemBars.value = false
+                                rotationState += event.calculateRotation()
                             }
-                        } while (event.changes.any { it.pressed })
-                    }
+                            val imageWidth = screenWidthPx * scale.value
+                            val borderReached = imageWidth - screenWidthPx - 2 * abs(offsetX)
+                            scrollEnabled.value = borderReached <= 0
+                            hideSystemBars.value = scrollEnabled.value
+                            if (borderReached < 0) {
+                                offsetX = ((imageWidth - screenWidthPx) / 2f).withSign(offsetX)
+                                if (offset.x != 0f) offsetY -= offset.y
+                            }
+                        }
+                    } while (event.changes.any { it.pressed })
                 }
             }
 
