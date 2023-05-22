@@ -55,7 +55,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -122,15 +121,7 @@ fun ReaderScaffold(){
                 pagerState = pagerState,
                 hideSystemBars = hideSystemBars,
                 scrollEnabled = scrollEnabled,
-                pages = pages.map { bitmap: ImageBitmap ->
-                    {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            bitmap = bitmap,
-                            contentDescription = "Page $it"
-                        )
-                    }
-                }
+                pages = pages
             )
 
             Text(
@@ -235,7 +226,7 @@ fun ReaderPager(
     mode: ReaderMode,
     pagerState: PagerState,
     hideSystemBars: MutableState<Boolean>,
-    pages: List<@Composable (Int) -> Unit>,
+    pages: List<ImageBitmap>,
     scrollEnabled: MutableState<Boolean>
 ){
     when(mode){
@@ -247,7 +238,7 @@ fun ReaderPager(
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
                 userScrollEnabled = scrollEnabled.value
             ) {
-                ZoomablePagerImage(painter = painterResource(id = R.drawable.blank),
+                ZoomablePagerImage(bitmap = pages[it],
                     hideSystemBars = hideSystemBars,
                     scrollEnabled = scrollEnabled,
                     modifier = Modifier.fillMaxSize())
@@ -261,7 +252,7 @@ fun ReaderPager(
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
                 userScrollEnabled = scrollEnabled.value
             ) {
-                ZoomablePagerImage(painter = painterResource(id = R.drawable.blank),
+                ZoomablePagerImage(bitmap = pages[it],
                     hideSystemBars = hideSystemBars,
                     scrollEnabled = scrollEnabled,
                     modifier = Modifier.fillMaxSize())
@@ -287,7 +278,7 @@ enum class ReaderMode {
 @Composable
 fun ZoomablePagerImage(
     modifier: Modifier = Modifier,
-    painter: Painter,
+    bitmap: ImageBitmap,
     scrollEnabled: MutableState<Boolean>,
     minScale: Float = 1f,
     maxScale: Float = 5f,
@@ -357,7 +348,7 @@ fun ZoomablePagerImage(
 
     ) {
         Image(
-            painter = painter,
+            bitmap = bitmap,
             contentDescription = null,
             contentScale = contentScale,
             modifier = modifier
