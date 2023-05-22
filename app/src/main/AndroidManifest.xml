@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tomuki"
-        tools:targetApi="31">
+        tools:targetApi="33">
         <activity
             android:name=".PlayerActivity"
             android:exported="false"

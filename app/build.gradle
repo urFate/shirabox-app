@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.tomuki.tomuki"
-        minSdk 24
+        minSdk 23
         targetSdk 33
         versionCode 1
         versionName "1.0"
