@@ -14,7 +14,7 @@
         android:theme="@style/Theme.Tomuki"
         tools:targetApi="33">
         <activity
-            android:name=".PlayerActivity"
+            android:name=".ui.activity.player.PlayerActivity"
             android:exported="false"
             android:label="@string/title_activity_player"
             android:theme="@style/Theme.Tomuki" />

@@ -1,4 +1,4 @@
-package com.tomuki.tomuki
+package com.tomuki.tomuki.ui.activity.player
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
@@ -66,6 +66,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.theme.BrandRed
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import kotlinx.coroutines.delay

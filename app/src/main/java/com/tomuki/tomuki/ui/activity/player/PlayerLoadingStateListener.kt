@@ -1,4 +1,4 @@
-package com.tomuki.tomuki
+package com.tomuki.tomuki.ui.activity.player
 
 import androidx.compose.runtime.MutableState
 import androidx.media3.common.Player
