@@ -1,6 +1,8 @@
 package com.tomuki.tomuki
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -58,6 +60,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
@@ -141,6 +144,7 @@ fun ReaderScaffold(){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderTopBar(title: String, isVisible: Boolean){
+    val activity = (LocalContext.current as? Activity)
     AnimatedVisibility(
         visible = isVisible,
         enter = slideInVertically(initialOffsetY = { -it }),
@@ -156,7 +160,7 @@ fun ReaderTopBar(title: String, isVisible: Boolean){
             ) },
             navigationIcon = {
                 IconButton(
-                    onClick = { /*TODO*/ }
+                    onClick = { activity?.finish() }
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBack,
@@ -181,6 +185,8 @@ fun ReaderTopBar(title: String, isVisible: Boolean){
 
 @Composable
 fun ReaderBottomBar(isVisible: Boolean) {
+    LocalConfiguration.current
+    val context = (LocalContext.current as? Activity)
     AnimatedVisibility(
         visible = isVisible,
         enter = slideInVertically(initialOffsetY = { it }),
@@ -198,7 +204,14 @@ fun ReaderBottomBar(isVisible: Boolean) {
             }
 
             // Screen rotation
-            IconButton(onClick = { /* TODO */ }) {
+            IconButton(onClick = {
+                val newOrientation = when (context?.resources?.configuration?.orientation) {
+                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                }
+                context?.requestedOrientation = newOrientation
+            }) {
                 Icon(
                     imageVector = Icons.Outlined.ScreenRotation,
                     contentDescription = "Screen Rotation",
