@@ -1,4 +1,4 @@
-package com.tomuki.tomuki
+package com.tomuki.tomuki.ui.activity
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -40,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -49,6 +50,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +72,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.theme.TomukiTheme
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.withSign
 
@@ -97,28 +101,28 @@ class ReaderActivity : ComponentActivity() {
 fun ReaderScaffold(){
     val pagerState = rememberPagerState()
     val hideSystemBars = remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     val scrollEnabled = remember { mutableStateOf(true) }
     val systemUiController = rememberSystemUiController()
 
     systemUiController.isSystemBarsVisible = hideSystemBars.value
 
+    val pages = listOf(
+        ImageBitmap.imageResource(id = R.drawable.blank),
+        ImageBitmap.imageResource(id = R.drawable.blank),
+        ImageBitmap.imageResource(id = R.drawable.blank)
+    )
+
     Scaffold(
         topBar = { ReaderTopBar("Том 1 Глава 1", hideSystemBars.value) },
-        bottomBar = { ReaderBottomBar(hideSystemBars.value) },
+        bottomBar = { ReaderBottomBar(hideSystemBars.value, pagerState, pages.size) },
     ) {
         Box(
             modifier = Modifier
                 .padding(0.dp)
                 .fillMaxSize()
         ) {
-            val pages = listOf(
-                ImageBitmap.imageResource(id = R.drawable.blank),
-                ImageBitmap.imageResource(id = R.drawable.blank),
-                ImageBitmap.imageResource(id = R.drawable.blank)
-            )
-
             ReaderPager(
                 mode = ReaderMode.HORIZONTAL,
                 pagerState = pagerState,
@@ -183,17 +187,33 @@ fun ReaderTopBar(title: String, isVisible: Boolean){
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ReaderBottomBar(isVisible: Boolean) {
+fun ReaderBottomBar(isVisible: Boolean, pagerState: PagerState, pagesSize: Int) {
     LocalConfiguration.current
     val context = (LocalContext.current as? Activity)
+    val scope = rememberCoroutineScope()
+
     AnimatedVisibility(
         visible = isVisible,
         enter = slideInVertically(initialOffsetY = { it }),
         exit = slideOutVertically(targetOffsetY = { it }),
     ) {
-        BottomAppBar {
 
+        Slider(
+            value = pagerState.currentPage.toFloat(),
+            onValueChange = {
+                scope.launch {
+                    pagerState.animateScrollToPage(it.toInt())
+                }
+            },
+            valueRange = 0f..(pagesSize - 1).toFloat(),
+            steps = pagesSize - 1,
+            modifier = Modifier
+                .padding(64.dp)
+        )
+
+        BottomAppBar {
             // Reading mode
             IconButton(onClick = { /* TODO */ }) {
                 Icon(
@@ -255,6 +275,7 @@ fun ReaderPager(
                     hideSystemBars = hideSystemBars,
                     scrollEnabled = scrollEnabled,
                     modifier = Modifier.fillMaxSize())
+
             }
         }
         ReaderMode.VERTICAL -> {
