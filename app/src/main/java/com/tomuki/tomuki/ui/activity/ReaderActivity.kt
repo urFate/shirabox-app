@@ -1,4 +1,4 @@
-package com.tomuki.tomuki
+package com.tomuki.tomuki.ui.activity
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -70,6 +70,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import kotlin.math.abs
 import kotlin.math.withSign
