@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -52,8 +53,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.tomuki.tomuki.R
-import com.tomuki.tomuki.ui.component.general.pager.ZoomablePagerImage
 import com.tomuki.tomuki.ui.theme.TomukiTheme
+import de.mr_pine.zoomables.ZoomableImage
+import de.mr_pine.zoomables.rememberZoomableState
 
 
 class ReaderActivity : ComponentActivity() {
@@ -89,7 +91,6 @@ fun ReaderScaffold(){
     ) {
         Box(
             modifier = Modifier
-                .padding(0.dp)
                 .fillMaxSize()
         ) {
             val pages = listOf(
@@ -124,7 +125,7 @@ fun ReaderScaffold(){
 fun ReaderTopBar(title: String, isVisible: Boolean){
     val activity = (LocalContext.current as? Activity)
     AnimatedVisibility(
-        visible = isVisible,
+        visible = !isVisible,
         enter = slideInVertically(initialOffsetY = { -it }),
         exit = slideOutVertically(targetOffsetY = { -it }),
     ) {
@@ -166,7 +167,7 @@ fun ReaderBottomBar(isVisible: Boolean) {
     LocalConfiguration.current
     val context = (LocalContext.current as? Activity)
     AnimatedVisibility(
-        visible = isVisible,
+        visible = !isVisible,
         enter = slideInVertically(initialOffsetY = { it }),
         exit = slideOutVertically(targetOffsetY = { it }),
     ) {
@@ -226,12 +227,14 @@ fun ReaderPager(
         flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
         userScrollEnabled = scrollEnabled.value
     ) {
-        ZoomablePagerImage(bitmap = pages[it],
-            hideSystemBars = hideSystemBars,
-            scrollEnabled = scrollEnabled,
-            modifier = Modifier.fillMaxSize())
-//                ZoomableText(text = "Lorem ipsum IpLorem ipsum IpLorem ipsum IpLorem ipsum IpLorem ipsum IpLorem ipsum IpLorem ipsum Ip",
-//                    scrollEnabled = scrollEnabled, hideSystemBars = hideSystemBars)
+        ZoomableImage(
+            modifier = Modifier
+                .fillMaxSize(),
+            coroutineScope = rememberCoroutineScope(),
+            zoomableState = rememberZoomableState(),
+            painter = painterResource(id = R.drawable.blank),
+            onTap = {hideSystemBars.value = !hideSystemBars.value}
+        )
     }
 }
 
