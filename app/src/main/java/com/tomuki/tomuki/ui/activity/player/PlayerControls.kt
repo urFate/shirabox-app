@@ -81,6 +81,12 @@ fun ControlsScaffold(
     var playbackState by remember {
         mutableStateOf(exoPlayer.playbackState)
     }
+    var hasNextMediaItem by remember {
+        mutableStateOf(exoPlayer.hasNextMediaItem())
+    }
+    var hasPreviousMediaItem by remember {
+        mutableStateOf(exoPlayer.hasPreviousMediaItem())
+    }
 
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
@@ -98,6 +104,8 @@ fun ControlsScaffold(
             currentPosition = exoPlayer.contentPosition
             bufferedPercentage = exoPlayer.bufferedPercentage
             playbackState = exoPlayer.playbackState
+            hasNextMediaItem = exoPlayer.hasNextMediaItem()
+            hasPreviousMediaItem = exoPlayer.hasPreviousMediaItem()
 
             delay(400)
         }
@@ -124,6 +132,8 @@ fun ControlsScaffold(
                 modifier = Modifier.padding(it),
                 isPlaying = isPlaying,
                 isLoaded = playbackState == Player.STATE_READY,
+                hasNextMediaItem = hasNextMediaItem,
+                hasPreviousMediaItem = hasPreviousMediaItem,
                 onSkipPrevious = { exoPlayer.seekToPrevious() },
                 onPlayToggle = {
                     exoPlayer.playWhenReady = !exoPlayer.isPlaying
@@ -189,6 +199,8 @@ fun PlaybackControls(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
     isLoaded: Boolean,
+    hasNextMediaItem: Boolean,
+    hasPreviousMediaItem: Boolean,
     onSkipPrevious: () -> Unit,
     onPlayToggle: () -> Unit,
     onSkipNext: () -> Unit
@@ -218,6 +230,7 @@ fun PlaybackControls(
             ) {
                 PlaybackIconButton(
                     imageVector = Icons.Outlined.SkipPrevious,
+                    isActive = hasPreviousMediaItem,
                     onClick = onSkipPrevious
                 )
                 PlaybackIconButton(
@@ -227,6 +240,7 @@ fun PlaybackControls(
                 )
                 PlaybackIconButton(
                     imageVector = Icons.Outlined.SkipNext,
+                    isActive = hasNextMediaItem,
                     onClick = onSkipNext
                 )
             }
