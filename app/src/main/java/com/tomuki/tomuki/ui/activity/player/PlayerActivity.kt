@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -27,10 +26,11 @@ class PlayerActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     // TODO: Test stream
-                    val stream = remember {
-                        "https://cache.libria.fun/videos/media/ts/9000/1/480" +
-                                "/8a7f4d218433f5a5fee1c6f5a02d278e.m3u8"
-                    }
+                    val streams = listOf(
+                        "https://cache.libria.fun/videos/media/ts/9412/1/480/75818d390a1be66329973dc6a05b3a8a.m3u8",
+                        "https://cache.libria.fun/videos/media/ts/9412/2/480/cffe3e3b9d8a40322007ddbbcdd7b808.m3u8",
+                        "https://cache.libria.fun/videos/media/ts/9412/3/480/150ea2e6e2c5507063374281de5f370c.m3u8"
+                    )
 
                     val systemUiController = rememberSystemUiController()
 
@@ -41,7 +41,10 @@ class PlayerActivity : ComponentActivity() {
 
                     Util.hideSystemUi(systemUiController)
 
-                    TomuPlayer(stream)
+                    TomuPlayer(
+                        title = "Название",
+                        itemsUrls = streams
+                    )
                 }
             }
         }
