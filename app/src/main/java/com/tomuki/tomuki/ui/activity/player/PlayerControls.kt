@@ -60,7 +60,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ControlsScaffold(
-    title: String, episode: Int, exoPlayer: ExoPlayer,
+    title: String, exoPlayer: ExoPlayer,
     orientationState: MutableState<Int>,
     controlsVisibilityState: MutableState<Boolean>,
     bottomSheetVisibilityState: MutableState<Boolean>
@@ -75,9 +75,6 @@ fun ControlsScaffold(
     var totalDuration by remember {
         mutableStateOf(exoPlayer.duration)
     }
-    var bufferedPercentage by remember {
-        mutableStateOf(exoPlayer.bufferedPercentage)
-    }
     var playbackState by remember {
         mutableStateOf(exoPlayer.playbackState)
     }
@@ -86,6 +83,9 @@ fun ControlsScaffold(
     }
     var hasPreviousMediaItem by remember {
         mutableStateOf(exoPlayer.hasPreviousMediaItem())
+    }
+    var currentMediaItemIndex by remember {
+        mutableStateOf(exoPlayer.currentMediaItemIndex + 1)
     }
 
     val activity = LocalContext.current as Activity
@@ -102,10 +102,10 @@ fun ControlsScaffold(
             isPlaying = exoPlayer.isPlaying
             totalDuration = exoPlayer.duration
             currentPosition = exoPlayer.contentPosition
-            bufferedPercentage = exoPlayer.bufferedPercentage
             playbackState = exoPlayer.playbackState
             hasNextMediaItem = exoPlayer.hasNextMediaItem()
             hasPreviousMediaItem = exoPlayer.hasPreviousMediaItem()
+            currentMediaItemIndex = exoPlayer.currentMediaItemIndex + 1
 
             delay(400)
         }
@@ -113,13 +113,12 @@ fun ControlsScaffold(
 
     Scaffold(
         topBar = {
-            PlayerTopBar(title, episode) {
+            PlayerTopBar(title, currentMediaItemIndex) {
                 bottomSheetVisibilityState.value = true
             }
         },
         bottomBar = {
             PlayerBottomBar(
-                bufferedPercentage = bufferedPercentage,
                 currentPosition = currentPosition,
                 duration = totalDuration,
                 orientationState = orientationState
@@ -252,7 +251,6 @@ fun PlaybackControls(
 fun PlayerBottomBar(
     currentPosition: Long,
     duration: Long,
-    bufferedPercentage: Int,
     orientationState: MutableState<Int>,
     onSliderValueChange: (Long) -> Unit,
 ) {
@@ -281,7 +279,7 @@ fun PlayerBottomBar(
 
                 Slider(
                     modifier = Modifier.weight(1f, false),
-                    value = (bufferedPercentage / 100f),
+                    value = currentPosition.toFloat() / duration.toFloat(),
                     onValueChange = { value ->
                         val newTime = (value * duration).toLong()
                         onSliderValueChange(newTime)
