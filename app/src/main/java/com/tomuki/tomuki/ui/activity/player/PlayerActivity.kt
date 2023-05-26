@@ -49,7 +49,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -118,6 +117,9 @@ fun VideoPlayer(stream: String) {
     val bottomSheetVisibilityState = remember {
         mutableStateOf(false)
     }
+    val orientationState = remember {
+        mutableStateOf(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+    }
     val coroutineScope = rememberCoroutineScope()
 
     val exoPlayer = remember {
@@ -173,6 +175,7 @@ fun VideoPlayer(stream: String) {
                     title = "Название",
                     episode = 1,
                     exoPlayer = exoPlayer,
+                    orientationState = orientationState,
                     controlsVisibilityState = controlsVisibilityState,
                     bottomSheetVisibilityState = bottomSheetVisibilityState
                 )
@@ -188,6 +191,7 @@ fun VideoPlayer(stream: String) {
 @Composable
 fun ControlsScaffold(
     title: String, episode: Int, exoPlayer: ExoPlayer,
+    orientationState: MutableState<Int>,
     controlsVisibilityState: MutableState<Boolean>,
     bottomSheetVisibilityState: MutableState<Boolean>
 ) {
@@ -207,7 +211,11 @@ fun ControlsScaffold(
     var playbackState by remember {
         mutableStateOf(exoPlayer.playbackState)
     }
+
+    val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
+
+    activity.requestedOrientation = orientationState.value
 
     /**
      * FIXME: Any better solution to update timeline?
@@ -235,7 +243,8 @@ fun ControlsScaffold(
             PlayerBottomBar(
                 bufferedPercentage = bufferedPercentage,
                 currentPosition = currentPosition,
-                duration = totalDuration
+                duration = totalDuration,
+                orientationState = orientationState
             ) {
                 exoPlayer.seekTo(it)
             }
@@ -360,13 +369,9 @@ fun PlayerBottomBar(
     currentPosition: Long,
     duration: Long,
     bufferedPercentage: Int,
+    orientationState: MutableState<Int>,
     onSliderValueChange: (Long) -> Unit,
 ) {
-    var fullscreen by rememberSaveable {
-        mutableStateOf(false)
-    }
-    val activity = LocalContext.current as Activity
-
     Box(
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -406,20 +411,18 @@ fun PlayerBottomBar(
 
                 IconButton(
                     onClick = {
-                        fullscreen = !fullscreen
-
-                        if (fullscreen) {
-                            activity.requestedOrientation =
+                        orientationState.value =
+                            if (orientationState.value == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
                                 ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                        } else {
-                            activity.requestedOrientation =
+                            } else {
                                 ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                        }
+                            }
                     }
                 ) {
                     Icon(
-                        imageVector = if (!fullscreen)
-                            Icons.Rounded.Fullscreen else Icons.Rounded.FullscreenExit,
+                        imageVector = if (orientationState.value ==
+                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) Icons.Rounded.Fullscreen
+                        else Icons.Rounded.FullscreenExit,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.inverseOnSurface
                     )

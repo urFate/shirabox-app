@@ -17,6 +17,7 @@
             android:name=".ui.activity.player.PlayerActivity"
             android:exported="false"
             android:label="@string/title_activity_player"
+            android:configChanges="orientation|screenSize|layoutDirection"
             android:theme="@style/Theme.Tomuki" />
         <activity
             android:name=".ui.activity.ResourceActivity"
