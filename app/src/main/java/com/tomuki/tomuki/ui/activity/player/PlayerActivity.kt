@@ -23,18 +23,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Sd
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
+import androidx.compose.material.icons.outlined.SlowMotionVideo
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -42,6 +47,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -68,6 +74,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.theme.BrandRed
@@ -81,7 +88,9 @@ class PlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TomukiTheme {
+            TomukiTheme(
+                darkTheme = false
+            ) {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -90,12 +99,17 @@ class PlayerActivity : ComponentActivity() {
                     // TODO: Test stream
                     val stream = remember {
                         "https://cache.libria.fun/videos/media/ts/9000/1/480" +
-                            "/8a7f4d218433f5a5fee1c6f5a02d278e.m3u8"
+                                "/8a7f4d218433f5a5fee1c6f5a02d278e.m3u8"
                     }
+
                     val systemUiController = rememberSystemUiController()
-                    systemUiController.isSystemBarsVisible = false
-                    systemUiController.systemBarsBehavior = WindowInsetsControllerCompat
-                        .BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+                    systemUiController.setStatusBarColor(
+                        color = Color.Transparent,
+                        darkIcons = false
+                    )
+
+                    hideSystemUi(systemUiController)
 
                     VideoPlayer(stream)
                 }
@@ -105,12 +119,15 @@ class PlayerActivity : ComponentActivity() {
 }
 
 @Composable
-fun VideoPlayer(stream: String){
+fun VideoPlayer(stream: String) {
     val context = LocalContext.current
     val playerView = PlayerView(context)
 
     val controlsVisibilityState = remember {
         mutableStateOf(true)
+    }
+    val bottomSheetVisibilityState = remember {
+        mutableStateOf(false)
     }
     val coroutineScope = rememberCoroutineScope()
 
@@ -124,63 +141,74 @@ fun VideoPlayer(stream: String){
         }
     }
 
-    Box(
-        modifier = Modifier
-            .background(Color(0xFF000000))
-            .clickable(
-                interactionSource = MutableInteractionSource(),
-                indication = null
-            ) {
-                coroutineScope.launch {
-                    controlsVisibilityState.value = !controlsVisibilityState.value
+    Column {
+        Box(
+            modifier = Modifier
+                .background(Color(0xFF000000))
+                .clickable(
+                    interactionSource = MutableInteractionSource(),
+                    indication = null
+                ) {
+                    coroutineScope.launch {
+                        controlsVisibilityState.value = !controlsVisibilityState.value
 
-                    delay(3000).let {
-                        if (exoPlayer.isPlaying)
-                            controlsVisibilityState.value = !controlsVisibilityState.value
+                        delay(3000).let {
+                            if (exoPlayer.isPlaying)
+                                controlsVisibilityState.value = !controlsVisibilityState.value
+                        }
                     }
                 }
-            }
-    ) {
-        DisposableEffect(key1 = Unit) {
-            exoPlayer.addListener(
-                PlayerLoadingStateListener(coroutineScope, exoPlayer, controlsVisibilityState)
-            )
-
-            onDispose { exoPlayer.release() }
-        }
-
-        AndroidView(
-            factory = {
-                playerView.apply {
-                    player = exoPlayer
-                    layoutParams =
-                        FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                    useController = false
-                }
-            }
-        )
-
-        AnimatedVisibility(
-            visible = controlsVisibilityState.value,
-            enter = fadeIn(),
-            exit = fadeOut()
         ) {
-            ControlsScaffold(
-                title = "Название",
-                episode = 1,
-                exoPlayer = exoPlayer,
-                controlsVisibilityState = controlsVisibilityState
+            DisposableEffect(key1 = Unit) {
+                exoPlayer.addListener(
+                    PlayerLoadingStateListener(coroutineScope, exoPlayer, controlsVisibilityState)
+                )
+
+                onDispose { exoPlayer.release() }
+            }
+
+            AndroidView(
+                factory = {
+                    playerView.apply {
+                        player = exoPlayer
+                        layoutParams =
+                            FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                        useController = false
+                    }
+                }
             )
+
+            this@Column.AnimatedVisibility(
+                visible = controlsVisibilityState.value,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                ControlsScaffold(
+                    title = "Название",
+                    episode = 1,
+                    exoPlayer = exoPlayer,
+                    controlsVisibilityState = controlsVisibilityState,
+                    bottomSheetVisibilityState = bottomSheetVisibilityState
+                )
+            }
         }
+
+        SettingsBottomSheet(
+            visibilityState = bottomSheetVisibilityState
+        )
     }
 }
 
 @Composable
-fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer,
-                     controlsVisibilityState: MutableState<Boolean>){
+fun ControlsScaffold(
+    title: String, episode: Int, exoPlayer: ExoPlayer,
+    controlsVisibilityState: MutableState<Boolean>,
+    bottomSheetVisibilityState: MutableState<Boolean>
+) {
+
     var isPlaying by remember {
         mutableStateOf(exoPlayer.isPlaying)
     }
@@ -203,7 +231,7 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer,
      */
 
     LaunchedEffect(key1 = true) {
-        while(true){
+        while (true) {
             isPlaying = exoPlayer.isPlaying
             totalDuration = exoPlayer.duration
             currentPosition = exoPlayer.contentPosition
@@ -215,7 +243,11 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer,
     }
 
     Scaffold(
-        topBar = { PlayerTopBar(title, episode) },
+        topBar = {
+            PlayerTopBar(title, episode) {
+                bottomSheetVisibilityState.value = true
+            }
+        },
         bottomBar = {
             PlayerBottomBar(
                 bufferedPercentage = bufferedPercentage,
@@ -235,7 +267,7 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer,
                     exoPlayer.playWhenReady = !exoPlayer.isPlaying
 
                     coroutineScope.launch {
-                        if(exoPlayer.isPlaying)
+                        if (exoPlayer.isPlaying)
                             delay(3000).let {
                                 controlsVisibilityState.value = !controlsVisibilityState.value
                             }
@@ -250,7 +282,7 @@ fun ControlsScaffold(title: String, episode: Int, exoPlayer: ExoPlayer,
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayerTopBar(title: String, episode: Int){
+fun PlayerTopBar(title: String, episode: Int, onSettingsClick: () -> Unit) {
     val activity = LocalContext.current as Activity
 
     TopAppBar(
@@ -277,7 +309,7 @@ fun PlayerTopBar(title: String, episode: Int){
             }
         },
         actions = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = onSettingsClick) {
                 Icon(
                     imageVector = Icons.Outlined.Settings,
                     contentDescription = null
@@ -301,7 +333,7 @@ fun PlaybackControls(
     onSkipPrevious: () -> Unit,
     onPlayToggle: () -> Unit,
     onSkipNext: () -> Unit
-    ){
+) {
     Box(
         modifier = modifier
             .then(
@@ -330,7 +362,7 @@ fun PlaybackControls(
                     onClick = onSkipPrevious
                 )
                 PlaybackIconButton(
-                    imageVector = if(isPlaying)
+                    imageVector = if (isPlaying)
                         Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                     onClick = onPlayToggle
                 )
@@ -349,7 +381,7 @@ fun PlayerBottomBar(
     duration: Long,
     bufferedPercentage: Int,
     onSliderValueChange: (Long) -> Unit,
-){
+) {
     var fullscreen by rememberSaveable {
         mutableStateOf(false)
     }
@@ -393,14 +425,16 @@ fun PlayerBottomBar(
                         fullscreen = !fullscreen
 
                         if (fullscreen) {
-                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                            activity.requestedOrientation =
+                                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                         } else {
-                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                            activity.requestedOrientation =
+                                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                         }
                     }
                 ) {
                     Icon(
-                        imageVector = if(!fullscreen)
+                        imageVector = if (!fullscreen)
                             Icons.Rounded.Fullscreen else Icons.Rounded.FullscreenExit,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.inverseOnSurface
@@ -412,7 +446,33 @@ fun PlayerBottomBar(
 }
 
 @Composable
-fun PlaybackIconButton(imageVector: ImageVector, onClick: () -> Unit){
+fun SettingsBottomSheet(visibilityState: MutableState<Boolean>) {
+    val currentSheetScreen = remember {
+        mutableStateOf(SettingsSheetScreen.OVERVIEW)
+    }
+
+    if (visibilityState.value) {
+        when (currentSheetScreen.value) {
+            SettingsSheetScreen.OVERVIEW -> SettingsOptions(currentSheetScreen, visibilityState)
+            SettingsSheetScreen.VIDEO_QUALITY -> QualityBottomSheet(currentSheetScreen)
+            SettingsSheetScreen.PLAYBACK_SPEED -> PlaybackSpeedBottomSheet(currentSheetScreen)
+            SettingsSheetScreen.CLOSED_CAPTIONS -> ClosedCationsBottomSheet(currentSheetScreen)
+        }
+    } else {
+
+        /**
+         * We have to hide the system UI due to the
+         * fact that the BottomSheet shows it when opening
+         */
+
+        val systemUiController = rememberSystemUiController()
+        hideSystemUi(systemUiController)
+    }
+
+}
+
+@Composable
+fun PlaybackIconButton(imageVector: ImageVector, onClick: () -> Unit) {
     IconButton(onClick = onClick) {
         Icon(
             modifier = Modifier.size(42.dp),
@@ -423,14 +483,196 @@ fun PlaybackIconButton(imageVector: ImageVector, onClick: () -> Unit){
     }
 }
 
-private fun formatMilliseconds(timeMs: Long) : String {
-    val time = if(timeMs == C.TIME_UNSET) 0 else timeMs
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsOptions(
+    currentSheetScreen: MutableState<SettingsSheetScreen>,
+    visibilityState: MutableState<Boolean>
+) {
+
+    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val state = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        sheetState = state,
+        onDismissRequest = {
+            coroutineScope.launch {
+                state.hide()
+                visibilityState.value = false
+            }
+        }
+    ) {
+
+        /*
+         * Video Quality
+         */
+
+        ListItem(
+            modifier = Modifier.clickable {
+                coroutineScope.launch {
+                    state.hide()
+                    currentSheetScreen.value = SettingsSheetScreen.VIDEO_QUALITY
+                }
+            },
+            headlineContent = { Text(stringResource(id = R.string.quality, 480)) },
+            leadingContent = {
+                Icon(
+                    imageVector = Icons.Outlined.Sd,
+                    contentDescription = null
+                )
+            }
+        )
+
+        /*
+         * Playback Speed
+         */
+
+        ListItem(
+            modifier = Modifier.clickable {
+                coroutineScope.launch {
+                    state.hide()
+                    currentSheetScreen.value = SettingsSheetScreen.PLAYBACK_SPEED
+                }
+            },
+            headlineContent = { Text(stringResource(id = R.string.playback_speed)) },
+            leadingContent = {
+                Icon(
+                    imageVector = Icons.Outlined.SlowMotionVideo,
+                    contentDescription = null
+                )
+            }
+        )
+
+        /*
+         * Subtitles
+         */
+
+        ListItem(
+            modifier = Modifier.clickable {
+                coroutineScope.launch {
+                    state.hide()
+                    currentSheetScreen.value = SettingsSheetScreen.CLOSED_CAPTIONS
+                }
+            },
+            headlineContent = { Text(stringResource(id = R.string.subtitles)) },
+            leadingContent = {
+                Icon(
+                    imageVector = Icons.Outlined.ClosedCaption,
+                    contentDescription = null
+                )
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QualityBottomSheet(currentSheetScreen: MutableState<SettingsSheetScreen>) {
+    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val state = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        sheetState = state,
+        onDismissRequest = {
+            coroutineScope.launch {
+                state.hide()
+            }
+            currentSheetScreen.value = SettingsSheetScreen.OVERVIEW
+        }
+    ) {
+        // TODO: Loop available qualities from API
+
+        ListItem(
+            modifier = Modifier.clickable { /* TODO */ },
+            headlineContent = { Text("1080p") },
+        )
+        ListItem(
+            modifier = Modifier.clickable { /* TODO */ },
+            headlineContent = { Text("720p") },
+        )
+        ListItem(
+            modifier = Modifier.clickable { /* TODO */ },
+            headlineContent = { Text("480p") },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PlaybackSpeedBottomSheet(currentSheetScreen: MutableState<SettingsSheetScreen>) {
+    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val state = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        sheetState = state,
+        onDismissRequest = {
+            coroutineScope.launch {
+                state.hide()
+                currentSheetScreen.value = SettingsSheetScreen.OVERVIEW
+            }
+        }
+    ) {
+        var speed = 0.25
+        for (i in 1..7) {
+            val text = if (speed == 0.0) stringResource(id = R.string.normal_speed) else speed
+            ListItem(
+                modifier = Modifier.clickable { /* TODO */ },
+                headlineContent = { Text("$text") },
+            )
+            speed += 0.25
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClosedCationsBottomSheet(currentSheetScreen: MutableState<SettingsSheetScreen>) {
+    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val state = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        sheetState = state,
+        onDismissRequest = {
+            coroutineScope.launch {
+                state.hide()
+                currentSheetScreen.value = SettingsSheetScreen.OVERVIEW
+            }
+        }
+    ) {
+        Text("В разработке")
+    }
+}
+
+private fun hideSystemUi(controller: SystemUiController) {
+    controller.isSystemBarsVisible = false
+    controller.systemBarsBehavior = WindowInsetsControllerCompat
+        .BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+}
+
+private fun formatMilliseconds(timeMs: Long): String {
+    val time = if (timeMs == C.TIME_UNSET) 0 else timeMs
 
     return time.milliseconds.toComponents { hours, minutes, seconds, _ ->
         "%s%02d:%02d".format(
-            if(hours != 0L) "%02d:".format(hours) else "",
+            if (hours != 0L) "%02d:".format(hours) else "",
             minutes,
             seconds
         )
     }
+}
+
+enum class SettingsSheetScreen {
+    OVERVIEW, VIDEO_QUALITY, PLAYBACK_SPEED, CLOSED_CAPTIONS
 }
