@@ -26,7 +26,7 @@ import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.launch
 
 @Composable
-fun TomuPlayer(stream: String) {
+fun TomuPlayer(title: String, itemsUrls: List<String>) {
     val context = LocalContext.current
     val playerView = PlayerView(context)
 
@@ -43,9 +43,7 @@ fun TomuPlayer(stream: String) {
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(
-                MediaItem.fromUri(stream)
-            )
+            setMediaItems(itemsUrls.map { MediaItem.fromUri(it) })
             prepare()
             playWhenReady = true
         }
@@ -66,7 +64,7 @@ fun TomuPlayer(stream: String) {
         ) {
             DisposableEffect(key1 = Unit) {
                 exoPlayer.addListener(
-                    PlayerLoadingStateListener(coroutineScope, exoPlayer, controlsVisibilityState)
+                    PlayerLoadingStateListener(coroutineScope, controlsVisibilityState)
                 )
                 onDispose { exoPlayer.release() }
             }
@@ -91,8 +89,7 @@ fun TomuPlayer(stream: String) {
                 exit = fadeOut()
             ) {
                 ControlsScaffold(
-                    title = "Название",
-                    episode = 1,
+                    title = title,
                     exoPlayer = exoPlayer,
                     orientationState = orientationState,
                     controlsVisibilityState = controlsVisibilityState,
