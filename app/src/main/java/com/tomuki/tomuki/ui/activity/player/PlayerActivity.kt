@@ -109,7 +109,7 @@ class PlayerActivity : ComponentActivity() {
                         darkIcons = false
                     )
 
-                    hideSystemUi(systemUiController)
+                    Util.hideSystemUi(systemUiController)
 
                     VideoPlayer(stream)
                 }
@@ -387,7 +387,11 @@ fun PlayerBottomBar(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "${formatMilliseconds(currentPosition)} • ${formatMilliseconds(duration)}",
+                text = "${Util.formatMilliseconds(currentPosition)} • ${
+                    Util.formatMilliseconds(
+                        duration
+                    )
+                }",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.inverseOnSurface
             )
