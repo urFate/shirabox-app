@@ -16,7 +16,7 @@ class PlayerLoadingStateListener(
     override fun onIsLoadingChanged(isLoading: Boolean) {
         if(!isLoading){
             coroutineScope.launch {
-                delay(3000).let{
+                delay(2000).let{
                     controlsVisibilityState.value = false
                 }
             }

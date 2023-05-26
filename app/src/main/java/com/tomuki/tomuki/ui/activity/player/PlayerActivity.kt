@@ -146,16 +146,11 @@ fun VideoPlayer(stream: String) {
             modifier = Modifier
                 .background(Color(0xFF000000))
                 .clickable(
-                    interactionSource = MutableInteractionSource(),
-                    indication = null
+                    interactionSource = MutableInteractionSource(), indication = null
                 ) {
                     coroutineScope.launch {
                         controlsVisibilityState.value = !controlsVisibilityState.value
-
-                        delay(3000).let {
-                            if (exoPlayer.isPlaying)
-                                controlsVisibilityState.value = !controlsVisibilityState.value
-                        }
+                        hideControls(exoPlayer, controlsVisibilityState)
                     }
                 }
         ) {
@@ -163,7 +158,6 @@ fun VideoPlayer(stream: String) {
                 exoPlayer.addListener(
                     PlayerLoadingStateListener(coroutineScope, exoPlayer, controlsVisibilityState)
                 )
-
                 onDispose { exoPlayer.release() }
             }
 
@@ -267,10 +261,7 @@ fun ControlsScaffold(
                     exoPlayer.playWhenReady = !exoPlayer.isPlaying
 
                     coroutineScope.launch {
-                        if (exoPlayer.isPlaying)
-                            delay(3000).let {
-                                controlsVisibilityState.value = !controlsVisibilityState.value
-                            }
+                        hideControls(exoPlayer, controlsVisibilityState)
                     }
                 },
                 onSkipNext = { exoPlayer.seekToNext() }
@@ -652,6 +643,15 @@ fun ClosedCationsBottomSheet(currentSheetScreen: MutableState<SettingsSheetScree
         }
     ) {
         Text("В разработке")
+    }
+}
+
+private suspend fun hideControls(
+    exoPlayer: ExoPlayer,
+    state: MutableState<Boolean>
+) {
+    delay(3000).let {
+        if (exoPlayer.isPlaying) state.value = false
     }
 }
 
