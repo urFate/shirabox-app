@@ -326,7 +326,8 @@ fun PlaybackIconButton(isActive: Boolean = true, imageVector: ImageVector, onCli
             modifier = Modifier.size(42.dp),
             imageVector = imageVector,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.inverseOnSurface
+            tint = if(isActive) MaterialTheme.colorScheme.inverseOnSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
