@@ -12,6 +12,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -56,7 +58,7 @@ import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.theme.TomukiTheme
 import de.mr_pine.zoomables.ZoomableImage
 import de.mr_pine.zoomables.rememberZoomableState
-
+import kotlinx.coroutines.launch
 
 class ReaderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,23 +84,42 @@ fun ReaderScaffold(){
     val hideSystemBars = remember { mutableStateOf(false) }
     val scrollEnabled = remember { mutableStateOf(true) }
     val systemUiController = rememberSystemUiController()
+    rememberCoroutineScope()
+    val pages = listOf(
+        ImageBitmap.imageResource(id = R.drawable.blank),
+        ImageBitmap.imageResource(id = R.drawable.blank),
+        ImageBitmap.imageResource(id = R.drawable.blank)
+    )
 
     systemUiController.isSystemBarsVisible = hideSystemBars.value
 
     Scaffold(
         topBar = { ReaderTopBar("Том 1 Глава 1", hideSystemBars.value) },
-        bottomBar = { ReaderBottomBar(hideSystemBars.value) },
+        bottomBar = {
+//            Column{
+//                Slider(
+//                    value = pagerState.currentPage.toFloat(),
+//                    onValueChange = { newValue ->
+//                        scope.launch{
+//                            pagerState.animateScrollToPage(newValue.toInt())
+//                        }
+//                    },
+//                    valueRange = 0f..(pages.size - 1).toFloat(),
+//                    steps = pages.size - 1,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(horizontal = 16.dp)
+//                )
+                ReaderBottomBar(hideSystemBars.value, pagerState, pages.size)
+
+//            }
+        }
     ) {
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val pages = listOf(
-                ImageBitmap.imageResource(id = R.drawable.blank),
-                ImageBitmap.imageResource(id = R.drawable.blank),
-                ImageBitmap.imageResource(id = R.drawable.blank)
-            )
-
             ReaderPager(
                 pagerState = pagerState,
                 hideSystemBars = hideSystemBars,
@@ -162,49 +183,71 @@ fun ReaderTopBar(title: String, isVisible: Boolean){
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ReaderBottomBar(isVisible: Boolean) {
+fun ReaderBottomBar(
+    isVisible: Boolean,
+    pagerState: PagerState,
+    pagesSize: Int
+) {
     LocalConfiguration.current
     val context = (LocalContext.current as? Activity)
+    val scope = rememberCoroutineScope()
+    rememberCoroutineScope()
+
     AnimatedVisibility(
         visible = !isVisible,
         enter = slideInVertically(initialOffsetY = { it }),
         exit = slideOutVertically(targetOffsetY = { it }),
     ) {
-        BottomAppBar {
-
-            // Reading mode
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(
-                    imageVector = Icons.Outlined.ControlCamera,
-                    contentDescription = "Reading Mode",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Screen rotation
-            IconButton(onClick = {
-                val newOrientation = when (context?.resources?.configuration?.orientation) {
-                    Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                    Configuration.ORIENTATION_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        Column{
+            Slider(
+                value = pagerState.currentPage.toFloat(),
+                onValueChange = { newValue ->
+                    scope.launch{
+                        pagerState.animateScrollToPage(newValue.toInt())
+                    }
+                },
+                valueRange = 0f..(pagesSize - 1).toFloat(),
+                steps = pagesSize - 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
+            BottomAppBar {
+                // Reading mode
+                IconButton(onClick = { /* TODO */ }) {
+                    Icon(
+                        imageVector = Icons.Outlined.ControlCamera,
+                        contentDescription = "Reading Mode",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                context?.requestedOrientation = newOrientation
-            }) {
-                Icon(
-                    imageVector = Icons.Outlined.ScreenRotation,
-                    contentDescription = "Screen Rotation",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
 
-            // Add to bookmarks
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(
-                    imageVector = Icons.Outlined.BookmarkAdd,
-                    contentDescription = "Bookmark Add",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                // Screen rotation
+                IconButton(onClick = {
+                    val newOrientation = when (context?.resources?.configuration?.orientation) {
+                        Configuration.ORIENTATION_LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                        Configuration.ORIENTATION_PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                        else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    }
+                    context?.requestedOrientation = newOrientation
+                }) {
+                    Icon(
+                        imageVector = Icons.Outlined.ScreenRotation,
+                        contentDescription = "Screen Rotation",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // Add to bookmarks
+                IconButton(onClick = { /* TODO */ }) {
+                    Icon(
+                        imageVector = Icons.Outlined.BookmarkAdd,
+                        contentDescription = "Bookmark Add",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
