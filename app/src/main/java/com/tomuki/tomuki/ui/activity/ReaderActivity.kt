@@ -41,15 +41,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -84,7 +81,7 @@ fun ReaderScaffold(){
     val hideSystemBars = remember { mutableStateOf(false) }
     val scrollEnabled = remember { mutableStateOf(true) }
     val systemUiController = rememberSystemUiController()
-    rememberCoroutineScope()
+
     val pages = listOf(
         ImageBitmap.imageResource(id = R.drawable.blank),
         ImageBitmap.imageResource(id = R.drawable.blank),
@@ -95,25 +92,7 @@ fun ReaderScaffold(){
 
     Scaffold(
         topBar = { ReaderTopBar("Том 1 Глава 1", hideSystemBars.value) },
-        bottomBar = {
-//            Column{
-//                Slider(
-//                    value = pagerState.currentPage.toFloat(),
-//                    onValueChange = { newValue ->
-//                        scope.launch{
-//                            pagerState.animateScrollToPage(newValue.toInt())
-//                        }
-//                    },
-//                    valueRange = 0f..(pages.size - 1).toFloat(),
-//                    steps = pages.size - 1,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 16.dp)
-//                )
-                ReaderBottomBar(hideSystemBars.value, pagerState, pages.size)
-
-//            }
-        }
+        bottomBar = { ReaderBottomBar(hideSystemBars.value, pagerState, pages.size) }
     ) {
 
         Box(
@@ -127,16 +106,16 @@ fun ReaderScaffold(){
                 pages = pages
             )
 
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                text = "${pagerState.currentPage + 1}/${pages.size}",
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
+//            Text(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .align(Alignment.BottomCenter)
+//                    .padding(16.dp),
+//                text = "${pagerState.currentPage + 1}/${pages.size}",
+//                fontWeight = FontWeight.Medium,
+//                color = MaterialTheme.colorScheme.onSurfaceVariant,
+//                textAlign = TextAlign.Center,
+//            )
         }
     }
 }
@@ -193,14 +172,13 @@ fun ReaderBottomBar(
     LocalConfiguration.current
     val context = (LocalContext.current as? Activity)
     val scope = rememberCoroutineScope()
-    rememberCoroutineScope()
 
     AnimatedVisibility(
         visible = !isVisible,
         enter = slideInVertically(initialOffsetY = { it }),
         exit = slideOutVertically(targetOffsetY = { it }),
     ) {
-        Column{
+        Column {
             Slider(
                 value = pagerState.currentPage.toFloat(),
                 onValueChange = { newValue ->
@@ -214,6 +192,7 @@ fun ReaderBottomBar(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             )
+
             BottomAppBar {
                 // Reading mode
                 IconButton(onClick = { /* TODO */ }) {
@@ -276,7 +255,7 @@ fun ReaderPager(
             coroutineScope = rememberCoroutineScope(),
             zoomableState = rememberZoomableState(),
             painter = painterResource(id = R.drawable.blank),
-            onTap = {hideSystemBars.value = !hideSystemBars.value}
+            onTap = { hideSystemBars.value = !hideSystemBars.value }
         )
     }
 }
