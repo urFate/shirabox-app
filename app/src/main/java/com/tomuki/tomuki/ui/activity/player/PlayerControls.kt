@@ -55,6 +55,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.theme.BrandRed
 import com.tomuki.tomuki.util.Util
+import com.tomuki.tomuki.util.Values
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -333,7 +334,9 @@ suspend fun hideControls(
     exoPlayer: ExoPlayer,
     state: MutableState<Boolean>
 ) {
-    delay(3000).let {
+    val delayMs = Values.CONTROLS_HIDE_DELAY
+
+    delay(delayMs).let {
         if (exoPlayer.isPlaying) state.value = false
     }
 }
