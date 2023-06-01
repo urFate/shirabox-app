@@ -59,7 +59,12 @@
     <string name="discussion">Обсуждение</string>
 
     <!--
-        Reader Activity
+        Player Activity
     -->
-    <string name="title_activity_reader">ReaderActivity</string>
+    <string name="title_activity_player">PlayerActivity</string>
+    <string name="episode_string">Серия %d</string>
+    <string name="quality">Качество видео • %dp</string>
+    <string name="playback_speed">Скорость воспроизведения • %s</string>
+    <string name="subtitles">Субтитры</string>
+    <string name="normal_speed">Обычная</string>
 </resources>

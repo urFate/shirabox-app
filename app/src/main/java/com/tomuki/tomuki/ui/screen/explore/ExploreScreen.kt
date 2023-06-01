@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.activity.ResourceActivity
+import com.tomuki.tomuki.ui.activity.player.PlayerActivity
 import com.tomuki.tomuki.ui.component.top.MediaTypesBar
 import com.tomuki.tomuki.ui.component.top.TopBar
 
@@ -109,7 +110,9 @@ fun ExploreScreen(navController: NavController) {
 
                     ) {
                         Image(
-                            modifier = Modifier.clickable {  },
+                            modifier = Modifier.clickable {
+                                context.startActivity(Intent(context, PlayerActivity::class.java))
+                            },
                             painter = painterResource(id = R.drawable.blank),
                             contentDescription = "blank",
                             contentScale = ContentScale.Crop)

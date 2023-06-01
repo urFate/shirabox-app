@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -10,7 +12,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tomuki"
-        tools:targetApi="31">
+        tools:targetApi="33">
+        <activity
+            android:name=".ui.activity.player.PlayerActivity"
+            android:exported="false"
+            android:label="@string/title_activity_player"
+            android:configChanges="orientation|screenSize|layoutDirection"
+            android:theme="@style/Theme.Tomuki" />
         <activity
             android:name=".ui.activity.ResourceActivity"
             android:exported="false"
