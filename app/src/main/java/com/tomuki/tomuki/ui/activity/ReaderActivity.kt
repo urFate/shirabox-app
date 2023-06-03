@@ -13,6 +13,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
@@ -105,17 +107,6 @@ fun ReaderScaffold(){
                 scrollEnabled = scrollEnabled,
                 pages = pages
             )
-
-//            Text(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .align(Alignment.BottomCenter)
-//                    .padding(16.dp),
-//                text = "${pagerState.currentPage + 1}/${pages.size}",
-//                fontWeight = FontWeight.Medium,
-//                color = MaterialTheme.colorScheme.onSurfaceVariant,
-//                textAlign = TextAlign.Center,
-//            )
         }
     }
 }
@@ -179,19 +170,35 @@ fun ReaderBottomBar(
         exit = slideOutVertically(targetOffsetY = { it }),
     ) {
         Column {
-            Slider(
-                value = pagerState.currentPage.toFloat(),
-                onValueChange = { newValue ->
-                    scope.launch{
-                        pagerState.animateScrollToPage(newValue.toInt())
-                    }
-                },
-                valueRange = 0f..(pagesSize - 1).toFloat(),
-                steps = pagesSize - 1,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${pagerState.currentPage+1}",
+                    modifier = Modifier
+                        .weight(0.05f)
+                )
+                Slider(
+                    value = pagerState.currentPage.toFloat(),
+                    onValueChange = { newValue ->
+                        scope.launch{
+                            pagerState.animateScrollToPage(newValue.toInt())
+                        }
+                    },
+                    valueRange = 0f..(pagesSize - 1).toFloat(),
+                    steps = pagesSize - 1,
+                    modifier = Modifier
+                        .weight(0.9f)
+                )
+                Text(
+                    text = "$pagesSize",
+                    modifier = Modifier
+                        .weight(0.05f)
+                )
+            }
 
             BottomAppBar {
                 // Reading mode
