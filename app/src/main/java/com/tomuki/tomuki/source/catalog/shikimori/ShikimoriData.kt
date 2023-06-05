@@ -21,13 +21,13 @@ data class LibraryAnimeData(
     val url: String,
     val episodes: Int,
     val status: String,
-    @SerialName("released_on") val releasedOn: String
+    @SerialName("released_on") val releasedOn: String?
 )
 
 @Serializable
 data class LibraryBookData(
     val image: Image,
-    val score: Int,
+    val score: String,
     @SerialName("aired_on") val airedOn: String,
     val russian: String,
     val chapters: Int,
@@ -37,7 +37,7 @@ data class LibraryBookData(
     val id: Int,
     val url: String,
     val status: String,
-    @SerialName("released_on") val releasedOn: String
+    @SerialName("released_on") val releasedOn: String?
 )
 
 @Serializable
@@ -102,16 +102,6 @@ data class BookData(
     @SerialName("rates_scores_stats") val ratesScoresStats: List<RatesScoresStat>,
     val genres: List<Genre>,
     val publishers: List<Publisher>,
-)
-
-@Serializable
-data class LibraryAnimeInitiator(
-    val libraryAnimeData: List<LibraryAnimeData>
-)
-
-@Serializable
-data class LibraryBookInitiator(
-    val libraryBookData: List<LibraryBookData>
 )
 
 @Serializable

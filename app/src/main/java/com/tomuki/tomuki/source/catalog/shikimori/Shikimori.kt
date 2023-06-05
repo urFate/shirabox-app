@@ -7,7 +7,7 @@ import com.tomuki.tomuki.model.Rating
 import com.tomuki.tomuki.source.catalog.AbstractCatalog
 import kotlinx.serialization.json.Json
 
-class Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
+object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
@@ -108,9 +108,9 @@ class Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
 
         return when (type) {
             ContentType.ANIME -> {
-                val data = json.decodeFromString<LibraryAnimeInitiator>(response)
+                val data = json.decodeFromString<List<LibraryAnimeData>>(response)
 
-                data.libraryAnimeData.map {
+                data.map {
                     Content(
                         name = it.russian,
                         altName = it.name,
@@ -126,9 +126,9 @@ class Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
             }
 
             ContentType.MANGA, ContentType.RANOBE -> {
-                val data = json.decodeFromString<LibraryBookInitiator>(response)
+                val data = json.decodeFromString<List<LibraryBookData>>(response)
 
-                data.libraryBookData.map {
+                data.map {
                     Content(
                         name = it.russian,
                         altName = it.name,
@@ -149,23 +149,23 @@ class Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
     private fun fetchCatalogContent(
         section: String, page: Int, query: Map<String, String>
     ): List<Content> {
-        val response = httpGET("$url/api/$section?limit=12&page=$page".plus {
-            var str = ""
-
-            query.forEach {
-                str += "&${it.key}=${it.value}"
+        val response = httpGET("$url/api/$section?limit=16&page=$page&".plus(
+            query.entries.map {
+                "${it.key}=${it.value}"
+            }.reduce { acc, s ->
+                "$acc&$s"
             }
-        }) ?: return emptyList()
+        )) ?: return emptyList()
 
         return when (section) {
             "animes" -> {
-                val data = json.decodeFromString<LibraryAnimeInitiator>(response)
+                val data = json.decodeFromString<List<LibraryAnimeData>>(response)
 
-                data.libraryAnimeData.map {
+                data.map {
                     Content(
                         name = it.russian,
                         altName = it.name,
-                        coverUri = "$url/$it.image.original",
+                        coverUri = "$url/${it.image.original}",
                         releaseYear = it.airedOn.substring(0..3),
                         type = ContentType.ANIME,
                         kind = it.kind,
@@ -177,9 +177,9 @@ class Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
             }
 
             "mangas", "ranobe" -> {
-                val data = json.decodeFromString<LibraryBookInitiator>(response)
+                val data = json.decodeFromString<List<LibraryBookData>>(response)
 
-                data.libraryBookData.map {
+                data.map {
                     Content(
                         name = it.russian,
                         altName = it.name,
