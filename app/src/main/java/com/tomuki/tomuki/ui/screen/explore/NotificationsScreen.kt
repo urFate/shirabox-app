@@ -19,14 +19,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
 import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.component.general.CardListItem
-import com.tomuki.tomuki.ui.component.top.MediaTypesBar
 import com.tomuki.tomuki.ui.component.top.TopBar
+import com.tomuki.tomuki.ui.component.top.navigation.MediaNavBar
 
 @Composable
 @Preview
 fun NotificationsScreen(){
+    val mediaNavController = rememberNavController()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -34,7 +37,8 @@ fun NotificationsScreen(){
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TopBar(hint = stringResource(R.string.search_by_name), null)
-        MediaTypesBar()
+        
+        MediaNavBar(navController = mediaNavController)
 
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp)

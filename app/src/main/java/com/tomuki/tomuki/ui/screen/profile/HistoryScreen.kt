@@ -18,13 +18,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.tomuki.tomuki.R
 import com.tomuki.tomuki.ui.component.general.CardListItem
-import com.tomuki.tomuki.ui.component.top.MediaTypesBar
 import com.tomuki.tomuki.ui.component.top.TopBar
+import com.tomuki.tomuki.ui.component.top.navigation.MediaNavBar
 
 @Composable
 fun History(navController: NavController){
+    val mediaNavController = rememberNavController()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -32,7 +35,8 @@ fun History(navController: NavController){
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TopBar(hint = stringResource(R.string.search_in_history), navController)
-        MediaTypesBar()
+        
+        MediaNavBar(navController = mediaNavController)
 
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp)
