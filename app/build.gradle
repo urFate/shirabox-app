@@ -88,5 +88,6 @@ dependencies {
     implementation "androidx.media3:media3-exoplayer-hls:$media3_version"
 
     // Network
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation 'org.jsoup:jsoup:1.16.1'
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }
