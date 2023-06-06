@@ -1,18 +1,14 @@
 package com.tomuki.tomuki.ui.screen.explore.media
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
@@ -35,10 +31,10 @@ import com.google.accompanist.placeholder.material3.placeholder
 import com.tomuki.tomuki.R
 import com.tomuki.tomuki.model.Content
 import com.tomuki.tomuki.model.ContentType
+import com.tomuki.tomuki.ui.component.general.CellGrid
 import com.tomuki.tomuki.ui.component.general.ContentCard
-import com.tomuki.tomuki.ui.component.general.GridPlaceholder
-import com.tomuki.tomuki.ui.component.general.RowPlaceholder
 import com.tomuki.tomuki.ui.screen.explore.ExploreViewModel
+import com.tomuki.tomuki.util.Util
 
 @Composable
 fun BaseMediaScreen(
@@ -136,60 +132,58 @@ fun BaseMediaScreen(
 
 @Composable
 private fun OngoingsRow(isReady: Boolean, contents: List<Content>) {
-    if(!isReady) {
-        RowPlaceholder()
-    }
+    val cardWidth = 160
+    val dummiesAmount = Util.maxElementsInRow(itemWidth = cardWidth)
+    val list = Util.dummyContentsList(isReady, dummiesAmount, contents)
 
-    AnimatedVisibility(
-        visible = isReady,
-        enter = fadeIn()
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(contents.size) {
-                if (it == 0) Spacer(modifier = Modifier.width(16.dp))
+        items(list.size) {
+            if (it == 0) Spacer(modifier = Modifier.width(16.dp))
 
-                val content = contents[it]
+            val content = list[it]
 
-                ContentCard(
-                    modifier = Modifier
-                        .size(160.dp, 220.dp),
-                    item = content
-                )
+            ContentCard(
+                modifier = Modifier
+                    .size(cardWidth.dp, 220.dp)
+                    .placeholder(
+                        visible = !isReady,
+                        shape = RoundedCornerShape(10),
+                        highlight = PlaceholderHighlight.fade()
+                    ),
+                item = content
+            )
 
-                if (it == contents.indices.last) Spacer(modifier = Modifier.width(16.dp))
-            }
+            if (it == contents.indices.last) Spacer(modifier = Modifier.width(16.dp))
         }
     }
 }
 
 @Composable
 private fun PopularsGrid(isReady: Boolean, contents: List<Content>) {
-    if(!isReady)
-        GridPlaceholder()
+    val cardWidth = 180
+    val cardHeight = 240
+    val dummiesCount = Util.maxElementsInColumn(itemHeight = cardHeight * 2)
+    val list = Util.dummyContentsList(isReady, dummiesCount, contents)
 
-    AnimatedVisibility(
-        visible = isReady,
-        enter = fadeIn()
-    ) {
-        LazyVerticalGrid(
-            modifier = Modifier
-                .height((240 * (contents.size / 2) + (16 * (contents.size / 2))).dp),
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            userScrollEnabled = false
-        ){
-            items(contents.size) {
-                val content = contents[it]
-
+    CellGrid(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        cellWidth = cardWidth.dp,
+        contents = list.map {
+            {
                 ContentCard(
                     modifier = Modifier
-                        .size(180.dp, 240.dp),
-                    item = content
+                        .placeholder(
+                            visible = !isReady,
+                            shape = RoundedCornerShape(10),
+                            highlight = PlaceholderHighlight.fade()
+                        )
+                        .size(cardWidth.dp, cardHeight.dp),
+                    item = it
                 )
             }
         }
-    }
+    )
 }
