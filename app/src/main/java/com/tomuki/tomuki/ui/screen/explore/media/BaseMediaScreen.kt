@@ -126,7 +126,7 @@ fun BaseMediaScreen(
             )
         }
 
-        if(isEndReached){
+        if(isEndReached && isReady){
             LaunchedEffect(true) {
                 popularsPage++
             }

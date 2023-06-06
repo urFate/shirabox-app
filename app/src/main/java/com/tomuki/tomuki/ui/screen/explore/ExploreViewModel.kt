@@ -34,7 +34,6 @@ class ExploreViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val contents = Shikimori.fetchPopulars(page, contentType)
 
-
             when(contentType){
                 ContentType.ANIME -> compareAndCollect(contents, animePopulars)
                 ContentType.MANGA -> compareAndCollect(contents, mangaPopulars)
