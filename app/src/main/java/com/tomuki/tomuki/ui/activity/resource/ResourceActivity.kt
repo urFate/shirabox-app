@@ -1,4 +1,4 @@
-package com.tomuki.tomuki.ui.activity
+package com.tomuki.tomuki.ui.activity.resource
 
 import android.app.Activity
 import android.content.Intent
@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.tomuki.tomuki.R
+import com.tomuki.tomuki.ui.activity.ReaderActivity
 import com.tomuki.tomuki.ui.component.general.BottomSheet
 import com.tomuki.tomuki.ui.component.general.CardListItem
 import com.tomuki.tomuki.ui.component.general.ExpandableBox

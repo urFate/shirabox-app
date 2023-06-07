@@ -29,7 +29,7 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
 import com.tomuki.tomuki.model.Content
-import com.tomuki.tomuki.ui.activity.ResourceActivity
+import com.tomuki.tomuki.ui.activity.resource.ResourceActivity
 
 @Composable
 fun ContentCard(modifier: Modifier = Modifier, item: Content) {
