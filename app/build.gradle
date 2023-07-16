@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.tomuki.tomuki'
+    namespace 'com.shirabox.shirabox'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.tomuki.tomuki"
+        applicationId "com.shirabox.shirabox"
         minSdk 23
         targetSdk 33
         versionCode 1
