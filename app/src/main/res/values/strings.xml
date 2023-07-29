@@ -25,8 +25,7 @@
     <!--
         Explore Screen
     -->
-    <string name="anime_actual">Сейчас на экранах</string>
-    <string name="books_actual">Среди новинок</string>
+    <string name="actual">Среди новинок</string>
     <string name="popular">Популярно</string>
     <string name="notifications">Уведомления</string>
 
@@ -53,6 +52,9 @@
     <string name="watch">Смотреть</string>
     <string name="read">Читать</string>
     <string name="resource_status">%d из %d эп. по ~%d мин.</string>
+    <string name="unknown_production">Неизвестный издатель</string>
+    <string name="no_sources">Не удалось найти подходящий ресурс</string>
+    <string name="no_contents">Что то пошло не так…</string>
     <string name="rating">Рейтинг</string>
     <string name="votes">%d Голосов</string>
     <string name="related">Связанное</string>
