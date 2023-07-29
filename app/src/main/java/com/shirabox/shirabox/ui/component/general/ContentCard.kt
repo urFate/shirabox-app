@@ -1,6 +1,5 @@
 package com.shirabox.shirabox.ui.component.general
 
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -21,8 +20,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.CachePolicy
@@ -30,12 +31,15 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
+import com.shirabox.shirabox.R
 import com.shirabox.shirabox.model.Content
-import com.shirabox.shirabox.ui.activity.resource.ResourceActivity
+import com.shirabox.shirabox.model.ContentType
+import com.shirabox.shirabox.ui.theme.BrandRed
+import com.shirabox.shirabox.ui.theme.Purple40
+import com.shirabox.shirabox.ui.theme.Tertiary20
 
 @Composable
-fun ContentCard(modifier: Modifier = Modifier, item: Content) {
-    val context = LocalContext.current
+fun ContentCard(modifier: Modifier = Modifier, item: Content, typeBadge: Boolean = false, onClick: () -> Unit) {
 
     var isLoaded by remember {
         mutableStateOf(false)
@@ -65,18 +69,14 @@ fun ContentCard(modifier: Modifier = Modifier, item: Content) {
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable {
-                        context.startActivity(
-                            Intent(
-                                context,
-                                ResourceActivity::class.java
-                            )
-                        )
+                        onClick.invoke()
                     }
                     .placeholder(
                         visible = !isLoaded,
                         highlight = PlaceholderHighlight.fade()
                     ),
                 model = request,
+                imageLoader = context.imageLoader,
                 contentDescription = item.altName,
                 contentScale = ContentScale.Crop
             )
@@ -98,6 +98,47 @@ fun ContentCard(modifier: Modifier = Modifier, item: Content) {
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 3
             )
+
+            if(typeBadge) {
+                val typeData = contentTypeData(type = item.type)
+
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .background(
+                            color = typeData.second,
+                            shape = RoundedCornerShape(0.dp, 0.dp, 0.dp, 10.dp)
+                        )
+                        .padding(8.dp),
+                    text = typeData.first,
+                    fontSize = 12.sp,
+                    color = Color.White,
+                    maxLines = 1
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun ContentCardPlaceholder(modifier: Modifier) {
+    Surface(
+        modifier = modifier.then(
+            Modifier.placeholder(
+                visible = true,
+                shape = RoundedCornerShape(10),
+                highlight = PlaceholderHighlight.fade()
+            )
+        ),
+        shape = RoundedCornerShape(10)
+    ) {}
+}
+
+@Composable
+fun contentTypeData(type: ContentType): Pair<String, Color> {
+    return when(type){
+        ContentType.ANIME -> stringResource(id = R.string.anime) to Purple40
+        ContentType.MANGA -> stringResource(id = R.string.manga) to BrandRed
+        ContentType.RANOBE -> stringResource(id = R.string.ranobe) to Tertiary20
     }
 }
