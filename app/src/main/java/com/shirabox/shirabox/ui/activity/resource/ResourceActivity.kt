@@ -2,16 +2,19 @@ package com.shirabox.shirabox.ui.activity.resource
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,9 +36,9 @@ import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MovieCreation
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +51,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,27 +61,27 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.shirabox.shirabox.R
-import com.shirabox.shirabox.ui.activity.ReaderActivity
-import com.shirabox.shirabox.ui.component.general.BottomSheet
-import com.shirabox.shirabox.ui.component.general.CardListItem
+import com.shirabox.shirabox.model.ContentType
+import com.shirabox.shirabox.ui.component.general.ContentCard
 import com.shirabox.shirabox.ui.component.general.ExpandableBox
+import com.shirabox.shirabox.ui.component.general.ListItem
 import com.shirabox.shirabox.ui.component.general.RatingView
 import com.shirabox.shirabox.ui.theme.ShiraBoxTheme
+import com.shirabox.shirabox.util.Util
 
 class ResourceActivity : ComponentActivity() {
 
@@ -82,6 +89,17 @@ class ResourceActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val arguments = intent.extras
+        val resourceId = arguments?.getInt("id") ?: -1
+        val type = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> arguments?.getSerializable(
+                "type",
+                ContentType::class.java
+            )
+
+            else -> arguments?.getSerializable("type") as ContentType
+        } ?: ContentType.ANIME
 
         setContent {
             ShiraBoxTheme(
@@ -91,7 +109,7 @@ class ResourceActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ShowResource()
+                    Resource(resourceId, type)
                 }
             }
         }
@@ -100,324 +118,354 @@ class ResourceActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-@Preview
-fun ShowResource(colorScheme: ColorScheme = MaterialTheme.colorScheme){
+fun Resource(
+    id: Int,
+    type: ContentType,
+    model: ResourceViewModel = viewModel(factory = Util.viewModelFactory {
+        ResourceViewModel(type)
+    }),
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
+) {
 
-    val sourcesBottomSheet = BottomSheet()
-    val contentBottomSheet = BottomSheet()
+    val context = LocalContext.current
+    val content = model.content.value
+    val relations = model.related
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+    val isReady = remember(content) {
+        content != null
+    }
+
+    val bottomSheetVisibilityState = remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(Unit) {
+        model.fetchContent(id)
+        model.fetchRelated(id)
+    }
+
+    AnimatedVisibility(visible = !isReady, exit = fadeOut()) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
+
+    AnimatedVisibility(
+        visible = isReady,
+        enter = fadeIn()
     ) {
-        Box {
-            val activity = (LocalContext.current as? Activity)
-            Image(
-                modifier = Modifier
-                    .padding(top = 0.dp)
-                    .fillMaxWidth()
-                    .height(512.dp)
-                    .graphicsLayer(alpha = 0.99f)
-                    .drawWithCache {
-                        onDrawWithContent {
-                            drawContent()
-                            drawRect(
-                                Brush.verticalGradient(
-                                    listOf(
-                                        Color(
-                                            colorScheme.background.red,
-                                            colorScheme.background.green,
-                                            colorScheme.background.blue,
-                                            0.7f
-                                        ),
-                                        colorScheme.background
-                                    )
-                                ), blendMode = BlendMode.SrcAtop
-                            )
-                        }
-                    },
-                painter = painterResource(id = R.drawable.blank),
-                contentDescription = "blank",
-                contentScale = ContentScale.FillWidth
-            )
-
-            TopAppBar (
-                title = { },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { activity?.finish() },
-                    ) {
-                        Icon(Icons.Outlined.ArrowBack, "ArrowBack Icon")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
-                actions = {
-                    IconButton(
-                        onClick = { /*TODO*/ },
-                    ) {
-                        Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
-                    }
-                },
-                scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-            )
-
-            Image(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .width(215.dp)
-                    .height(300.dp)
-                    .clip(RoundedCornerShape(32.dp)),
-                painter = painterResource(id = R.drawable.blank),
-                contentDescription = "blank",
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        Text(
-            modifier = Modifier.padding(16.dp, 0.dp),
-            text = "Название ресурса",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.W800
-        )
-
-        Text(
-            modifier = Modifier.padding(16.dp, 0.dp),
-            text = "Оригинальное название",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.W300
-        )
-
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp))
-        {
-            Button(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .weight(weight = 1f, fill = false),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4141)),
-                onClick = { /* Do something! */ },
-                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-
-            ){
-                Icon(
-                    Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Localized description",
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(id = R.string.add_favourite))
-            }
-
-            Button(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .height(55.dp)
-                    .weight(weight = 1f, fill = false),
-                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.surfaceTint),
-                onClick = { sourcesBottomSheet.visibility(true) },
-                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-
-            ){
-                Icon(
-                    Icons.Outlined.PlayArrow,
-                    contentDescription = "Localized description",
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(id = R.string.watch))
-            }
-        }
-
-        Divider(thickness = 1.dp,
-            modifier = Modifier
-                .padding(48.dp, 0.dp, 48.dp, 16.dp))
-
-        Column(
-            modifier = Modifier.padding(16.dp, 0.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        content?.let {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
             ) {
-                ResourceDataLabel(icon = Icons.Outlined.MovieCreation, text = "Unknown Studio, 1997")
-                ResourceDataLabel(icon = Icons.Outlined.EventAvailable, text = "Сериал, выпуск продолжается")
-                ResourceDataLabel(icon = Icons.Outlined.LiveTv, text =
-                stringResource(
-                    id = R.string.resource_status,
-                    0, 12, 20
-                )
-                )
-            }
+                Box {
+                    val activity = (LocalContext.current as? Activity)
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(content.image)
+                            .crossfade(true)
+                            .build(),
+                        modifier = Modifier
+                            .padding(top = 0.dp)
+                            .fillMaxWidth()
+                            .height(512.dp)
+                            .graphicsLayer(alpha = 0.99f)
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent()
+                                    drawRect(
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                Color(
+                                                    colorScheme.background.red,
+                                                    colorScheme.background.green,
+                                                    colorScheme.background.blue,
+                                                    0.7f
+                                                ),
+                                                colorScheme.background
+                                            )
+                                        ), blendMode = BlendMode.SrcAtop
+                                    )
+                                }
+                            },
+                        contentDescription = "blank",
+                        contentScale = ContentScale.FillWidth
+                    )
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ){
-                repeat(8){
-                    InputChip(
-                        selected = true,
-                        label = {
-                            Text("Жанр $it",
-                                fontWeight = FontWeight.W500,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontSize = 12.sp)
+                    TopAppBar(
+                        title = { },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = { activity?.finish() },
+                            ) {
+                                Icon(Icons.Outlined.ArrowBack, "ArrowBack Icon")
+                            }
                         },
-                        onClick = { /*TODO*/ })
+                        colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
+                        actions = {
+                            IconButton(
+                                onClick = { /*TODO*/ },
+                            ) {
+                                Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
+                            }
+                        },
+                        scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+                    )
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(content.image)
+                            .crossfade(true)
+                            .build(),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .width(215.dp)
+                            .height(300.dp)
+                            .clip(RoundedCornerShape(32.dp)),
+                        contentDescription = "blank",
+                        contentScale = ContentScale.Crop
+                    )
                 }
-            }
 
-            ExpandableBox(
-                startHeight = 128.dp
-            ) {
                 Text(
-                    text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod" +
-                            " tempor incididunt ut labore et dolore magna aliqua. Eget duis at " +
-                            "tellus at. Scelerisque viverra mauris in aliquam sem fringilla. " +
-                            "Vitae suscipit tellus mauris a. Ac tortor vitae purus faucibus " +
-                            "ornare suspendisse sed nisi lacus. Sollicitudin ac orci phasellus " +
-                            "egestas tellus rutrum tellus. Quis blandit turpis cursus in. " +
-                            "Condimentum mattis pellentesque id nibh tortor. " +
-                            "Consequat interdum varius sit amet mattis vulputate enim nulla aliquet. " +
-                            "Diam sit amet nisl suscipit adipiscing bibendum. Faucibus turpis in " +
-                            "eu mi bibendum neque egestas congue quisque. Mauris nunc congue nisi" +
-                            " vitae suscipit tellus. Eu consequat ac felis donec et odio. Semper " +
-                            "quis lectus nulla at volutpat diam.",
-                    fontWeight = FontWeight.Thin,
-                    overflow = TextOverflow.Ellipsis
+                    modifier = Modifier.padding(16.dp, 0.dp),
+                    text = content.name,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.W800
                 )
-            }
-        }
 
-        Divider(thickness = 1.dp,
-            modifier = Modifier
-                .padding(horizontal = 48.dp, vertical = 16.dp))
+                Text(
+                    modifier = Modifier.padding(16.dp, 0.dp),
+                    text = model.content.value?.altName.toString(),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.W300
+                )
 
-        Column(
-            modifier = Modifier.padding(16.dp, 0.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.rating),
-                fontSize = 21.sp,
-                fontWeight = FontWeight.W800
-            )
+                /**
+                 * Buttons Row
+                 */
 
-            RatingView(averageRating = 8.1, votes = 147, values = mapOf(
-                10 to 0.6f,
-                9 to 0.4f,
-                8 to 0.5f,
-                7 to 0.8f,
-                6 to 0.3f,
-                5 to 0.1f
-            ))
-        }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
+                {
+                    /**
+                     * Favourites button
+                     */
 
-        Divider(thickness = 1.dp,
-            modifier = Modifier
-                .padding(horizontal = 48.dp, vertical = 16.dp))
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                modifier = Modifier.padding(16.dp, 0.dp),
-                text = stringResource(id = R.string.related),
-                fontSize = 21.sp,
-                fontWeight = FontWeight.W800
-            )
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(4){
-                    if(it == 0) Spacer(modifier = Modifier.width(16.dp))
-
-                    Surface(
-                        modifier = Modifier.size(140.dp, 190.dp),
-                        shape = RoundedCornerShape(15)
+                    Button(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                            .height(55.dp)
+                            .weight(weight = 1f, fill = false),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4141)),
+                        onClick = { /* Do something! */ },
+                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
 
                     ) {
-                        Image(
-                            modifier = Modifier.clickable { /* TODO */ },
-                            painter = painterResource(id = R.drawable.blank),
-                            contentDescription = "blank",
-                            contentScale = ContentScale.Crop)
+                        Icon(
+                            Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Localized description",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(stringResource(id = R.string.add_favourite))
                     }
 
-                    if(it == 3) Spacer(modifier = Modifier.width(16.dp))
-                }
-            }
-        }
+                    /**
+                     * Play button
+                     */
 
-        Divider(thickness = 1.dp,
-            modifier = Modifier
-                .padding(horizontal = 48.dp, vertical = 16.dp))
+                    Button(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                            .height(55.dp)
+                            .weight(weight = 1f, fill = false),
+                        colors = ButtonDefaults.buttonColors(containerColor = colorScheme.surfaceTint),
+                        onClick = {
+                            bottomSheetVisibilityState.value = true
+                        },
+                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                modifier = Modifier.padding(16.dp, 0.dp),
-                text = stringResource(id = R.string.discussion),
-                fontSize = 21.sp,
-                fontWeight = FontWeight.W800
-            )
-
-            ExpandableBox(
-                startHeight = 98.dp,
-                fadeEffect = false,
-                disposable = true
-            ) {
-                Column {
-                    repeat(4) {
-                        CommentComponent(
-                            username = "Пользователь $it",
-                            avatar = ImageBitmap.imageResource(id = R.drawable.blank),
-                            timestamp = "$it дней назад",
-                            text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, " +
-                                    "sed do eiusmod"
+                    ) {
+                        Icon(
+                            Icons.Outlined.PlayArrow,
+                            contentDescription = "Play button icon",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(
+                            stringResource(
+                                id = when (type) {
+                                    ContentType.ANIME -> R.string.watch
+                                    else -> R.string.read
+                                }
+                            )
                         )
                     }
                 }
-            }
-        }
 
-        Spacer(Modifier.height(64.dp))
+                Divider(
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(48.dp, 0.dp, 48.dp, 16.dp)
+                )
 
-        sourcesBottomSheet.BottomSheetComponent {
-            repeat(5) {
-                CardListItem(
-                    headlineContent = { Text("Источник #$it") },
-                    supportingContent = { Text("$it Серий") },
-                    overlineContent = { Text("Обновлено 3 дня назад") },
-                    coverImage = ImageBitmap.imageResource(id = R.drawable.blank),
-                    trailingIcon = Icons.Outlined.PushPin,
-                    onTrailingIconClick = { /*TODO*/ }
+                /**
+                 * Content general information
+                 */
+
+                Column(
+                    modifier = Modifier.padding(16.dp, 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    contentBottomSheet.visibility(true)
-                    sourcesBottomSheet.visibility(false)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        ResourceDataLabel(
+                            icon = Icons.Outlined.MovieCreation,
+                            text = "${(content.production?.uppercase() ?: stringResource(id = R.string.unknown_production))}, ${content.releaseYear}"
+                        )
+                        ResourceDataLabel(
+                            icon = Icons.Outlined.EventAvailable,
+                            text = "${content.kind}, ${content.status}"
+                        )
+                        if (type == ContentType.ANIME) {
+                            ResourceDataLabel(
+                                icon = Icons.Outlined.LiveTv, text =
+                                stringResource(
+                                    id = R.string.resource_status,
+                                    content.episodesAired ?: 0,
+                                    content.episodes,
+                                    content.episodeDuration ?: 20
+                                )
+                            )
+                        }
+                    }
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        content.genres.forEach {
+                            InputChip(
+                                selected = true,
+                                label = {
+                                    Text(
+                                        text = it,
+                                        fontWeight = FontWeight.W500,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontSize = 12.sp
+                                    )
+                                },
+                                onClick = { /*TODO*/ }
+                            )
+                        }
+                    }
+
+                    content.description?.let {
+                        if(it != "null") {
+                            ExpandableBox(
+                                startHeight = 128.dp
+                            ) {
+                                Text(
+                                    text = it,
+                                    fontWeight = FontWeight.Thin,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
                 }
-            }
-        }
 
-        contentBottomSheet.BottomSheetComponent {
-            val context = LocalContext.current
+                Divider(
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(horizontal = 48.dp, vertical = 16.dp)
+                )
 
-            repeat(6) {
-                CardListItem(
-                    headlineString = "Название #$it",
-                    trailingString = "$it Серий",
-                    overlineString = "Обновлено 3 дня назад"
+                Column(
+                    modifier = Modifier.padding(16.dp, 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    context.startActivity(Intent(context, ReaderActivity::class.java))
+                    Text(
+                        text = stringResource(id = R.string.rating),
+                        fontSize = 21.sp,
+                        fontWeight = FontWeight.W800
+                    )
+
+                    val rating = content.rating
+                    val votes = rating.scores.values.sum()
+
+                    RatingView(
+                        averageRating = rating.average,
+                        votes = votes,
+                        values = rating.scores.mapValues { (it.value.toFloat() / votes.toFloat()) }
+                            .minus(0..5)
+                    )
                 }
+
+                Divider(
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(horizontal = 48.dp, vertical = 16.dp)
+                )
+
+
+                /**
+                 * Resource relations
+                 */
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        modifier = Modifier.padding(16.dp, 0.dp),
+                        text = stringResource(id = R.string.related),
+                        fontSize = 21.sp,
+                        fontWeight = FontWeight.W800
+                    )
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(relations) {
+                            ContentCard(
+                                modifier = Modifier.size(150.dp, 210.dp),
+                                typeBadge = true,
+                                item = it
+                            ) {
+                                context.startActivity(
+                                    Intent(
+                                        context,
+                                        ResourceActivity::class.java
+                                    ).apply {
+                                        putExtra("id", it.shikimoriID)
+                                        putExtra("type", it.type)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(56.dp))
             }
+
+            ResourceBottomSheet(
+                content = content,
+                model = model,
+                visibilityState = bottomSheetVisibilityState
+            )
         }
     }
 }
@@ -443,8 +491,8 @@ fun ResourceDataLabel(icon: ImageVector, text: String){
 }
 
 @Composable
-fun CommentComponent(username: String, avatar: ImageBitmap, timestamp: String, text: String) {
-    CardListItem(
+fun CommentComponent(username: String, avatar: String, timestamp: String, text: String) {
+    ListItem(
         headlineContent = {
             Box(
                 modifier = Modifier.fillMaxWidth()

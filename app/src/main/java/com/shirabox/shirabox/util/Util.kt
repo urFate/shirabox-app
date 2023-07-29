@@ -1,13 +1,16 @@
 package com.shirabox.shirabox.util
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
+import android.os.Build
+import android.text.Html
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.C
 import com.google.accompanist.systemuicontroller.SystemUiController
-import com.shirabox.shirabox.model.Content
-import com.shirabox.shirabox.model.ContentType
-import com.shirabox.shirabox.model.Rating
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 class Util {
@@ -30,53 +33,34 @@ class Util {
             }
         }
 
-        val dummyContent = Content(
-            name = "",
-            altName = "",
-            description = "",
-            coverUri = "",
-            production = "",
-            releaseYear = "",
-            type = ContentType.ANIME,
-            kind = "",
-            episodesCount = 0,
-            rating = Rating(0.0),
-            shikimoriID = 0,
-            genres = emptyList()
-        )
-
-        /**
-         * Fill contents list with dummies until loading finished.
-         * Required for smooth placeholders transition
-         */
-        fun dummyContentsList(
-            isReady: Boolean,
-            amount: Int,
-            contents: List<Content>
-        ): List<Content> {
-            return if (!isReady) {
-                return buildList {
-                    repeat(amount) {
-                        add(dummyContent)
-                    }
-                }
-            } else contents
-        }
-
-        @Composable
-        fun maxElementsInRow(itemWidth: Int) : Int {
-            val configuration = LocalConfiguration.current
+        fun maxElementsInRow(itemWidth: Int, configuration: Configuration) : Int {
             val screenWidth = configuration.screenWidthDp
 
             return (screenWidth / itemWidth).inc()
         }
 
-        @Composable
-        fun maxElementsInColumn(itemHeight: Int) : Int {
-            val configuration = LocalConfiguration.current
-            val screenHeight = configuration.screenHeightDp
-
-            return (screenHeight / itemHeight).inc()
+        fun maxElementsInVerticalGrid(
+            gridWidth: Int,
+            itemWidth: Int,
+            spacing: Int,
+            density: Density
+        ): Int {
+            val availableWidth = with(density) { gridWidth.dp.toPx() - (spacing * (gridWidth - 1)) }
+            return (availableWidth / itemWidth).roundToInt()
         }
+
+        fun decodeHtml(str: String): String {
+            return when {
+                Build.VERSION.SDK_INT >= 24 -> Html.fromHtml(str, Html.FROM_HTML_MODE_LEGACY)
+                    .toString()
+
+                else -> Html.fromHtml(str).toString()
+            }
+        }
+
+        inline fun <VM : ViewModel> viewModelFactory(crossinline f: () -> VM) =
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>):T = f() as T
+            }
     }
 }
