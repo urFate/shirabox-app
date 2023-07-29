@@ -52,15 +52,14 @@ data class AnimeData(
     val status: String,
     val episodes: Int,
     @SerialName("episodes_aired") val episodesAired: Int,
-    @SerialName("aired_on") val airedOn: String,
-    @SerialName("released_on") val releasedOn: String,
+    @SerialName("aired_on") val airedOn: String?,
+    @SerialName("released_on") val releasedOn: String?,
     val rating: String,
-    val english: List<String>,
+    val english: List<String?>,
     val japanese: List<String>,
     val synonyms: List<String>,
     val duration: Long,
-    val description: String,
-    val franchise: String,
+    val description: String?,
     val favoured: Boolean,
     val anons: Boolean,
     val ongoing: Boolean,
@@ -69,7 +68,7 @@ data class AnimeData(
     @SerialName("myanimelist_id") val myAnimeListId: Long,
     @SerialName("rates_scores_stats") val ratesScoresStats: List<RatesScoresStat>,
     @SerialName("updated_at") val updatedAt: String,
-    @SerialName("next_episode_at") val nextEpisodeAt: String,
+    @SerialName("next_episode_at") val nextEpisodeAt: String?,
     val genres: List<Genre>,
     val studios: List<Studio>,
 )
@@ -86,14 +85,12 @@ data class BookData(
     val status: String,
     val volumes: Int,
     val chapters: Int,
-    @SerialName("aired_on") val airedOn: String,
-    @SerialName("released_on") val releasedOn: String,
-    val english: List<String>,
-    val japanese: List<String>,
+    @SerialName("aired_on") val airedOn: String?,
+    @SerialName("released_on") val releasedOn: String?,
+    val english: List<String?>,
+    val japanese: List<String?>,
     val synonyms: List<String>,
-    val description: String,
-    val franchise: String,
-    val favoured: Boolean,
+    val description: String?,
     val anons: Boolean,
     val ongoing: Boolean,
     @SerialName("thread_id") val threadId: Long,
@@ -120,12 +117,51 @@ data class Studio(
     val id: Int,
     val name: String,
     @SerialName("filtered_name") val filteredName: String,
-    val real: Boolean,
-    val image: String,
+    val real: Boolean
 )
 
 @Serializable
 data class Publisher(
     val id: Int,
     val name: String,
+)
+
+@Serializable
+data class RelatedItem(
+    val anime: RelationAnime?,
+    val manga: RelationManga?,
+    val relation: String,
+    @SerialName("relation_russian") val relationRussian: String
+)
+
+@Serializable
+data class RelationAnime(
+    @SerialName("aired_on") val airedOn: String?,
+    val episodes: Int,
+    @SerialName("episodes_aired") val episodesAired: Int,
+    val id: Int,
+    val image: Image,
+    val kind: String?,
+    val name: String,
+    @SerialName("released_on") val releasedOn: String?,
+    val russian: String,
+    val score: String,
+    val status: String,
+    val url: String
+)
+
+@Serializable
+data class RelationManga(
+    @SerialName("aired_on") val airedOn: String?,
+    val chapters: Int,
+    val id: Int,
+    val image: Image,
+    val kind: String?,
+    val name: String,
+    @SerialName("released_on") val releasedOn: String?,
+    val russian: String,
+    val score: String,
+    val status: String,
+    val url: String,
+    val volumes: Int
 )

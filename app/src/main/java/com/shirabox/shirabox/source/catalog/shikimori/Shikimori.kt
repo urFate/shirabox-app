@@ -5,6 +5,7 @@ import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.model.Rating
 import com.shirabox.shirabox.source.catalog.AbstractCatalog
+import com.shirabox.shirabox.util.Util
 import kotlinx.serialization.json.Json
 
 object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
@@ -34,7 +35,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
     }
 
     override suspend fun fetchPopulars(page: Int, type: ContentType): List<Content> {
-        return when(type) {
+        return when (type) {
             ContentType.ANIME -> fetchCatalogContent(
                 "animes", page, mapOf(
                     "order" to "popularity"
@@ -65,18 +66,21 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
 
                 Content(name = data.russian,
                     altName = data.name,
-                    description = data.description,
-                    coverUri = "$url/${data.image.original}",
+                    description = Util.decodeHtml(data.description.toString()),
+                    image = "$url/${data.image.original}",
                     production = data.studios.first().name,
-                    releaseYear = data.airedOn.substring(0..3),
+                    releaseYear = data.airedOn?.substring(0..3),
                     type = type,
-                    kind = data.kind,
-                    episodesCount = data.episodes,
+                    kind = decodeKind(data.kind),
+                    status = decodeStatus(data.status),
+                    episodes = data.episodes,
+                    episodesAired = data.episodesAired,
+                    episodeDuration = data.duration.toInt(),
                     rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
                         it.name to it.value
                     }),
                     shikimoriID = data.id,
-                    genres = data.genres.map { it.name }
+                    genres = data.genres.map { it.russian }
                 )
             }
 
@@ -85,18 +89,19 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
 
                 Content(name = data.russian,
                     altName = data.name,
-                    description = data.description,
-                    coverUri = "$url/${data.image.original}",
-                    production = data.publishers.first().name,
-                    releaseYear = data.airedOn.substring(0..3),
+                    description = Util.decodeHtml(data.description.toString()),
+                    image = "$url/${data.image.original}",
+                    production = data.publishers.firstOrNull()?.name ?: "",
+                    releaseYear = data.airedOn?.substring(0..3) ?: "1997",
                     type = type,
-                    kind = data.kind,
-                    episodesCount = data.chapters,
+                    kind = decodeKind(data.kind),
+                    status = decodeStatus(data.status),
+                    episodes = data.chapters,
                     rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
                         it.name to it.value
                     }),
                     shikimoriID = data.id,
-                    genres = data.genres.map { it.name }
+                    genres = data.genres.map { it.russian}
                 )
             }
         }
@@ -114,11 +119,13 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                     Content(
                         name = it.russian,
                         altName = it.name,
-                        coverUri = "$url/${it.image.original}",
+                        image = "$url/${it.image.original}",
                         releaseYear = it.airedOn.substring(0..3),
                         type = type,
-                        kind = it.kind,
-                        episodesCount = it.episodes,
+                        kind = decodeKind(it.kind),
+                        status = decodeStatus(it.status),
+                        episodes = it.episodes,
+                        episodesAired = it.episodesAired,
                         rating = Rating(it.score.toDouble()),
                         shikimoriID = it.id
                     )
@@ -132,11 +139,12 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                     Content(
                         name = it.russian,
                         altName = it.name,
-                        coverUri = "$url/${it.image.original}",
+                        image = "$url/${it.image.original}",
                         releaseYear = it.airedOn.substring(0..3),
                         type = type,
-                        kind = it.kind,
-                        episodesCount = it.chapters,
+                        kind = decodeKind(it.kind),
+                        status = decodeStatus(it.status),
+                        episodes = it.chapters,
                         rating = Rating(it.score.toDouble()),
                         shikimoriID = it.id
                     )
@@ -145,6 +153,44 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
         }
     }
 
+    override suspend fun fetchRelated(id: Int, type: ContentType): List<Content?> {
+        val response =
+            httpGET("$url/api/${sectionFromType(type)}/$id/related") ?: return emptyList()
+        val data = json.decodeFromString<List<RelatedItem>>(response)
+
+        return data.filter { it.relation != "Other" }.map {
+            when {
+                it.anime != null -> Content(
+                    name = it.anime.russian,
+                    altName = it.anime.name,
+                    image = "$url/${it.anime.image.original}",
+                    releaseYear = it.anime.releasedOn,
+                    type = ContentType.ANIME,
+                    kind = it.anime.kind.toString(),
+                    status = it.anime.status,
+                    episodes = it.anime.episodes,
+                    episodesAired = it.anime.episodesAired,
+                    rating = Rating(average = it.anime.score.toDouble(), scores = mapOf()),
+                    shikimoriID = it.anime.id
+                )
+
+                it.manga != null -> Content(
+                    name = it.manga.russian,
+                    altName = it.manga.name,
+                    image = "$url/${it.manga.image.original}",
+                    releaseYear = it.manga.releasedOn ?: "",
+                    type = ContentType.MANGA,
+                    kind = it.manga.kind.toString(),
+                    status = it.manga.status,
+                    episodes = it.manga.chapters,
+                    rating = Rating(average = it.manga.score.toDouble(), scores = mapOf()),
+                    shikimoriID = it.manga.id
+                )
+
+                else -> null
+            }
+        }
+    }
 
     private fun fetchCatalogContent(
         section: String, page: Int, query: Map<String, String>
@@ -165,11 +211,13 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                     Content(
                         name = it.russian,
                         altName = it.name,
-                        coverUri = "$url/${it.image.original}",
+                        image = "$url/${it.image.original}",
                         releaseYear = it.airedOn.substring(0..3),
                         type = ContentType.ANIME,
-                        kind = it.kind,
-                        episodesCount = it.episodes,
+                        kind = decodeKind(it.kind),
+                        status = decodeStatus(it.status),
+                        episodes = it.episodes,
+                        episodesAired = it.episodesAired,
                         rating = Rating(it.score.toDouble()),
                         shikimoriID = it.id
                     )
@@ -183,11 +231,12 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                     Content(
                         name = it.russian,
                         altName = it.name,
-                        coverUri = "$url/${it.image.original}",
+                        image = "$url/${it.image.original}",
                         releaseYear = it.airedOn.substring(0..3),
                         type = ContentType.fromString(section),
-                        kind = it.kind,
-                        episodesCount = it.chapters,
+                        kind = decodeKind(it.kind),
+                        status = decodeStatus(it.status),
+                        episodes = it.chapters,
                         rating = Rating(it.score.toDouble()),
                         shikimoriID = it.id
                     )
@@ -203,6 +252,32 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
             ContentType.MANGA -> "mangas"
             ContentType.RANOBE -> "ranobe"
             ContentType.ANIME -> "animes"
+        }
+    }
+
+    private fun decodeKind(str: String): String {
+        return when(str) {
+            "tv" -> "Сериал"
+            "movie" -> "Фильм"
+            "special" -> "Спешл"
+            "manga" -> "Манга"
+            "manhua" -> "Маньхуа"
+            "light_novel" -> "Ранобэ"
+            "novel" -> "Новелла"
+            "one_shot" -> "Ван-шот"
+            "doujin" -> "Додзинси"
+            else -> str.uppercase()
+        }
+    }
+
+    private fun decodeStatus(str: String): String {
+        return when(str) {
+            "anons" -> "Анонс"
+            "ongoing" -> "Выпускается"
+            "released" -> "Завершён"
+            "paused" -> "Выпуск приостановлен"
+            "discontinued" -> "Выпуск прекращён"
+            else -> str
         }
     }
 }
