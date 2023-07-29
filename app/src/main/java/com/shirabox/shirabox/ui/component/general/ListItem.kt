@@ -17,12 +17,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.shirabox.shirabox.R
 
 @Composable
-fun CardListItem(
+fun ListItem(
     headlineString: String,
     supportingString: String,
     coverImage: ImageBitmap,
@@ -55,7 +58,7 @@ fun CardListItem(
 }
 
 @Composable
-fun CardListItem(
+fun ListItem(
     headlineContent: @Composable () -> Unit,
     supportingString: String,
     coverImage: ImageBitmap,
@@ -78,11 +81,11 @@ fun CardListItem(
 }
 
 @Composable
-fun CardListItem(
+fun ListItem(
     headlineContent: @Composable () -> Unit,
     overlineContent: @Composable () -> Unit = {},
     supportingContent: @Composable () -> Unit = {},
-    coverImage: ImageBitmap?,
+    coverImage: String? = null,
     trailingIcon: ImageVector?,
     clickable: Boolean = true,
     onTrailingIconClick: () -> Unit = {},
@@ -106,12 +109,15 @@ fun CardListItem(
         },
         leadingContent = {
             coverImage?.let{
-                Image(
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(coverImage)
+                        .crossfade(true)
+                        .build(),
                     modifier = Modifier
                         .height(40.dp)
                         .width(40.dp)
                         .clip(RoundedCornerShape(100)),
-                    painter = BitmapPainter(coverImage),
                     contentDescription = "Composable Image",
                     contentScale = ContentScale.Crop
                 )
@@ -120,7 +126,7 @@ fun CardListItem(
     )
 }
 @Composable
-fun CardListItem(
+fun ListItem(
     headlineString: String,
     overlineString: String,
     trailingString: String,
