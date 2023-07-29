@@ -13,27 +13,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
+import com.shirabox.shirabox.model.ContentType
 
 
 @Composable
 fun MediaNavBar(
-    navController: NavController,
-    items: List<MediaNavItem> = mediaNavItems
+    items: List<MediaNavItem> = mediaNavItems,
+    activeType: ContentType,
+    onClick: (MediaNavItem) -> Unit
 ) {
+    println("CURRENT_BAR: $activeType")
+
     Row(
         modifier = Modifier
             .wrapContentWidth()
             .padding(16.dp, 0.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        val navBackStackEntry = navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry.value?.destination?.route
-
         items.forEach {
-            val isSelected = currentRoute == it.route
+            val isSelected = activeType == it.contentType
 
             AssistChip(
                 label = { Text(stringResource(it.name)) },
@@ -44,14 +42,7 @@ fun MediaNavBar(
                     else MaterialTheme.colorScheme.inverseSurface
                 ),
                 onClick = {
-                    navController.navigate(it.route) {
-                        launchSingleTop = true
-                        restoreState = true
-
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                    }
+                    onClick(it)
                 }
             )
         }

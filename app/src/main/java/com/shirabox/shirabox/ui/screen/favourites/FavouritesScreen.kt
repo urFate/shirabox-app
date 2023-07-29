@@ -24,14 +24,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.shirabox.shirabox.R
+import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.ui.component.top.TopBar
 import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 
 @Composable
 fun FavouritesScreen(navController: NavController){
-    val mediaNavController = rememberNavController()
 
     Column(
         modifier = Modifier
@@ -41,7 +40,9 @@ fun FavouritesScreen(navController: NavController){
     ) {
         TopBar(stringResource(R.string.search_in_favourites), navController)
         
-        MediaNavBar(navController = mediaNavController)
+        MediaNavBar(activeType = ContentType.ANIME) {
+            TODO("Add database functionality")
+        }
 
         Column(
             modifier = Modifier.padding(16.dp, 0.dp),

@@ -18,16 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.shirabox.shirabox.R
-import com.shirabox.shirabox.ui.component.general.CardListItem
+import com.shirabox.shirabox.model.ContentType
+import com.shirabox.shirabox.ui.component.general.ListItem
 import com.shirabox.shirabox.ui.component.top.TopBar
 import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 
 @Composable
 fun History(navController: NavController){
-    val mediaNavController = rememberNavController()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,8 +33,10 @@ fun History(navController: NavController){
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TopBar(hint = stringResource(R.string.search_in_history), navController)
-        
-        MediaNavBar(navController = mediaNavController)
+
+        MediaNavBar(activeType = ContentType.ANIME) {
+            TODO("Add database functionality")
+        }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -54,7 +54,7 @@ fun History(navController: NavController){
                 fontWeight = FontWeight(500)
             )
             repeat(4) {
-                CardListItem(headlineString = "Название", supportingString = "Серия 12 - 19:04",
+                ListItem(headlineString = "Название", supportingString = "Серия 12 - 19:04",
                     coverImage = ImageBitmap.imageResource(id = R.drawable.blank),
                     trailingIcon = Icons.Outlined.Delete,
                     onClick = {},

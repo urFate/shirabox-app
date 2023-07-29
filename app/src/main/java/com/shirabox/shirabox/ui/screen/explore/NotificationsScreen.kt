@@ -16,20 +16,16 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
 import com.shirabox.shirabox.R
-import com.shirabox.shirabox.ui.component.general.CardListItem
+import com.shirabox.shirabox.model.ContentType
+import com.shirabox.shirabox.ui.component.general.ListItem
 import com.shirabox.shirabox.ui.component.top.TopBar
 import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 
 @Composable
-@Preview
 fun NotificationsScreen(){
-    val mediaNavController = rememberNavController()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -37,8 +33,10 @@ fun NotificationsScreen(){
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TopBar(hint = stringResource(R.string.search_by_name), null)
-        
-        MediaNavBar(navController = mediaNavController)
+
+        MediaNavBar(activeType = ContentType.ANIME) {
+            TODO("Add database functionality")
+        }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -56,7 +54,7 @@ fun NotificationsScreen(){
                 fontWeight = FontWeight(500)
             )
             repeat(4) {
-                CardListItem(
+                ListItem(
                     headlineContent = {
                         Box(Modifier.fillMaxWidth()) {
                             Text(modifier = Modifier.align(Alignment.TopStart),
