@@ -24,6 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.imageLoader
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
@@ -39,12 +41,18 @@ fun ContentCard(modifier: Modifier = Modifier, item: Content) {
         mutableStateOf(false)
     }
 
-    val request = ImageRequest.Builder(LocalContext.current)
-        .data(item.coverUri)
+    val context = LocalContext.current
+
+    val request = ImageRequest.Builder(context)
+        .data(item.image)
         .crossfade(true)
         .listener { _, _ ->
             isLoaded = true
         }
+        .memoryCacheKey(item.image)
+        .diskCacheKey(item.image)
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .memoryCachePolicy(CachePolicy.ENABLED)
         .build()
 
 
