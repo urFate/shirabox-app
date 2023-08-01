@@ -28,7 +28,7 @@ data class LibraryAnimeData(
 data class LibraryBookData(
     val image: Image,
     val score: String,
-    @SerialName("aired_on") val airedOn: String,
+    @SerialName("aired_on") val airedOn: String = "1997",
     val russian: String,
     val chapters: Int,
     val kind: String,

@@ -71,7 +71,12 @@
     <string name="normal_speed">Обычная</string>
 
     <!--
-    Reader Activity
+        Reader Activity
     -->
     <string name="title_activity_reader">ReaderActivity</string>
+
+    <!--
+        Search Activity
+    -->
+    <string name="title_activity_search">SearchActivity</string>
 </resources>

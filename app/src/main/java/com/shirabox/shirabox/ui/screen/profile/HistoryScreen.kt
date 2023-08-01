@@ -32,7 +32,7 @@ fun History(navController: NavController){
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TopBar(hint = stringResource(R.string.search_in_history), navController)
+        TopBar(navController)
 
         MediaNavBar(activeType = ContentType.ANIME) {
             TODO("Add database functionality")

@@ -32,7 +32,7 @@ fun NotificationsScreen(){
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TopBar(hint = stringResource(R.string.search_by_name), null)
+        TopBar(null)
 
         MediaNavBar(activeType = ContentType.ANIME) {
             TODO("Add database functionality")

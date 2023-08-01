@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.shirabox.shirabox.R
 
@@ -62,7 +63,8 @@ fun ListItem(
     headlineContent: @Composable () -> Unit,
     supportingString: String,
     coverImage: ImageBitmap,
-    onClick: () -> Unit ){
+    onClick: () -> Unit
+) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         headlineContent = headlineContent,
@@ -75,7 +77,43 @@ fun ListItem(
                     .width(54.dp),
                 painter = BitmapPainter(coverImage),
                 contentDescription = stringResource(id = R.string.history),
-                contentScale = ContentScale.Crop)
+                contentScale = ContentScale.Crop
+            )
+        }
+    )
+}
+
+@Composable
+fun ListItem(
+    headlineContent: @Composable () -> Unit,
+    supportingString: String,
+    coverImage: String,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val request = ImageRequest.Builder(context)
+        .data(coverImage)
+        .crossfade(true)
+        .memoryCacheKey(coverImage)
+        .diskCacheKey(coverImage)
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .build()
+
+    ListItem(
+        modifier = Modifier.clickable(onClick = onClick),
+        headlineContent = headlineContent,
+        supportingContent = { Text(supportingString) },
+        leadingContent = {
+            AsyncImage(
+                model = request,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .height(72.dp)
+                    .width(54.dp),
+                contentDescription = stringResource(id = R.string.history),
+                contentScale = ContentScale.Crop
+            )
         }
     )
 }

@@ -108,8 +108,9 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
     }
 
     override suspend fun search(query: String, type: ContentType): List<Content> {
-        val response = httpGET("$url/api/${sectionFromType(type)}?search=${Uri.encode(query)}?limit=50")
-            ?: return emptyList()
+        val response =
+            httpGET("$url/api/${sectionFromType(type)}?search=${Uri.encode(query)}&limit=50")
+                ?: return emptyList()
 
         return when (type) {
             ContentType.ANIME -> {

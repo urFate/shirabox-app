@@ -38,7 +38,7 @@ fun FavouritesScreen(navController: NavController){
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TopBar(stringResource(R.string.search_in_favourites), navController)
+        TopBar(navController)
         
         MediaNavBar(activeType = ContentType.ANIME) {
             TODO("Add database functionality")
