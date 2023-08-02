@@ -34,9 +34,9 @@ import com.google.accompanist.placeholder.material3.placeholder
 import com.shirabox.shirabox.R
 import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
-import com.shirabox.shirabox.ui.theme.BrandRed
-import com.shirabox.shirabox.ui.theme.Purple40
-import com.shirabox.shirabox.ui.theme.Tertiary20
+import com.shirabox.shirabox.ui.theme.light_primary
+import com.shirabox.shirabox.ui.theme.mangaPrimary
+import com.shirabox.shirabox.ui.theme.ranobePrimary
 
 @Composable
 fun ContentCard(modifier: Modifier = Modifier, item: Content, typeBadge: Boolean = false, onClick: () -> Unit) {
@@ -136,9 +136,9 @@ fun ContentCardPlaceholder(modifier: Modifier) {
 
 @Composable
 fun contentTypeData(type: ContentType): Pair<String, Color> {
-    return when(type){
-        ContentType.ANIME -> stringResource(id = R.string.anime) to Purple40
-        ContentType.MANGA -> stringResource(id = R.string.manga) to BrandRed
-        ContentType.RANOBE -> stringResource(id = R.string.ranobe) to Tertiary20
+    return when (type) {
+        ContentType.ANIME -> stringResource(id = R.string.anime) to light_primary
+        ContentType.MANGA -> stringResource(id = R.string.manga) to mangaPrimary
+        ContentType.RANOBE -> stringResource(id = R.string.ranobe) to ranobePrimary
     }
 }

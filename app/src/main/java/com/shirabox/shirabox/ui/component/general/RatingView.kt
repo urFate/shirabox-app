@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shirabox.shirabox.R
-import com.shirabox.shirabox.ui.theme.BrandRed
 
 @Composable
 fun RatingView(averageRating: Double, votes: Int, values: Map<Int, Float>){
@@ -79,7 +78,7 @@ private fun RatingBar(label: Int, value: Float) {
                 .height(9.dp)
                 .fillMaxWidth(),
             progress = value,
-            color = BrandRed,
+            color = MaterialTheme.colorScheme.tertiary,
             trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
     }

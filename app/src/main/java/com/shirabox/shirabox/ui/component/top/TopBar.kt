@@ -39,7 +39,7 @@ fun TopBar(navController: NavController?) {
 
     Row(
         modifier = Modifier
-            .padding(16.dp, 8.dp),
+            .padding(16.dp, 16.dp, 16.dp, 0.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -50,7 +50,7 @@ fun TopBar(navController: NavController?) {
                 .weight(weight = 1f, fill = false)
                 .height(SearchBarDefaults.InputFieldHeight)
                 .clip(SearchBarDefaults.dockedShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(MaterialTheme.colorScheme.tertiaryContainer)
                 .clickable {
                     context.startActivity(
                         Intent(

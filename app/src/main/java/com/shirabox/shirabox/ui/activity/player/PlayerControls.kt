@@ -29,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -53,7 +52,6 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.shirabox.shirabox.R
-import com.shirabox.shirabox.ui.theme.BrandRed
 import com.shirabox.shirabox.util.Util
 import com.shirabox.shirabox.util.Values
 import kotlinx.coroutines.delay
@@ -284,12 +282,7 @@ fun PlayerBottomBar(
                     onValueChange = { value ->
                         val newTime = (value * duration).toLong()
                         onSliderValueChange(newTime)
-                    },
-                    colors = SliderDefaults.colors(
-                        thumbColor = BrandRed,
-                        activeTrackColor = BrandRed,
-                        inactiveTrackColor = Color(0xCD252525)
-                    )
+                    }
                 )
 
                 IconButton(
