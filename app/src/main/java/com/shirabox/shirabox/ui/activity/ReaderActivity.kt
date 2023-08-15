@@ -11,13 +11,16 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -78,8 +81,13 @@ class ReaderActivity : ComponentActivity() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ReaderScaffold(){
-    val pagerState = rememberPagerState()
+fun ReaderScaffold() {
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        initialPageOffsetFraction = 0f
+    ) {
+        3
+    }
     val hideSystemBars = remember { mutableStateOf(false) }
     val scrollEnabled = remember { mutableStateOf(true) }
     val systemUiController = rememberSystemUiController()
@@ -251,20 +259,29 @@ fun ReaderPager(
 ){
     HorizontalPager(
         modifier = modifier,
-        pageCount = pages.size,
         state = pagerState,
+        pageSpacing = 0.dp,
+        userScrollEnabled = scrollEnabled.value,
+        reverseLayout = false,
+        contentPadding = PaddingValues(0.dp),
+        beyondBoundsPageCount = 0,
+        pageSize = PageSize.Fill,
         flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
-        userScrollEnabled = scrollEnabled.value
-    ) {
-        ZoomableImage(
-            modifier = Modifier
-                .fillMaxSize(),
-            coroutineScope = rememberCoroutineScope(),
-            zoomableState = rememberZoomableState(),
-            painter = painterResource(id = R.drawable.blank),
-            onTap = { hideSystemBars.value = !hideSystemBars.value }
-        )
-    }
+        key = null,
+        pageNestedScrollConnection = PagerDefaults.pageNestedScrollConnection(
+            Orientation.Horizontal
+        ),
+        pageContent = {
+            ZoomableImage(
+                modifier = Modifier
+                    .fillMaxSize(),
+                coroutineScope = rememberCoroutineScope(),
+                zoomableState = rememberZoomableState(),
+                painter = painterResource(id = R.drawable.blank),
+                onTap = { hideSystemBars.value = !hideSystemBars.value }
+            )
+        }
+    )
 }
 
 @Preview(showBackground = true)

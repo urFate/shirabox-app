@@ -1,10 +1,14 @@
 package com.shirabox.shirabox.ui.activity.resource
 
+import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.shirabox.shirabox.db.AppDatabase
+import com.shirabox.shirabox.db.entity.EpisodeEntity
+import com.shirabox.shirabox.db.entity.RelatedContentEntity
 import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.model.Episode
@@ -13,14 +17,21 @@ import com.shirabox.shirabox.source.catalog.shikimori.Shikimori
 import com.shirabox.shirabox.source.content.AbstractContentSource
 import com.shirabox.shirabox.source.content.anime.libria.AniLibria
 import com.shirabox.shirabox.source.content.manga.remanga.Remanga
+import com.shirabox.shirabox.util.Util.Companion.mapContentToEntity
+import com.shirabox.shirabox.util.Util.Companion.mapEntityToContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class ResourceViewModel(val contentType: ContentType) : ViewModel() {
+class ResourceViewModel(context: Context, val contentType: ContentType) : ViewModel() {
     val content = mutableStateOf<Content?>(null)
     val related = mutableStateListOf<Content>()
     val episodes = mutableStateMapOf<AbstractContentSource, List<Episode>>()
     val episodesInfo = mutableStateMapOf<AbstractContentSource, EpisodesInfo?>()
+
+    val isFavourite = mutableStateOf(false)
+    val pinnedSources = mutableStateListOf<String>()
+
+    val db = AppDatabase.getAppDataBase(context)
 
     val sources = listOf(
         AniLibria, Remanga
@@ -28,25 +39,124 @@ class ResourceViewModel(val contentType: ContentType) : ViewModel() {
 
     fun fetchContent(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            content.value = Shikimori.fetchContent(id, contentType)
+            val pickedData = db?.contentDao()?.getPickedContent(id)
+
+            pickedData?.let {
+                content.value = mapEntityToContent(it.content)
+                isFavourite.value = it.content.isFavourite
+                pinnedSources.addAll(it.content.pinnedSources)
+
+                return@launch
+            }
+
+            val data = Shikimori.fetchContent(id, contentType)
+            content.value = data
+
+            db?.let { database ->
+                data?.let {
+                    database.contentDao().insertContents(
+                        mapContentToEntity(
+                            content = it,
+                            isFavourite = false,
+                            lastViewTimestamp = System.currentTimeMillis(),
+                            pinnedSources = emptyList()
+                        )
+                    )
+                }
+            }
         }
     }
 
     fun fetchRelated(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             Shikimori.fetchRelated(id, contentType).forEach { it?.let(related::add) }
+
+            db?.relatedDao()?.insertRelated(
+                *related.map {
+                    RelatedContentEntity(contentUid = id, shikimoriID = it.shikimoriID)
+                }.toTypedArray()
+            )
         }
     }
 
-    fun fetchEpisodes(query: String, source: AbstractContentSource){
+    fun fetchEpisodes(id: Int, query: String, source: AbstractContentSource) {
         viewModelScope.launch(Dispatchers.IO) {
-            episodes[source] = source.searchEpisodes(query)
+            val cachedEpisodes = db?.episodeDao()?.getEpisodesByParent(id)
+
+            episodes[source] = cachedEpisodes?.map {
+                Episode(
+                    name = it.name,
+                    extra = it.extra ?: "",
+                    episode = it.episode,
+                    uploadTimestamp = it.uploadTimestamp,
+                    videos = it.videos,
+                    chapters = it.chapters,
+                    type = it.type
+                )
+            } ?: emptyList()
+
+            source.searchEpisodes(query).let { list ->
+                if (list.size != episodes[source]?.size) {
+                    episodes[source] = list
+
+                    episodes[source]?.map {
+                        EpisodeEntity(
+                            contentUid = id,
+                            name = it.name,
+                            extra = it.extra,
+                            episode = it.episode,
+                            uploadTimestamp = it.uploadTimestamp,
+                            videos = it.videos ?: emptyMap(),
+                            chapters = it.chapters ?: emptyList(),
+                            type = it.type
+                        )
+                    }?.toTypedArray()?.let { db?.episodeDao()?.insertEpisodes(*it) }
+                }
+            }
         }
     }
 
-    fun fetchEpisodesInfo(query: String, source: AbstractContentSource) {
+    fun fetchEpisodesInfo(id: Int, query: String, source: AbstractContentSource) {
         viewModelScope.launch(Dispatchers.IO) {
-            episodesInfo[source] = source.searchEpisodesInfo(query)
+            val cachedEpisodesInfo = db?.episodeDao()?.getEpisodesByParent(id)
+
+            cachedEpisodesInfo?.let { episodeEntities ->
+                if (episodeEntities.isNotEmpty()) {
+                    episodesInfo[source] = EpisodesInfo(
+                        episodes = episodeEntities.size,
+                        lastEpisodeTimestamp = episodeEntities.maxOfOrNull { it.uploadTimestamp }
+                            ?: 0
+                    )
+                }
+            }
+
+            source.searchEpisodesInfo(query)?.let {
+                episodesInfo[source] = it
+            }
+        }
+    }
+
+    fun switchFavouriteStatus(id: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            isFavourite.value = !isFavourite.value
+
+            val content = db?.contentDao()?.getContent(id)
+            content?.let {
+                db?.contentDao()?.updateContents(it.copy(isFavourite = isFavourite.value))
+            }
+        }
+    }
+
+    fun switchSourcePinStatus(id: Int, source: AbstractContentSource) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val content = db?.contentDao()?.getContent(id)
+            content?.let {
+                if (pinnedSources.contains(source.name)) pinnedSources.remove(source.name) else pinnedSources.add(
+                    source.name
+                )
+
+                db?.contentDao()?.updateContents(it.copy(pinnedSources = pinnedSources))
+            }
         }
     }
 }

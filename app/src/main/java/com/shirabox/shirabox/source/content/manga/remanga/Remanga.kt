@@ -4,7 +4,6 @@ import android.net.Uri
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.model.Episode
 import com.shirabox.shirabox.model.EpisodesInfo
-import com.shirabox.shirabox.model.Quality
 import com.shirabox.shirabox.source.content.AbstractContentSource
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -15,7 +14,7 @@ object Remanga : AbstractContentSource (
     ContentType.MANGA,
     "https://remanga.org/apple-touch-icon.png"
 ) {
-    override suspend fun searchEpisodes(query: String, videoQuality: Quality?): List<Episode> {
+    override suspend fun searchEpisodes(query: String): List<Episode> {
         return search(query)?.content?.firstOrNull()?.dir?.let { fetchBookChapters(it, false) }
             ?: emptyList()
     }
@@ -56,7 +55,7 @@ object Remanga : AbstractContentSource (
                 name = it.name,
                 episode = it.index,
                 uploadTimestamp = (dateFormat.parse(it.uploadDate)?.time ?: 0),
-                contents = fetchChapterPages(it.id),
+                chapters = fetchChapterPages(it.id),
                 type = this.contentType
             )
         }

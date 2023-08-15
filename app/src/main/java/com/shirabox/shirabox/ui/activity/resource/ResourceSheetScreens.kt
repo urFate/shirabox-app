@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -110,11 +111,17 @@ fun SourcesSheetScreen(
                 .isEmpty() else false
         }
 
-        LaunchedEffect(Unit) {
-            sources.forEach { model.fetchEpisodesInfo(content.altName, it) }
+        val episodesInfoSortedMap by remember(model.episodesInfo, model.pinnedSources) {
+            derivedStateOf {
+                model.episodesInfo.toSortedMap(compareBy { model.pinnedSources.contains(it.name) })
+            }
         }
 
-        Box (
+        LaunchedEffect(Unit) {
+            sources.forEach { model.fetchEpisodesInfo(content.shikimoriID, content.altName, it) }
+        }
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(rememberNestedScrollInteropConnection()),
@@ -159,27 +166,40 @@ fun SourcesSheetScreen(
                 enter = fadeIn()
             ) {
                 LazyColumn {
-                    items(model.episodesInfo.size) {
-                        val source = model.episodesInfo.keys.toList()[it]
-                        val episodeInfo = model.episodesInfo.values.toList()[it]
+                    episodesInfoSortedMap.forEach { data ->
+                        data.value?.let {
+                            item {
+                                val context = LocalContext.current
 
-                        episodeInfo?.let { episodesInfo ->
-                            val updatedTimestamp = DateUtils.getRelativeTimeSpanString(
-                                LocalContext.current,
-                                episodesInfo.lastEpisodeTimestamp * 1000L
-                            )
+                                val source = data.key
+                                val isPinned by remember(model.pinnedSources) {
+                                    derivedStateOf { model.pinnedSources.contains(source.name) }
+                                }
+                                val updatedTimestamp = remember {
+                                    DateUtils.getRelativeTimeSpanString(
+                                        context,
+                                        it.lastEpisodeTimestamp * 1000L
+                                    )
+                                }
 
-                            ListItem(
-                                headlineContent = { Text(source.name) },
-                                supportingContent = { Text("${episodesInfo.episodes} " +
-                                        if (content.type == ContentType.ANIME) "Серий" else "Глав"
-                                ) },
-                                overlineContent = { Text("Обновлено $updatedTimestamp") },
-                                coverImage = source.icon,
-                                trailingIcon = Icons.Outlined.PushPin,
-                                onTrailingIconClick = { /*TODO*/ }
-                            ) {
-                                currentSheetScreenState.value = ResourceSheetScreen.Episodes(content, source)
+                                ListItem(
+                                    headlineContent = { Text(source.name) },
+                                    supportingContent = {
+                                        Text(
+                                            "${it.episodes} " +
+                                                    if (content.type == ContentType.ANIME) "Серий" else "Глав"
+                                        )
+                                    },
+                                    overlineContent = { Text("Обновлено $updatedTimestamp") },
+                                    coverImage = source.icon,
+                                    trailingIcon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                                    onTrailingIconClick = {
+                                        model.switchSourcePinStatus(content.shikimoriID, source)
+                                    }
+                                ) {
+                                    currentSheetScreenState.value =
+                                        ResourceSheetScreen.Episodes(content, source)
+                                }
                             }
                         }
                     }
@@ -223,7 +243,7 @@ fun EpisodesSheetScreen(
     }
 
     LaunchedEffect(Unit) {
-        model.fetchEpisodes(content.altName, source)
+        model.fetchEpisodes(content.shikimoriID, content.altName, source)
     }
 
     ModalBottomSheet(

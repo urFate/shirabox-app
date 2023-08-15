@@ -1,6 +1,7 @@
 package com.shirabox.shirabox.ui.activity.resource
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -29,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -109,7 +111,7 @@ class ResourceActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Resource(resourceId, type)
+                    Resource(resourceId, type, LocalContext.current)
                 }
             }
         }
@@ -121,15 +123,16 @@ class ResourceActivity : ComponentActivity() {
 fun Resource(
     id: Int,
     type: ContentType,
+    context: Context,
     model: ResourceViewModel = viewModel(factory = Util.viewModelFactory {
-        ResourceViewModel(type)
+        ResourceViewModel(context, type)
     }),
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
 
-    val context = LocalContext.current
     val content = model.content.value
     val relations = model.related
+    val isFavourite = model.isFavourite.value
 
     val isReady = remember(content) {
         content != null
@@ -267,17 +270,23 @@ fun Resource(
                             .height(55.dp)
                             .weight(weight = 1f, fill = false),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4141)),
-                        onClick = { /* Do something! */ },
+                        onClick = {
+                            model.switchFavouriteStatus(content.shikimoriID)
+                        },
                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding
 
                     ) {
                         Icon(
-                            Icons.Outlined.FavoriteBorder,
+                            imageVector = if (!isFavourite) Icons.Outlined.FavoriteBorder else Icons.Filled.Favorite,
                             contentDescription = "Localized description",
                             modifier = Modifier.size(ButtonDefaults.IconSize)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(stringResource(id = R.string.add_favourite))
+                        Text(
+                            if (!isFavourite) stringResource(id = R.string.add_favourite) else stringResource(
+                                id = R.string.remove_favourite
+                            )
+                        )
                     }
 
                     /**
@@ -403,13 +412,18 @@ fun Resource(
                     )
 
                     val rating = content.rating
-                    val votes = rating.scores.values.sum()
+                    val votes = remember {
+                        rating.scores.values.sum()
+                    }
+                    val values = remember {
+                        rating.scores.mapValues { (it.value.toFloat() / votes.toFloat()) }
+                            .minus(0..5)
+                    }
 
                     RatingView(
                         averageRating = rating.average,
                         votes = votes,
-                        values = rating.scores.mapValues { (it.value.toFloat() / votes.toFloat()) }
-                            .minus(0..5)
+                        values = values
                     )
                 }
 

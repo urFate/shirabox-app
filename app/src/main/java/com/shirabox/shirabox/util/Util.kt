@@ -3,14 +3,13 @@ package com.shirabox.shirabox.util
 import android.content.res.Configuration
 import android.os.Build
 import android.text.Html
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.C
 import com.google.accompanist.systemuicontroller.SystemUiController
-import kotlin.math.roundToInt
+import com.shirabox.shirabox.db.entity.ContentEntity
+import com.shirabox.shirabox.model.Content
 import kotlin.time.Duration.Companion.milliseconds
 
 class Util {
@@ -39,16 +38,6 @@ class Util {
             return (screenWidth / itemWidth).inc()
         }
 
-        fun maxElementsInVerticalGrid(
-            gridWidth: Int,
-            itemWidth: Int,
-            spacing: Int,
-            density: Density
-        ): Int {
-            val availableWidth = with(density) { gridWidth.dp.toPx() - (spacing * (gridWidth - 1)) }
-            return (availableWidth / itemWidth).roundToInt()
-        }
-
         fun decodeHtml(str: String): String {
             return when {
                 Build.VERSION.SDK_INT >= 24 -> Html.fromHtml(str, Html.FROM_HTML_MODE_LEGACY)
@@ -58,9 +47,57 @@ class Util {
             }
         }
 
+        fun mapEntityToContent(contentEntity: ContentEntity): Content {
+            return Content(
+                name = contentEntity.name,
+                altName = contentEntity.altName,
+                description = contentEntity.description,
+                image = contentEntity.image,
+                production = contentEntity.production,
+                releaseYear = contentEntity.releaseYear,
+                type = contentEntity.type,
+                kind = contentEntity.kind,
+                status = contentEntity.status,
+                episodes = contentEntity.episodes,
+                episodesAired = contentEntity.episodesAired,
+                episodeDuration = contentEntity.episodeDuration,
+                rating = contentEntity.rating,
+                shikimoriID = contentEntity.shikimoriID,
+                genres = contentEntity.genres
+            )
+        }
+
+        fun mapContentToEntity(
+            content: Content,
+            isFavourite: Boolean,
+            lastViewTimestamp: Long,
+            pinnedSources: List<String>
+        ): ContentEntity {
+            return ContentEntity(
+                name = content.name,
+                altName = content.altName,
+                description = content.description,
+                image = content.image,
+                production = content.production,
+                releaseYear = content.releaseYear,
+                type = content.type,
+                kind = content.kind,
+                status = content.status,
+                episodes = content.episodes,
+                episodesAired = content.episodesAired,
+                episodeDuration = content.episodeDuration,
+                rating = content.rating,
+                shikimoriID = content.shikimoriID,
+                genres = content.genres,
+                isFavourite = isFavourite,
+                lastViewTimestamp = lastViewTimestamp,
+                pinnedSources = pinnedSources
+            )
+        }
+
         inline fun <VM : ViewModel> viewModelFactory(crossinline f: () -> VM) =
             object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>):T = f() as T
+                override fun <T : ViewModel> create(modelClass: Class<T>): T = f() as T
             }
     }
 }

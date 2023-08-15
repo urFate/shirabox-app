@@ -4,7 +4,6 @@ import android.util.Log
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.model.Episode
 import com.shirabox.shirabox.model.EpisodesInfo
-import com.shirabox.shirabox.model.Quality
 import com.shirabox.shirabox.util.Values
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
@@ -20,7 +19,7 @@ abstract class AbstractContentSource (
 
     val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
-    abstract suspend fun searchEpisodes(query: String, videoQuality: Quality? = null): List<Episode>
+    abstract suspend fun searchEpisodes(query: String): List<Episode>
     abstract suspend fun searchEpisodesInfo(query: String): EpisodesInfo?
 
     fun httpGET(url: String): String? {

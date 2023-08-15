@@ -5,7 +5,8 @@ data class Episode (
     val extra: String = "",
     val episode: Int,
     val uploadTimestamp: Long,
-    val contents: List<String>,
+    val videos: Map<Quality, String>? = null,
+    val chapters: List<String>? = null,
     val videoMarkers: Pair<Long?, Long?>? = null,
     val type: ContentType
 )
