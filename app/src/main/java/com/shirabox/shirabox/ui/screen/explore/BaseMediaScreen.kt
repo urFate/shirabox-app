@@ -190,13 +190,19 @@ private fun OngoingsRow(
 @Composable
 private fun PopularsGrid(isReady: Boolean, contents: SnapshotStateList<Content>) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
 
     val cardWidth = 180
     val cardHeight = 240
+    val columns = remember { configuration.screenWidthDp.floorDiv(cardWidth) }
+
     val gridHeight by remember(contents) {
         derivedStateOf {
-            val amount = if(contents.isNotEmpty()) contents.size else 6
-            cardHeight.plus(16).times(amount.div(2)).dp
+            Util.calcGridHeight(
+                itemsCount = if (contents.size == 0) 6 else contents.size,
+                itemHeight = cardHeight,
+                columns = columns
+            ).dp
         }
     }
 

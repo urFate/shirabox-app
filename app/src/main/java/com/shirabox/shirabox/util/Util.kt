@@ -32,10 +32,15 @@ class Util {
             }
         }
 
-        fun maxElementsInRow(itemWidth: Int, configuration: Configuration) : Int {
+        fun maxElementsInRow(itemWidth: Int, configuration: Configuration): Int {
             val screenWidth = configuration.screenWidthDp
 
             return (screenWidth / itemWidth).inc()
+        }
+
+        fun calcGridHeight(itemsCount: Int, itemHeight: Int, columns: Int): Int {
+            return itemHeight.plus(16)
+                .times(itemsCount.floorDiv(columns).plus(itemsCount.mod(columns)))
         }
 
         fun decodeHtml(str: String): String {
