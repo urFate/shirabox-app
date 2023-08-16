@@ -9,11 +9,12 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.shirabox.shirabox.db.entity.ContentEntity
 import com.shirabox.shirabox.db.relation.PickedContent
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ContentDao {
     @Query("SELECT * FROM content WHERE favourite IS 1")
-    fun getFavourites(): List<ContentEntity>
+    fun getFavourites(): Flow<List<ContentEntity>>
 
     @Transaction
     @Query("SELECT * FROM content WHERE shikimori_id IS :id")

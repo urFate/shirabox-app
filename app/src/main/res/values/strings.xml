@@ -29,6 +29,11 @@
     <string name="popular">Популярно</string>
     <string name="notifications">Уведомления</string>
 
+    <!--
+        Favourites Screen
+    -->
+    <string name="empty_library">Библиотека пуста</string>
+
     <!-- 
         Profile Screen Options
     -->
