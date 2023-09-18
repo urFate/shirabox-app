@@ -1,6 +1,5 @@
 package com.shirabox.shirabox.ui.activity.player
 
-import android.content.pm.ActivityInfo
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.animation.AnimatedVisibility
@@ -13,7 +12,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -25,29 +26,56 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.launch
 
+
 @Composable
-fun ShiraPlayer(title: String, itemsUrls: List<String>) {
+fun ShiraPlayer(model: PlayerViewModel) {
     val context = LocalContext.current
     val playerView = PlayerView(context)
 
-    val controlsVisibilityState = remember {
-        mutableStateOf(true)
-    }
-    val bottomSheetVisibilityState = remember {
-        mutableStateOf(false)
-    }
-    val orientationState = remember {
-        mutableStateOf(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-    }
     val coroutineScope = rememberCoroutineScope()
 
     val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItems(itemsUrls.map { MediaItem.fromUri(it) })
-            prepare()
-            playWhenReady = true
+        ExoPlayer.Builder(context).build().apply { prepare() }
+    }
+
+    val startPosition by remember {
+        derivedStateOf { model.episodesPositions[model.startEpisode] }
+    }
+
+    LaunchedEffect(Unit) {
+        model.fetchEpisodePositions()
+    }
+
+    LaunchedEffect(startPosition) {
+        startPosition?.let {
+            exoPlayer.apply {
+                setMediaItems(model.playlist.map {
+                    MediaItem.fromUri(
+                        it[model.currentQuality] ?: ""
+                    )
+                })
+                seekTo(model.startEpisode, it)
+                playWhenReady = true
+            }
         }
     }
+
+    LaunchedEffect(model.currentQuality) {
+        if (exoPlayer.mediaItemCount != 0) {
+            val currentPosition = exoPlayer.currentPosition
+            val currentItemIndex = exoPlayer.currentMediaItemIndex
+
+            exoPlayer.apply {
+                replaceMediaItems(
+                    0,
+                    model.playlist.size.dec(),
+                    model.playlist.map { MediaItem.fromUri(it[model.currentQuality] ?: "") })
+                seekTo(currentItemIndex, currentPosition)
+            }
+        }
+    }
+
+    LaunchedEffect(model.playbackSpeed) { exoPlayer.setPlaybackSpeed(model.playbackSpeed) }
 
     Column {
         Box(
@@ -57,16 +85,25 @@ fun ShiraPlayer(title: String, itemsUrls: List<String>) {
                     interactionSource = MutableInteractionSource(), indication = null
                 ) {
                     coroutineScope.launch {
-                        controlsVisibilityState.value = !controlsVisibilityState.value
-                        hideControls(exoPlayer, controlsVisibilityState)
+                        model.controlsVisibilityState = !model.controlsVisibilityState
+                        hideControls(exoPlayer, model)
                     }
                 }
         ) {
             DisposableEffect(key1 = Unit) {
                 exoPlayer.addListener(
-                    PlayerLoadingStateListener(coroutineScope, controlsVisibilityState)
+                    PlayerLoadingStateListener(coroutineScope, model)
                 )
-                onDispose { exoPlayer.release() }
+                onDispose {
+
+                    // Save watching progress
+                    model.saveEpisodePosition(
+                        exoPlayer.currentMediaItemIndex.inc(),
+                        exoPlayer.currentPosition
+                    )
+
+                    exoPlayer.release()
+                }
             }
 
             AndroidView(
@@ -84,22 +121,14 @@ fun ShiraPlayer(title: String, itemsUrls: List<String>) {
             )
 
             this@Column.AnimatedVisibility(
-                visible = controlsVisibilityState.value,
+                visible = model.controlsVisibilityState,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                ControlsScaffold(
-                    title = title,
-                    exoPlayer = exoPlayer,
-                    orientationState = orientationState,
-                    controlsVisibilityState = controlsVisibilityState,
-                    bottomSheetVisibilityState = bottomSheetVisibilityState
-                )
+                ControlsScaffold(exoPlayer = exoPlayer, model = model)
             }
         }
 
-        SettingsBottomSheet(
-            visibilityState = bottomSheetVisibilityState
-        )
+        SettingsBottomSheet(exoPlayer = exoPlayer, model = model)
     }
 }

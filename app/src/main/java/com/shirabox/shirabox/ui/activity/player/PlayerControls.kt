@@ -34,8 +34,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,45 +59,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun ControlsScaffold(
-    title: String, exoPlayer: ExoPlayer,
-    orientationState: MutableState<Int>,
-    controlsVisibilityState: MutableState<Boolean>,
-    bottomSheetVisibilityState: MutableState<Boolean>
-) {
+fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
-    var isPlaying by remember {
-        mutableStateOf(exoPlayer.isPlaying)
-    }
-    var currentPosition by remember {
-        mutableStateOf(exoPlayer.currentPosition)
-    }
-    var totalDuration by remember {
-        mutableStateOf(exoPlayer.duration)
-    }
-    var playbackState by remember {
-        mutableStateOf(exoPlayer.playbackState)
-    }
-    var hasNextMediaItem by remember {
-        mutableStateOf(exoPlayer.hasNextMediaItem())
-    }
-    var hasPreviousMediaItem by remember {
-        mutableStateOf(exoPlayer.hasPreviousMediaItem())
-    }
-    var currentMediaItemIndex by remember {
-        mutableStateOf(exoPlayer.currentMediaItemIndex + 1)
-    }
+    var isPlaying by remember { mutableStateOf(exoPlayer.isPlaying) }
+    var currentPosition by remember { mutableLongStateOf(exoPlayer.currentPosition) }
+    var totalDuration by remember { mutableLongStateOf(exoPlayer.duration) }
+    var playbackState by remember { mutableIntStateOf(exoPlayer.playbackState) }
+    var hasNextMediaItem by remember { mutableStateOf(exoPlayer.hasNextMediaItem()) }
+    var hasPreviousMediaItem by remember { mutableStateOf(exoPlayer.hasPreviousMediaItem()) }
+    var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex + 1) }
 
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
 
-    activity.requestedOrientation = orientationState.value
+    activity.requestedOrientation = model.orientationState
 
     /**
      * FIXME: Any better solution to update timeline?
      */
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(true) {
         while (true) {
             isPlaying = exoPlayer.isPlaying
             totalDuration = exoPlayer.duration
@@ -112,15 +94,15 @@ fun ControlsScaffold(
 
     Scaffold(
         topBar = {
-            PlayerTopBar(title, currentMediaItemIndex) {
-                bottomSheetVisibilityState.value = true
+            PlayerTopBar(model.contentName, currentMediaItemIndex) {
+                model.bottomSheetVisibilityState = true
             }
         },
         bottomBar = {
             PlayerBottomBar(
                 currentPosition = currentPosition,
                 duration = totalDuration,
-                orientationState = orientationState
+                model = model
             ) {
                 exoPlayer.seekTo(it)
             }
@@ -135,10 +117,7 @@ fun ControlsScaffold(
                 onSkipPrevious = { exoPlayer.seekToPrevious() },
                 onPlayToggle = {
                     exoPlayer.playWhenReady = !exoPlayer.isPlaying
-
-                    coroutineScope.launch {
-                        hideControls(exoPlayer, controlsVisibilityState)
-                    }
+                    coroutineScope.launch { hideControls(exoPlayer, model) }
                 },
                 onSkipNext = { exoPlayer.seekToNext() }
             )
@@ -159,7 +138,8 @@ fun PlayerTopBar(title: String, episode: Int, onSettingsClick: () -> Unit) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = title,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
                 )
                 Text(
                     text = stringResource(id = R.string.episode_string, episode),
@@ -250,7 +230,7 @@ fun PlaybackControls(
 fun PlayerBottomBar(
     currentPosition: Long,
     duration: Long,
-    orientationState: MutableState<Int>,
+    model: PlayerViewModel,
     onSliderValueChange: (Long) -> Unit,
 ) {
     Box(
@@ -287,8 +267,8 @@ fun PlayerBottomBar(
 
                 IconButton(
                     onClick = {
-                        orientationState.value =
-                            if (orientationState.value == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+                        model.orientationState =
+                            if (model.orientationState == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
                                 ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                             } else {
                                 ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -296,8 +276,9 @@ fun PlayerBottomBar(
                     }
                 ) {
                     Icon(
-                        imageVector = if (orientationState.value ==
-                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) Icons.Rounded.Fullscreen
+                        imageVector = if (model.orientationState ==
+                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                        ) Icons.Rounded.Fullscreen
                         else Icons.Rounded.FullscreenExit,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.inverseOnSurface
@@ -325,11 +306,11 @@ fun PlaybackIconButton(isActive: Boolean = true, imageVector: ImageVector, onCli
 }
 suspend fun hideControls(
     exoPlayer: ExoPlayer,
-    state: MutableState<Boolean>
+    model: PlayerViewModel
 ) {
     val delayMs = Values.CONTROLS_HIDE_DELAY
 
     delay(delayMs).let {
-        if (exoPlayer.isPlaying) state.value = false
+        if (exoPlayer.isPlaying) model.controlsVisibilityState = false
     }
 }

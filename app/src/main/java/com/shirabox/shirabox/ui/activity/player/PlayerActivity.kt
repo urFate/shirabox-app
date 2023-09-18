@@ -8,14 +8,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.shirabox.shirabox.ui.theme.ShiraBoxTheme
 import com.shirabox.shirabox.util.Util
+import kotlinx.serialization.json.Json
 
 class PlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             ShiraBoxTheme(
                 darkTheme = false
@@ -25,26 +29,31 @@ class PlayerActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // TODO: Test stream
-                    val streams = listOf(
-                        "https://cache.libria.fun/videos/media/ts/9412/1/480/75818d390a1be66329973dc6a05b3a8a.m3u8",
-                        "https://cache.libria.fun/videos/media/ts/9412/2/480/cffe3e3b9d8a40322007ddbbcdd7b808.m3u8",
-                        "https://cache.libria.fun/videos/media/ts/9412/3/480/150ea2e6e2c5507063374281de5f370c.m3u8"
-                    )
+                    val arguments = intent.extras
+                    val context = LocalContext.current
 
-                    val systemUiController = rememberSystemUiController()
+                    rememberSystemUiController().apply {
+                        setStatusBarColor(
+                            color = Color.Transparent,
+                            darkIcons = false
+                        )
+                        Util.hideSystemUi(this)
+                    }
 
-                    systemUiController.setStatusBarColor(
-                        color = Color.Transparent,
-                        darkIcons = false
-                    )
 
-                    Util.hideSystemUi(systemUiController)
+                    val model: PlayerViewModel = viewModel(factory = Util.viewModelFactory {
+                        PlayerViewModel(
+                            context = context,
+                            contentUid = arguments?.getInt("content_uid") ?: -1,
+                            contentName = arguments?.getString("name").toString(),
+                            startEpisode = arguments?.getInt("episode") ?: 0,
+                            playlist = Json.decodeFromString(
+                                arguments?.getString("playlist") ?: ""
+                            )
+                        )
+                    })
 
-                    ShiraPlayer(
-                        title = "Название",
-                        itemsUrls = streams
-                    )
+                    ShiraPlayer(model = model)
                 }
             }
         }
