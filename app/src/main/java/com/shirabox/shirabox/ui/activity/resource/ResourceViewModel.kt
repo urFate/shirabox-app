@@ -11,7 +11,6 @@ import com.shirabox.shirabox.db.entity.EpisodeEntity
 import com.shirabox.shirabox.db.entity.RelatedContentEntity
 import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
-import com.shirabox.shirabox.model.Episode
 import com.shirabox.shirabox.model.EpisodesInfo
 import com.shirabox.shirabox.source.catalog.shikimori.Shikimori
 import com.shirabox.shirabox.source.content.AbstractContentSource
@@ -25,7 +24,7 @@ import kotlinx.coroutines.launch
 class ResourceViewModel(context: Context, val contentType: ContentType) : ViewModel() {
     val content = mutableStateOf<Content?>(null)
     val related = mutableStateListOf<Content>()
-    val episodes = mutableStateMapOf<AbstractContentSource, List<Episode>>()
+    val episodes = mutableStateMapOf<AbstractContentSource, List<EpisodeEntity>>()
     val episodesInfo = mutableStateMapOf<AbstractContentSource, EpisodesInfo?>()
 
     val isFavourite = mutableStateOf(false)
@@ -39,7 +38,7 @@ class ResourceViewModel(context: Context, val contentType: ContentType) : ViewMo
 
     fun fetchContent(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val pickedData = db?.contentDao()?.getPickedContent(id)
+            val pickedData = db?.contentDao()?.collectedContent(id)
 
             pickedData?.let {
                 content.value = mapEntityToContent(it.content)
@@ -81,36 +80,19 @@ class ResourceViewModel(context: Context, val contentType: ContentType) : ViewMo
 
     fun fetchEpisodes(id: Int, query: String, source: AbstractContentSource) {
         viewModelScope.launch(Dispatchers.IO) {
-            val cachedEpisodes = db?.episodeDao()?.getEpisodesByParent(id)
+            db?.contentDao()?.collectedContent(id)?.let { collectedContent ->
+                val cachedEpisodes = collectedContent.episodes
 
-            episodes[source] = cachedEpisodes?.map {
-                Episode(
-                    name = it.name,
-                    extra = it.extra ?: "",
-                    episode = it.episode,
-                    uploadTimestamp = it.uploadTimestamp,
-                    videos = it.videos,
-                    chapters = it.chapters,
-                    type = it.type
-                )
-            } ?: emptyList()
+                episodes[source] = cachedEpisodes
 
-            source.searchEpisodes(query).let { list ->
-                if (list.size != episodes[source]?.size) {
-                    episodes[source] = list
+                source.searchEpisodes(query).let { list ->
+                    if (list.size != episodes[source]?.size) {
+                        episodes[source] = list
 
-                    episodes[source]?.map {
-                        EpisodeEntity(
-                            contentUid = id,
-                            name = it.name,
-                            extra = it.extra,
-                            episode = it.episode,
-                            uploadTimestamp = it.uploadTimestamp,
-                            videos = it.videos ?: emptyMap(),
-                            chapters = it.chapters ?: emptyList(),
-                            type = it.type
-                        )
-                    }?.toTypedArray()?.let { db?.episodeDao()?.insertEpisodes(*it) }
+                        episodes[source]?.map {
+                            it.copy(contentUid = collectedContent.content.uid)
+                        }?.toTypedArray()?.let { db.episodeDao().insertEpisodes(*it) }
+                    }
                 }
             }
         }
@@ -118,9 +100,7 @@ class ResourceViewModel(context: Context, val contentType: ContentType) : ViewMo
 
     fun fetchEpisodesInfo(id: Int, query: String, source: AbstractContentSource) {
         viewModelScope.launch(Dispatchers.IO) {
-            val cachedEpisodesInfo = db?.episodeDao()?.getEpisodesByParent(id)
-
-            cachedEpisodesInfo?.let { episodeEntities ->
+            db?.contentDao()?.collectedContent(id)?.episodes?.let { episodeEntities ->
                 if (episodeEntities.isNotEmpty()) {
                     episodesInfo[source] = EpisodesInfo(
                         episodes = episodeEntities.size,
@@ -128,10 +108,10 @@ class ResourceViewModel(context: Context, val contentType: ContentType) : ViewMo
                             ?: 0
                     )
                 }
-            }
 
-            source.searchEpisodesInfo(query)?.let {
-                episodesInfo[source] = it
+                source.searchEpisodesInfo(query)?.let {
+                    episodesInfo[source] = it
+                }
             }
         }
     }

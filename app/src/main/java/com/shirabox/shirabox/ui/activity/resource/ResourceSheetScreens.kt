@@ -46,6 +46,8 @@ import com.shirabox.shirabox.ui.activity.ReaderActivity
 import com.shirabox.shirabox.ui.activity.player.PlayerActivity
 import com.shirabox.shirabox.ui.component.general.ListItem
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Composable
 fun ResourceBottomSheet(
@@ -303,18 +305,46 @@ fun EpisodesSheetScreen(
             ) {
                 LazyColumn {
                     episodes?.let { episodes ->
-                        items(episodes) {
+                        items(episodes) { episodeEntity ->
                             val updatedTimestamp =
-                                DateUtils.getRelativeTimeSpanString(LocalContext.current, it.uploadTimestamp * 1000L)
+                                DateUtils.getRelativeTimeSpanString(
+                                    LocalContext.current,
+                                    episodeEntity.uploadTimestamp * 1000L
+                                )
 
                             ListItem(
-                                headlineString = if(it.name.isNullOrEmpty()) "Эпизод #${it.episode}" else it.name,
+                                headlineString = if (episodeEntity.name.isNullOrEmpty()) "Эпизод #${episodeEntity.episode}" else episodeEntity.name,
                                 trailingString = updatedTimestamp.toString(),
-                                overlineString = "#${it.episode}"
+                                overlineString = "#${episodeEntity.episode}"
                             ) {
-                                when(it.type) {
-                                    ContentType.ANIME -> context.startActivity(Intent(context, PlayerActivity::class.java))
-                                    else -> context.startActivity(Intent(context, ReaderActivity::class.java))
+                                when (episodeEntity.type) {
+                                    ContentType.ANIME -> context.startActivity(
+                                        Intent(
+                                            context,
+                                            PlayerActivity::class.java
+                                        ).apply {
+                                            val playlist = episodes.map { it.videos }
+
+                                            putExtra("content_uid", episodeEntity.contentUid)
+                                            putExtra("name", content.name)
+                                            putExtra(
+                                                "episode",
+                                                playlist.indexOf(episodeEntity.videos)
+                                            )
+                                            putExtra("playlist", Json.encodeToString(playlist))
+                                        })
+
+                                    else -> context.startActivity(
+                                        Intent(
+                                            context,
+                                            ReaderActivity::class.java
+                                        ).apply {
+                                            putExtra("content_uid", episodeEntity.contentUid)
+                                            putExtra(
+                                                "pages",
+                                                Json.encodeToString(episodeEntity.pages)
+                                            )
+                                        })
                                 }
                             }
                         }
