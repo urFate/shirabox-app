@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,7 +26,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,6 +35,7 @@ import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import com.shirabox.shirabox.ui.component.general.ContentCard
+import com.shirabox.shirabox.ui.component.general.NoContentsPopup
 import com.shirabox.shirabox.ui.component.top.TopBar
 import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 import com.shirabox.shirabox.util.Util
@@ -89,24 +88,7 @@ fun FavouritesScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (filteredFavourites.isEmpty()) {
-                    Column(
-                        modifier = Modifier.padding(64.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "(￢_￢;)",
-                            fontSize = 48.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = stringResource(id = R.string.empty_library),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.ExtraLight,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    NoContentsPopup(text = stringResource(id = R.string.empty_library))
                 } else {
                     FavouritesGrid(contents = filteredFavourites)
                 }
