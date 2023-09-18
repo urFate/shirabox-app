@@ -1,8 +1,8 @@
 package com.shirabox.shirabox.source.content
 
 import android.util.Log
+import com.shirabox.shirabox.db.entity.EpisodeEntity
 import com.shirabox.shirabox.model.ContentType
-import com.shirabox.shirabox.model.Episode
 import com.shirabox.shirabox.model.EpisodesInfo
 import com.shirabox.shirabox.util.Values
 import kotlinx.serialization.json.Json
@@ -19,7 +19,7 @@ abstract class AbstractContentSource (
 
     val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
-    abstract suspend fun searchEpisodes(query: String): List<Episode>
+    abstract suspend fun searchEpisodes(query: String): List<EpisodeEntity>
     abstract suspend fun searchEpisodesInfo(query: String): EpisodesInfo?
 
     fun httpGET(url: String): String? {

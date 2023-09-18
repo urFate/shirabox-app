@@ -30,12 +30,12 @@ class Converters {
     }
 
     @TypeConverter
-    fun decodeList(listOfString: String): List<String> {
+    fun decodeList(listOfString: String): List<String>? {
         return Json.decodeFromString(listOfString)
     }
 
     @TypeConverter
-    fun encodeList(listOfString: List<String>): String {
+    fun encodeList(listOfString: List<String>?): String {
         return Json.encodeToString(listOfString)
     }
 
@@ -50,22 +50,22 @@ class Converters {
     }
 
     @TypeConverter
-    fun encodeVideos(videos: Map<Quality, String>): String {
+    fun encodeVideos(videos: Map<Quality, String>?): String {
         return Json.encodeToString(videos)
     }
 
     @TypeConverter
-    fun decodeVideos(videosData: String): Map<Quality, String> {
+    fun decodeVideos(videosData: String): Map<Quality, String>? {
         return Json.decodeFromString(videosData)
     }
 
     @TypeConverter
-    fun encodeVideoMarkers(videoMarkers: Pair<Long, Long>): String {
+    fun encodeVideoMarkers(videoMarkers: Pair<Long?, Long?>?): String {
         return Json.encodeToString(videoMarkers)
     }
 
     @TypeConverter
-    fun decodeVideoMarkers(videoMarkers: String): Pair<Long, Long> {
+    fun decodeVideoMarkers(videoMarkers: String): Pair<Long?, Long?>? {
         return Json.decodeFromString(videoMarkers)
     }
 

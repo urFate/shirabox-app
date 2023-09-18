@@ -9,14 +9,15 @@ import com.shirabox.shirabox.model.Quality
 @Entity(tableName = "episode")
 data class EpisodeEntity(
     @PrimaryKey(autoGenerate = true) val uid: Int = 0,
-    @ColumnInfo(name = "content_uid") val contentUid: Int,
+    @ColumnInfo(name = "content_uid") val contentUid: Int = -1,
     @ColumnInfo(name = "name") val name: String?,
-    @ColumnInfo(name = "extra") val extra: String?,
     @ColumnInfo(name = "episode") val episode: Int,
     @ColumnInfo(name = "upload_timestamp") val uploadTimestamp: Long,
-    @ColumnInfo(name = "videos") val videos: Map<Quality, String> = emptyMap(),
-    @ColumnInfo(name = "chapters") val chapters: List<String> = emptyList(),
-    @ColumnInfo(name = "video_markers") val videoMarkers: Pair<Long, Long> = -1L to -1L,
+    @ColumnInfo(name = "videos") val videos: Map<Quality, String>? = null,
+    @ColumnInfo(name = "chapters") val pages: List<String>? = null,
+    @ColumnInfo(name = "video_markers") val videoMarkers: Pair<Long?, Long?>? = null,
+    @ColumnInfo(name = "reading_page") val readingPage: Int? = null,
+    @ColumnInfo(name = "watching_time") val watchingTime: Long? = null,
     @ColumnInfo(name = "type") val type: ContentType
 )
 

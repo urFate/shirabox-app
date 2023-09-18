@@ -1,8 +1,8 @@
 package com.shirabox.shirabox.source.content.manga.remanga
 
 import android.net.Uri
+import com.shirabox.shirabox.db.entity.EpisodeEntity
 import com.shirabox.shirabox.model.ContentType
-import com.shirabox.shirabox.model.Episode
 import com.shirabox.shirabox.model.EpisodesInfo
 import com.shirabox.shirabox.source.content.AbstractContentSource
 import java.text.SimpleDateFormat
@@ -14,7 +14,7 @@ object Remanga : AbstractContentSource (
     ContentType.MANGA,
     "https://remanga.org/apple-touch-icon.png"
 ) {
-    override suspend fun searchEpisodes(query: String): List<Episode> {
+    override suspend fun searchEpisodes(query: String): List<EpisodeEntity> {
         return search(query)?.content?.firstOrNull()?.dir?.let { fetchBookChapters(it, false) }
             ?: emptyList()
     }
@@ -33,15 +33,17 @@ object Remanga : AbstractContentSource (
         return json.decodeFromString<LibraryWrapperData<SearchBookData>>(response)
     }
 
-    private fun fetchBookChapters(dir: String, minimal: Boolean): List<Episode> {
+    private fun fetchBookChapters(dir: String, minimal: Boolean): List<EpisodeEntity> {
         val response = httpGET("$url/api/titles/$dir") ?: return emptyList()
         val bookData = json.decodeFromString<WrapperData<BookData>>(response).content
 
         val branchId = bookData.branches.first().id
-        val chaptersCount = if(minimal) 1 else bookData.branches.first().countChapters
+        val chaptersCount = if (minimal) 1 else bookData.branches.first().countChapters
 
-        val chaptersResponse = httpGET("$url/api/titles/chapters/" +
-                "?count=$chaptersCount&branch_id=$branchId")
+        val chaptersResponse = httpGET(
+            "$url/api/titles/chapters/" +
+                    "?count=$chaptersCount&branch_id=$branchId"
+        )
             ?: return emptyList()
 
         val chaptersData =
@@ -51,11 +53,11 @@ object Remanga : AbstractContentSource (
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
 
         return chaptersData.map {
-            Episode(
+            EpisodeEntity(
                 name = it.name,
                 episode = it.index,
                 uploadTimestamp = (dateFormat.parse(it.uploadDate)?.time ?: 0),
-                chapters = fetchChapterPages(it.id),
+                pages = fetchChapterPages(it.id),
                 type = this.contentType
             )
         }

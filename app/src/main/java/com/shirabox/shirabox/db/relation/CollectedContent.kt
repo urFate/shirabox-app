@@ -6,7 +6,7 @@ import com.shirabox.shirabox.db.entity.ContentEntity
 import com.shirabox.shirabox.db.entity.EpisodeEntity
 import com.shirabox.shirabox.db.entity.RelatedContentEntity
 
-data class PickedContent(
+data class CollectedContent(
     @Embedded val content: ContentEntity,
 
     @Relation(

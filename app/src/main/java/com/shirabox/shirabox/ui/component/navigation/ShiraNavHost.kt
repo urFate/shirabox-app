@@ -9,8 +9,8 @@ import androidx.navigation.compose.navigation
 import com.shirabox.shirabox.ui.screen.explore.ExploreScreen
 import com.shirabox.shirabox.ui.screen.explore.NotificationsScreen
 import com.shirabox.shirabox.ui.screen.favourites.FavouritesScreen
-import com.shirabox.shirabox.ui.screen.profile.History
 import com.shirabox.shirabox.ui.screen.profile.ProfileScreen
+import com.shirabox.shirabox.ui.screen.profile.history.History
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

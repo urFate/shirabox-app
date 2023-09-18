@@ -13,7 +13,7 @@ data class LibraryAnimeData(
     val id: Int,
     val image: Image,
     val score: String,
-    @SerialName("aired_on") val airedOn: String,
+    @SerialName("aired_on") val airedOn: String?,
     val russian: String,
     @SerialName("episodes_aired") val episodesAired: Int,
     val kind: String,

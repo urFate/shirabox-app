@@ -8,20 +8,24 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.shirabox.shirabox.db.entity.ContentEntity
-import com.shirabox.shirabox.db.relation.PickedContent
+import com.shirabox.shirabox.db.relation.CollectedContent
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ContentDao {
+    @Transaction
+    @Query("SELECT * FROM content")
+    fun allCollectedContent(): Flow<List<ContentEntity>>
+
     @Query("SELECT * FROM content WHERE favourite IS 1")
     fun getFavourites(): Flow<List<ContentEntity>>
 
     @Transaction
-    @Query("SELECT * FROM content WHERE shikimori_id IS :id")
-    fun getPickedContent(id: Int): PickedContent
+    @Query("SELECT * FROM content WHERE shikimori_id IS :shikimoriId")
+    fun collectedContent(shikimoriId: Int): CollectedContent
 
-    @Query("SELECT * FROM content WHERE shikimori_id IS :id")
-    fun getContent(id: Int): ContentEntity
+    @Query("SELECT * FROM content WHERE shikimori_id IS :shikimoriId")
+    fun getContent(shikimoriId: Int): ContentEntity
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertContents(vararg contents: ContentEntity)
