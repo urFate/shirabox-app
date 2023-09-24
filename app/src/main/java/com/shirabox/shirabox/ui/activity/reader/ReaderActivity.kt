@@ -1,4 +1,4 @@
-package com.shirabox.shirabox.ui.activity
+package com.shirabox.shirabox.ui.activity.reader
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -71,6 +72,13 @@ class ReaderActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    rememberSystemUiController().apply {
+                        setStatusBarColor(
+                            color = Color.Transparent,
+                            darkIcons = false
+                        )
+                    }
+
                     ReaderScaffold()
                 }
             }
