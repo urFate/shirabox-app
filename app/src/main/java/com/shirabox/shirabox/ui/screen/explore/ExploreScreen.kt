@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.shirabox.shirabox.ui.component.top.TopBar
-import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 
 
 @ExperimentalMaterial3Api
@@ -27,12 +26,6 @@ fun ExploreScreen(navController: NavController, model: ExploreViewModel = viewMo
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item { TopBar(navController) }
-        
-        item {
-            MediaNavBar(activeType = model.currentContentType) {
-                model.currentContentType = it.contentType
-            }
-        }
 
         item {
             BaseMediaScreen(viewModel = model, lazyListState = lazyListState)

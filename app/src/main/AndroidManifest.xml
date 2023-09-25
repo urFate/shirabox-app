@@ -30,11 +30,6 @@
             android:label="@string/title_activity_resource"
             android:theme="@style/Theme.ShiraBox" />
         <activity
-            android:name=".ui.activity.ReaderActivity"
-            android:exported="false"
-            android:label="@string/title_activity_reader"
-            android:theme="@style/Theme.ShiraBox" />
-        <activity
             android:name=".ui.activity.MainActivity"
             android:exported="true"
             android:hardwareAccelerated="true"

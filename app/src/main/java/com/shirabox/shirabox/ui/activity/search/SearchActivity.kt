@@ -5,9 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,7 +42,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shirabox.shirabox.R
 import com.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import com.shirabox.shirabox.ui.component.general.ListItem
-import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 import com.shirabox.shirabox.ui.theme.ShiraBoxTheme
 
 class SearchActivity : ComponentActivity() {
@@ -125,15 +121,6 @@ fun SearchScreen(model: SearchViewModel = viewModel()) {
             )
         }
     ) {
-        AnimatedVisibility(
-            visible = showTypesBar,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            MediaNavBar(activeType = model.currentContentType) {
-                model.currentContentType = it.contentType
-            }
-        }
 
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,

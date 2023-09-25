@@ -32,7 +32,6 @@ import com.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import com.shirabox.shirabox.ui.component.general.ListItem
 import com.shirabox.shirabox.ui.component.general.NoContentsPopup
 import com.shirabox.shirabox.ui.component.top.TopBar
-import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 import com.shirabox.shirabox.util.Util
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -71,8 +70,6 @@ fun History(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TopBar(navController)
-
-        MediaNavBar(activeType = currentType) { currentType = it.contentType }
 
         Text(
             modifier = Modifier.padding(16.dp, 0.dp),

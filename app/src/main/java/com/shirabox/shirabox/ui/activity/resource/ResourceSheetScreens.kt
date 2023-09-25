@@ -42,7 +42,6 @@ import com.shirabox.shirabox.R
 import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.source.content.AbstractContentSource
-import com.shirabox.shirabox.ui.activity.ReaderActivity
 import com.shirabox.shirabox.ui.activity.player.PlayerActivity
 import com.shirabox.shirabox.ui.component.general.ListItem
 import kotlinx.coroutines.launch
@@ -334,17 +333,7 @@ fun EpisodesSheetScreen(
                                             putExtra("playlist", Json.encodeToString(playlist))
                                         })
 
-                                    else -> context.startActivity(
-                                        Intent(
-                                            context,
-                                            ReaderActivity::class.java
-                                        ).apply {
-                                            putExtra("content_uid", episodeEntity.contentUid)
-                                            putExtra(
-                                                "pages",
-                                                Json.encodeToString(episodeEntity.pages)
-                                            )
-                                        })
+                                    else -> {}
                                 }
                             }
                         }

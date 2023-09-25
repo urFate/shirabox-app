@@ -19,10 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shirabox.shirabox.R
-import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.ui.component.general.ListItem
 import com.shirabox.shirabox.ui.component.top.TopBar
-import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 
 @Composable
 fun NotificationsScreen(){
@@ -33,10 +31,6 @@ fun NotificationsScreen(){
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TopBar(null)
-
-        MediaNavBar(activeType = ContentType.ANIME) {
-            TODO("Add database functionality")
-        }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp)

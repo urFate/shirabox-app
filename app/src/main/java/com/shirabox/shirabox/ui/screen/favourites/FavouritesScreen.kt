@@ -19,7 +19,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -37,7 +36,6 @@ import com.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import com.shirabox.shirabox.ui.component.general.ContentCard
 import com.shirabox.shirabox.ui.component.general.NoContentsPopup
 import com.shirabox.shirabox.ui.component.top.TopBar
-import com.shirabox.shirabox.ui.component.top.navigation.MediaNavBar
 import com.shirabox.shirabox.util.Util
 
 @Composable
@@ -48,7 +46,7 @@ fun FavouritesScreen(
     })
 ) {
     val favourites by model.fetchFavouriteContents().collectAsState(initial = emptyList())
-    var currentType by remember {
+    val currentType by remember {
         mutableStateOf(ContentType.ANIME)
     }
 
@@ -65,10 +63,6 @@ fun FavouritesScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TopBar(navController)
-
-        MediaNavBar(activeType = currentType) {
-            currentType = it.contentType
-        }
 
         Column(
             modifier = Modifier.padding(16.dp, 0.dp),
