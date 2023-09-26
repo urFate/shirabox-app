@@ -1,5 +1,16 @@
 package com.shirabox.shirabox.model
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class Quality(val quality: Int) {
-    SD(480), HD(720), FHD(1080)
+    @SerialName("SD")
+    SD(480),
+
+    @SerialName("HD")
+    HD(720),
+
+    @SerialName("FHD")
+    FHD(1080)
 }

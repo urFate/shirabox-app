@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shirabox.shirabox.db.AppDatabase
+import com.shirabox.shirabox.model.PlaylistVideo
 import com.shirabox.shirabox.model.Quality
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,7 +21,7 @@ class PlayerViewModel(
     val contentUid: Int,
     val contentName: String,
     val startEpisode: Int,
-    val playlist: List<Map<Quality, String>>
+    val playlist: List<PlaylistVideo>
 ) : ViewModel() {
     val db = AppDatabase.getAppDataBase(context)
 
@@ -44,7 +45,7 @@ class PlayerViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             db?.episodeDao()?.getEpisodesByParent(contentUid)?.let { entities ->
                 episodesPositions.putAll(entities.associate {
-                    it.episode.dec() to (it.watchingTime ?: 0L)
+                    it.episode.dec() to it.watchingTime
                 })
             }
         }

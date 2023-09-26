@@ -48,8 +48,8 @@ object AniLibria : AbstractContentSource (
                         it.hls.fhd?.let { url -> put(Quality.FHD, host + url) }
                     },
                     videoMarkers = Pair(
-                        it.skips.opening.lastOrNull()?.times(1000L),
-                        it.skips.ending.lastOrNull()?.times(1000L)
+                        it.skips.opening.firstOrNull()?.times(1000L) ?: -1L,
+                        it.skips.opening.lastOrNull()?.times(1000L) ?: -1L
                     ),
                     type = this.contentType
                 )

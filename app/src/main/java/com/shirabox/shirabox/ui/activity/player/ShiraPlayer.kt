@@ -51,7 +51,7 @@ fun ShiraPlayer(model: PlayerViewModel) {
             exoPlayer.apply {
                 setMediaItems(model.playlist.map {
                     MediaItem.fromUri(
-                        it[model.currentQuality] ?: ""
+                        it.streamUrls[model.currentQuality] ?: ""
                     )
                 })
                 seekTo(model.startEpisode, it)
@@ -69,7 +69,11 @@ fun ShiraPlayer(model: PlayerViewModel) {
                 replaceMediaItems(
                     0,
                     model.playlist.size.dec(),
-                    model.playlist.map { MediaItem.fromUri(it[model.currentQuality] ?: "") })
+                    model.playlist.map {
+                        MediaItem.fromUri(
+                            it.streamUrls[model.currentQuality] ?: ""
+                        )
+                    })
                 seekTo(currentItemIndex, currentPosition)
             }
         }

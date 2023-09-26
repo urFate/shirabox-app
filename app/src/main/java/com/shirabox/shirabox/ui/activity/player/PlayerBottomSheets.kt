@@ -199,7 +199,7 @@ fun QualityBottomSheet(
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
         ) {
-            model.playlist[exoPlayer.currentMediaItemIndex].keys.forEach {
+            model.playlist[exoPlayer.currentMediaItemIndex].streamUrls.keys.forEach {
                 ListItem(
                     modifier = Modifier.clickable {
                         model.currentQuality = it

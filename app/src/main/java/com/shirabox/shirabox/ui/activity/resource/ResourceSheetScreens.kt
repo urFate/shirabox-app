@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.shirabox.shirabox.R
 import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
+import com.shirabox.shirabox.model.PlaylistVideo
 import com.shirabox.shirabox.source.content.AbstractContentSource
 import com.shirabox.shirabox.ui.activity.player.PlayerActivity
 import com.shirabox.shirabox.ui.component.general.ListItem
@@ -322,14 +323,16 @@ fun EpisodesSheetScreen(
                                             context,
                                             PlayerActivity::class.java
                                         ).apply {
-                                            val playlist = episodes.map { it.videos }
+                                            val playlist = episodes.map {
+                                                PlaylistVideo(
+                                                    streamUrls = it.videos,
+                                                    openingMarkers = it.videoMarkers
+                                                )
+                                            }
 
                                             putExtra("content_uid", episodeEntity.contentUid)
                                             putExtra("name", content.name)
-                                            putExtra(
-                                                "episode",
-                                                playlist.indexOf(episodeEntity.videos)
-                                            )
+                                            putExtra("episode", episodeEntity.episode.dec())
                                             putExtra("playlist", Json.encodeToString(playlist))
                                         })
 
