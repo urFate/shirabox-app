@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -27,14 +29,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +74,16 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     var hasPreviousMediaItem by remember { mutableStateOf(exoPlayer.hasPreviousMediaItem()) }
     var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex + 1) }
 
+    val currentItemMarkers = remember(currentMediaItemIndex) {
+        model.playlist[exoPlayer.currentMediaItemIndex].openingMarkers
+    }
+
+    val showSkipButton = remember(currentPosition) {
+        currentItemMarkers.let {
+            currentPosition in it.first..it.second
+        }
+    }
+
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
 
@@ -92,38 +107,57 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            PlayerTopBar(model.contentName, currentMediaItemIndex) {
-                model.bottomSheetVisibilityState = true
+    AnimatedVisibility(
+        visible = model.controlsVisibilityState,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Scaffold(
+            topBar = {
+                PlayerTopBar(model.contentName, currentMediaItemIndex) {
+                    model.bottomSheetVisibilityState = true
+                }
+            },
+            bottomBar = {
+                PlayerBottomBar(
+                    currentPosition = currentPosition,
+                    duration = totalDuration,
+                    model = model
+                ) {
+                    exoPlayer.seekTo(it)
+                }
+            },
+            content = {
+                PlaybackControls(
+                    modifier = Modifier.padding(it),
+                    isPlaying = isPlaying,
+                    isLoaded = playbackState == Player.STATE_READY,
+                    hasNextMediaItem = hasNextMediaItem,
+                    hasPreviousMediaItem = hasPreviousMediaItem,
+                    onSkipPrevious = { exoPlayer.seekToPrevious() },
+                    onPlayToggle = {
+                        exoPlayer.playWhenReady = !exoPlayer.isPlaying
+                        coroutineScope.launch { hideControls(exoPlayer, model) }
+                    },
+                    onSkipNext = { exoPlayer.seekToNext() }
+                )
+            },
+            containerColor = Color(0x80000000)
+        )
+    }
+
+    AnimatedVisibility(
+        visible = showSkipButton,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        SkipButton {
+            currentItemMarkers.let {
+                exoPlayer.seekTo(it.second)
+                model.controlsVisibilityState = true
             }
-        },
-        bottomBar = {
-            PlayerBottomBar(
-                currentPosition = currentPosition,
-                duration = totalDuration,
-                model = model
-            ) {
-                exoPlayer.seekTo(it)
-            }
-        },
-        content = {
-            PlaybackControls(
-                modifier = Modifier.padding(it),
-                isPlaying = isPlaying,
-                isLoaded = playbackState == Player.STATE_READY,
-                hasNextMediaItem = hasNextMediaItem,
-                hasPreviousMediaItem = hasPreviousMediaItem,
-                onSkipPrevious = { exoPlayer.seekToPrevious() },
-                onPlayToggle = {
-                    exoPlayer.playWhenReady = !exoPlayer.isPlaying
-                    coroutineScope.launch { hideControls(exoPlayer, model) }
-                },
-                onSkipNext = { exoPlayer.seekToNext() }
-            )
-        },
-        containerColor = Color(0x80000000)
-    )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -225,6 +259,36 @@ fun PlaybackControls(
         }
     }
 }
+
+@Composable
+fun SkipButton(
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp, 64.dp),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        OutlinedButton(
+            border = BorderStroke(1.dp, Color.White),
+            onClick = onClick
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardDoubleArrowRight,
+                    tint = Color.White,
+                    contentDescription = "opening skip"
+                )
+                Text(text = stringResource(id = R.string.opening_skip), color = Color.White)
+            }
+        }
+    }
+}
+
 
 @Composable
 fun PlayerBottomBar(

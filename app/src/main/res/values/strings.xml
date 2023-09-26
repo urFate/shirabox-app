@@ -75,6 +75,7 @@
     <string name="playback_speed">Скорость воспроизведения • %sx</string>
     <string name="subtitles">Субтитры</string>
     <string name="normal_speed">Обычная</string>
+    <string name="opening_skip">Пропустить</string>
 
     <!--
         Reader Activity

@@ -2,9 +2,6 @@ package com.shirabox.shirabox.ui.activity.player
 
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -124,13 +121,7 @@ fun ShiraPlayer(model: PlayerViewModel) {
                 }
             )
 
-            this@Column.AnimatedVisibility(
-                visible = model.controlsVisibilityState,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                ControlsScaffold(exoPlayer = exoPlayer, model = model)
-            }
+            ControlsScaffold(exoPlayer = exoPlayer, model = model)
         }
 
         SettingsBottomSheet(exoPlayer = exoPlayer, model = model)
