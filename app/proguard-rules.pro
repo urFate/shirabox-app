@@ -24,27 +24,30 @@
 
 -keep,allowoptimization class com.shirabox.**
 
-##---------------Begin: proguard configuration for kotlinx.serialization  ----------
--keepattributes *Annotation*, InnerClasses
 
-# kotlinx-serialization-json specific. Add this if you have java.lang.NoClassDefFoundError kotlinx.serialization.json.JsonObjectSerializer
--keepclassmembers class kotlinx.serialization.json.** {
-    *** Companion;
-}
--keepclasseswithmembers class kotlinx.serialization.json.** {
-    kotlinx.serialization.KSerializer serializer(...);
+# Keep `Companion` object fields of serializable classes.
+# This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1> {
+   static <1>$Companion Companion;
 }
 
--keep,includedescriptorclasses class eu.kanade.**$$serializer { *; }
--keepclassmembers class eu.kanade.** {
-    *** Companion;
+# Keep `serializer()` on companion objects (both default and named) of serializable classes.
+-if @kotlinx.serialization.Serializable class ** {
+   static **$* *;
 }
--keepclasseswithmembers class eu.kanade.** {
-    kotlinx.serialization.KSerializer serializer(...);
+-keepclassmembers class <2>$<3> {
+   kotlinx.serialization.KSerializer serializer(...);
 }
 
--keep class kotlinx.serialization.**
--keepclassmembers class kotlinx.serialization.** {
-    <methods>;
+# Keep `INSTANCE.serializer()` of serializable objects.
+-if @kotlinx.serialization.Serializable class ** {
+   public static ** INSTANCE;
 }
-##---------------End: proguard configuration for kotlinx.serialization  ----------
+-keepclassmembers class <1> {
+   public static <1> INSTANCE;
+   kotlinx.serialization.KSerializer serializer(...);
+}
+
+# @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
