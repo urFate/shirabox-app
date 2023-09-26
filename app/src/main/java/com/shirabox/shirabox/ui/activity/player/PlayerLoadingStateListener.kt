@@ -1,6 +1,7 @@
 package com.shirabox.shirabox.ui.activity.player
 
 import androidx.media3.common.Player
+import com.shirabox.shirabox.util.Values
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -10,10 +11,10 @@ class PlayerLoadingStateListener(
     private val model: PlayerViewModel
 ) : Player.Listener {
 
-    override fun onIsLoadingChanged(isLoading: Boolean) {
-        if(!isLoading){
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        if (playbackState != Player.STATE_BUFFERING) {
             coroutineScope.launch {
-                delay(1000).let{
+                delay(Values.CONTROLS_HIDE_DELAY).let {
                     model.controlsVisibilityState = false
                 }
             }

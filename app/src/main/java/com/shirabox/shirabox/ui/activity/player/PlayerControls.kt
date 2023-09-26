@@ -297,6 +297,13 @@ fun PlayerBottomBar(
     model: PlayerViewModel,
     onSliderValueChange: (Long) -> Unit,
 ) {
+    var isValueChanging by remember {
+        mutableStateOf(false)
+    }
+    var currentValue by remember {
+        mutableFloatStateOf(0F)
+    }
+
     Box(
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -322,11 +329,16 @@ fun PlayerBottomBar(
 
                 Slider(
                     modifier = Modifier.weight(1f, false),
-                    value = currentPosition.toFloat() / duration.toFloat(),
+                    value = if (isValueChanging) currentValue else (currentPosition.toFloat() / duration.toFloat()),
                     onValueChange = { value ->
-                        val newTime = (value * duration).toLong()
-                        onSliderValueChange(newTime)
-                    }
+                        currentValue = value
+                        isValueChanging = true
+                    },
+                    onValueChangeFinished = {
+                        onSliderValueChange((currentValue * duration).toLong())
+                        isValueChanging = false
+                    },
+                    colors = SliderDefaults.colors(inactiveTrackColor = Color.Gray.copy(0.6F))
                 )
 
                 IconButton(
