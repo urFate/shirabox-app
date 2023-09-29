@@ -6,15 +6,20 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Pause
@@ -48,13 +53,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.shirabox.shirabox.R
@@ -106,6 +117,21 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
             delay(400)
         }
     }
+
+    InstantSeekZones(
+        onFastRewind = {
+            exoPlayer.seekTo(exoPlayer.currentPosition.minus(Values.INSTANT_SEEK_TIME))
+        },
+        onFastForward = {
+            exoPlayer.seekTo(exoPlayer.currentPosition.plus(Values.INSTANT_SEEK_TIME))
+        },
+        onClick = {
+            coroutineScope.launch {
+                model.controlsVisibilityState = !model.controlsVisibilityState
+                hideControls(exoPlayer, model)
+            }
+        }
+    )
 
     AnimatedVisibility(
         visible = model.controlsVisibilityState,
@@ -289,6 +315,61 @@ fun SkipButton(
     }
 }
 
+@Composable
+fun InstantSeekZones(
+    onFastRewind: (offset: Offset) -> Unit,
+    onFastForward: (offset: Offset) -> Unit,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val deviceWidth = LocalConfiguration.current.screenWidthDp.dp
+
+        var showRewindUi by remember {
+            mutableStateOf(false)
+        }
+        var showForwardUi by remember {
+            mutableStateOf(false)
+        }
+
+        val coroutineScope = rememberCoroutineScope()
+
+        // Rewind seek zone
+        SeekZoneBox(
+            modifier = Modifier
+                .fillMaxWidth(0.5F),
+            icon = Icons.Default.FastRewind,
+            xBackgroundOffset = 0.dp,
+            visible = showRewindUi,
+            onDoubleClick = {
+                onFastRewind(it)
+                showRewindUi = true
+                coroutineScope.launch {
+                    delay(1000L).let { showRewindUi = false }
+                }
+            },
+            onClick = onClick
+        )
+
+        // Forward seek zone
+        SeekZoneBox(
+            modifier = Modifier.fillMaxWidth(1F),
+            icon = Icons.Default.FastForward,
+            xBackgroundOffset = deviceWidth / 2,
+            visible = showForwardUi,
+            onDoubleClick = {
+                onFastForward(it)
+                showForwardUi = true
+                coroutineScope.launch {
+                    delay(1000L).let { showForwardUi = false }
+                }
+            },
+            onClick = onClick
+        )
+    }
+}
 
 @Composable
 fun PlayerBottomBar(
@@ -380,6 +461,82 @@ fun PlaybackIconButton(isActive: Boolean = true, imageVector: ImageVector, onCli
         )
     }
 }
+
+@Composable
+fun SeekZoneBox(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    xBackgroundOffset: Dp,
+    visible: Boolean,
+    onDoubleClick: (offset: Offset) -> Unit,
+    onClick: () -> Unit
+) {
+    val deviceHeight = LocalConfiguration.current.screenHeightDp.dp
+    val deviceWidth = LocalConfiguration.current.screenWidthDp.dp
+
+    Box(
+        modifier = Modifier
+            .fillMaxHeight()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = {
+                        onDoubleClick(it)
+                    },
+                    onTap = {
+                        onClick()
+                    }
+                )
+            }
+            .then(modifier),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(deviceWidth.div(2))
+                    .drawWithCache {
+                        onDrawBehind {
+                            drawCircle(
+                                radius = deviceWidth
+                                    .toPx()
+                                    .div(2F),
+                                color = Color.LightGray,
+                                alpha = 0.3F,
+                                center = Offset(
+                                    xBackgroundOffset.toPx(),
+                                    deviceHeight
+                                        .toPx()
+                                        .div(2F)
+                                )
+                            )
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        tint = Color.White,
+                        contentDescription = "rewind"
+                    )
+                    Text(
+                        text = stringResource(id = R.string.instant_seek_time),
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
 suspend fun hideControls(
     exoPlayer: ExoPlayer,
     model: PlayerViewModel

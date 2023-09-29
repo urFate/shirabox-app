@@ -86,4 +86,5 @@
         Search Activity
     -->
     <string name="title_activity_search">SearchActivity</string>
+    <string name="instant_seek_time">10 секунд</string>
 </resources>
