@@ -415,6 +415,7 @@ fun PlayerBottomBar(
                 Slider(
                     modifier = Modifier.weight(1f, false),
                     value = if (isValueChanging) currentValue else (currentPosition.toFloat() / duration.toFloat()),
+                    enabled = duration != C.TIME_UNSET, // Prevent seeking while content is loading
                     onValueChange = { value ->
                         currentValue = value
                         isValueChanging = true
@@ -423,7 +424,10 @@ fun PlayerBottomBar(
                         onSliderValueChange((currentValue * duration).toLong())
                         isValueChanging = false
                     },
-                    colors = SliderDefaults.colors(inactiveTrackColor = Color.Gray.copy(0.6F))
+                    colors = SliderDefaults.colors(
+                        inactiveTrackColor = Color.Gray.copy(0.6F),
+                        disabledInactiveTrackColor = Color.Gray.copy(0.6F)
+                    )
                 )
 
                 IconButton(
