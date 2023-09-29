@@ -393,15 +393,19 @@ fun PlayerBottomBar(
                 .padding(16.dp, 16.dp)
                 .fillMaxWidth()
         ) {
-            Text(
-                text = "${Util.formatMilliseconds(currentPosition)} • ${
-                    Util.formatMilliseconds(
-                        duration
-                    )
-                }",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.inverseOnSurface
-            )
+            Row {
+                Text(
+                    text = Util.formatMilliseconds(currentPosition),
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.inverseOnSurface
+                )
+
+                Text(
+                    text = " / ${Util.formatMilliseconds(duration)} (${model.playbackSpeed}x)",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+            }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
