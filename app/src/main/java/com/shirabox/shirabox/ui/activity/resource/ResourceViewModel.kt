@@ -1,8 +1,8 @@
 package com.shirabox.shirabox.ui.activity.resource
 
 import android.content.Context
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +11,6 @@ import com.shirabox.shirabox.db.entity.EpisodeEntity
 import com.shirabox.shirabox.db.entity.RelatedContentEntity
 import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
-import com.shirabox.shirabox.model.EpisodesInfo
 import com.shirabox.shirabox.source.catalog.shikimori.Shikimori
 import com.shirabox.shirabox.source.content.AbstractContentSource
 import com.shirabox.shirabox.source.content.anime.libria.AniLibria
@@ -19,16 +18,20 @@ import com.shirabox.shirabox.source.content.manga.remanga.Remanga
 import com.shirabox.shirabox.util.Util.Companion.mapContentToEntity
 import com.shirabox.shirabox.util.Util.Companion.mapEntityToContent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
-class ResourceViewModel(context: Context, val contentType: ContentType) : ViewModel() {
+class ResourceViewModel(context: Context, private val contentType: ContentType) : ViewModel() {
     val content = mutableStateOf<Content?>(null)
     val related = mutableStateListOf<Content>()
-    val episodes = mutableStateMapOf<AbstractContentSource, List<EpisodeEntity>>()
-    val episodesInfo = mutableStateMapOf<AbstractContentSource, EpisodesInfo?>()
+
+    val databaseUid = mutableIntStateOf(-1)
 
     val isFavourite = mutableStateOf(false)
     val pinnedSources = mutableStateListOf<String>()
+
+    val isTimeout = mutableStateOf(false)
 
     val db = AppDatabase.getAppDataBase(context)
 
@@ -36,20 +39,20 @@ class ResourceViewModel(context: Context, val contentType: ContentType) : ViewMo
         AniLibria, Remanga
     ).filter { it.contentType == contentType }
 
-    fun fetchContent(id: Int) {
+    fun fetchContent(shikimoriId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val pickedData = db?.contentDao()?.collectedContent(id)
+            val pickedData = db?.contentDao()?.collectedContent(shikimoriId)
 
             pickedData?.let {
                 content.value = mapEntityToContent(it.content)
                 isFavourite.value = it.content.isFavourite
+                databaseUid.intValue = it.content.uid
                 pinnedSources.addAll(it.content.pinnedSources)
 
                 return@launch
             }
 
-            val data = Shikimori.fetchContent(id, contentType)
-            content.value = data
+            val data = Shikimori.fetchContent(shikimoriId, contentType)
 
             db?.let { database ->
                 data?.let {
@@ -62,6 +65,9 @@ class ResourceViewModel(context: Context, val contentType: ContentType) : ViewMo
                         )
                     )
                 }
+
+                databaseUid.intValue = database.contentDao().getContent(shikimoriId).uid
+                content.value = data
             }
         }
     }
@@ -78,39 +84,31 @@ class ResourceViewModel(context: Context, val contentType: ContentType) : ViewMo
         }
     }
 
-    fun fetchEpisodes(id: Int, query: String, source: AbstractContentSource) {
+    fun fetchCachedEpisodes():
+            Flow<List<EpisodeEntity>> = db?.episodeDao()?.all() ?: emptyFlow()
+
+    fun fetchEpisodes(id: Int, query: String) {
         viewModelScope.launch(Dispatchers.IO) {
             db?.contentDao()?.collectedContent(id)?.let { collectedContent ->
-                val cachedEpisodes = collectedContent.episodes
+                sources.forEach { source ->
+                    source.searchEpisodes(query).let { list ->
+                        list.mapIndexed { index, episodeEntity ->
+                            val matchingEpisode = collectedContent.episodes.getOrNull(index)
 
-                episodes[source] = cachedEpisodes
+                            /**
+                             * Keep local data (e.g. watching time and id's)
+                             */
 
-                source.searchEpisodes(query).let { list ->
-                    if (list.size != episodes[source]?.size) {
-                        episodes[source] = list
-
-                        episodes[source]?.map {
-                            it.copy(contentUid = collectedContent.content.uid)
-                        }?.toTypedArray()?.let { db.episodeDao().insertEpisodes(*it) }
+                            episodeEntity.copy(
+                                uid = matchingEpisode?.uid,
+                                contentUid = collectedContent.content.uid,
+                                watchingTime = matchingEpisode?.watchingTime ?: -1L,
+                                readingPage = matchingEpisode?.readingPage ?: -1
+                            )
+                        }.toTypedArray().let { entities ->
+                            db.episodeDao().insertEpisodes(*entities)
+                        }
                     }
-                }
-            }
-        }
-    }
-
-    fun fetchEpisodesInfo(id: Int, query: String, source: AbstractContentSource) {
-        viewModelScope.launch(Dispatchers.IO) {
-            db?.contentDao()?.collectedContent(id)?.episodes?.let { episodeEntities ->
-                if (episodeEntities.isNotEmpty()) {
-                    episodesInfo[source] = EpisodesInfo(
-                        episodes = episodeEntities.size,
-                        lastEpisodeTimestamp = episodeEntities.maxOfOrNull { it.uploadTimestamp }
-                            ?: 0
-                    )
-                }
-
-                source.searchEpisodesInfo(query)?.let {
-                    episodesInfo[source] = it
                 }
             }
         }

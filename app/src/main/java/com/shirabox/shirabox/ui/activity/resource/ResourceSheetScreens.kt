@@ -4,6 +4,7 @@ import android.content.Intent
 import android.text.format.DateUtils
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -23,6 +25,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
@@ -39,12 +43,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shirabox.shirabox.R
+import com.shirabox.shirabox.db.entity.EpisodeEntity
 import com.shirabox.shirabox.model.Content
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.model.PlaylistVideo
 import com.shirabox.shirabox.source.content.AbstractContentSource
 import com.shirabox.shirabox.ui.activity.player.PlayerActivity
-import com.shirabox.shirabox.ui.component.general.ListItem
+import com.shirabox.shirabox.ui.component.general.ExtendedListItem
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -59,18 +65,50 @@ fun ResourceBottomSheet(
         mutableStateOf<ResourceSheetScreen>(ResourceSheetScreen.Sources(model))
     }
 
-    if(visibilityState.value) {
+    val episodesState = model.fetchCachedEpisodes().collectAsState(initial = emptyList())
+
+    val episodes = remember(episodesState.value, model.databaseUid) {
+        model.databaseUid.intValue.let { uid ->
+            if (uid >= 0) episodesState.value.filter { it.contentUid == model.databaseUid.intValue }
+            else emptyList()
+        }
+    }
+
+    val sortedEpisodesMap = remember(episodes) {
+        episodes.groupBy { it.source }
+            .mapKeys { map ->
+                model.sources.find { it.name == map.key }
+            }
+            .mapValues { entry ->
+                entry.value.sortedByDescending { it.episode }
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        // Update cache
+        model.fetchEpisodes(content.shikimoriID, content.altName)
+    }
+
+    LaunchedEffect(episodes) {
+        delay(10000).let {
+            if (episodes.isEmpty()) model.isTimeout.value = true
+        }
+    }
+
+    if (visibilityState.value) {
         when (currentSheetScreenState.value) {
             is ResourceSheetScreen.Sources -> SourcesSheetScreen(
                 content = content,
                 model = model,
+                episodes = sortedEpisodesMap,
                 currentSheetScreenState = currentSheetScreenState,
                 visibilityState = visibilityState
             )
 
             is ResourceSheetScreen.Episodes -> EpisodesSheetScreen(
                 content = (currentSheetScreenState.value as ResourceSheetScreen.Episodes).content,
-                source = (currentSheetScreenState.value as ResourceSheetScreen.Episodes).source,
+                episodes = sortedEpisodesMap[(currentSheetScreenState.value as ResourceSheetScreen.Episodes).source]
+                    ?: emptyList(),
                 model = model,
                 currentSheetScreenState = currentSheetScreenState,
                 visibilityState = visibilityState
@@ -84,9 +122,9 @@ fun ResourceBottomSheet(
 fun SourcesSheetScreen(
     content: Content,
     model: ResourceViewModel,
+    episodes: Map<AbstractContentSource?, List<EpisodeEntity>>,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
     visibilityState: MutableState<Boolean>,
-    sources: List<AbstractContentSource> = model.sources
 ) {
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
@@ -103,26 +141,6 @@ fun SourcesSheetScreen(
             }
         }
     ) {
-        val isReady by remember {
-            derivedStateOf {
-                model.episodesInfo.isNotEmpty()
-            }
-        }
-        val isEmpty = remember(isReady) {
-            if (isReady) model.episodesInfo.isEmpty() || model.episodesInfo.values.filterNotNull()
-                .isEmpty() else false
-        }
-
-        val episodesInfoSortedMap by remember(model.episodesInfo, model.pinnedSources) {
-            derivedStateOf {
-                model.episodesInfo.toSortedMap(compareBy { model.pinnedSources.contains(it.name) })
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            sources.forEach { model.fetchEpisodesInfo(content.shikimoriID, content.altName, it) }
-        }
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -130,7 +148,7 @@ fun SourcesSheetScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             androidx.compose.animation.AnimatedVisibility(
-                visible = !isReady,
+                visible = episodes.isEmpty() && !model.isTimeout.value,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -140,7 +158,7 @@ fun SourcesSheetScreen(
             }
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = isEmpty,
+                visible = model.isTimeout.value,
                 exit = fadeOut()
             ) {
                 Column(
@@ -164,31 +182,33 @@ fun SourcesSheetScreen(
             }
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = isReady,
+                visible = episodes.isNotEmpty(),
                 enter = fadeIn()
             ) {
                 LazyColumn {
-                    episodesInfoSortedMap.forEach { data ->
-                        data.value?.let {
+                    episodes.forEach { data ->
+                        val source = data.key
+                        val entityList = data.value
+
+                        source?.let {
                             item {
                                 val context = LocalContext.current
 
-                                val source = data.key
                                 val isPinned by remember(model.pinnedSources) {
                                     derivedStateOf { model.pinnedSources.contains(source.name) }
                                 }
                                 val updatedTimestamp = remember {
                                     DateUtils.getRelativeTimeSpanString(
                                         context,
-                                        it.lastEpisodeTimestamp * 1000L
+                                        entityList.first().uploadTimestamp * 1000L
                                     )
                                 }
 
-                                ListItem(
+                                ExtendedListItem(
                                     headlineContent = { Text(source.name) },
                                     supportingContent = {
                                         Text(
-                                            "${it.episodes} " +
+                                            "${entityList.size} " +
                                                     if (content.type == ContentType.ANIME) "Серий" else "Глав"
                                         )
                                     },
@@ -215,7 +235,7 @@ fun SourcesSheetScreen(
 @Composable
 fun EpisodesSheetScreen(
     content: Content,
-    source: AbstractContentSource,
+    episodes: List<EpisodeEntity>,
     model: ResourceViewModel,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
     visibilityState: MutableState<Boolean>
@@ -227,26 +247,6 @@ fun EpisodesSheetScreen(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
     val coroutineScope = rememberCoroutineScope()
-    val episodes by remember {
-        derivedStateOf {
-            model.episodes[source]
-        }
-    }
-
-    val isReady by remember {
-        derivedStateOf {
-            !episodes.isNullOrEmpty()
-        }
-    }
-    val isEmpty by remember {
-        derivedStateOf {
-            episodes?.isEmpty() ?: false
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        model.fetchEpisodes(content.shikimoriID, content.altName, source)
-    }
 
     ModalBottomSheet(
         sheetState = state,
@@ -266,7 +266,7 @@ fun EpisodesSheetScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             androidx.compose.animation.AnimatedVisibility(
-                visible = !isReady,
+                visible = episodes.isEmpty() && !model.isTimeout.value,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -275,8 +275,13 @@ fun EpisodesSheetScreen(
                 )
             }
 
+            /*
+                Show emoticon when something went wrong
+                (e.g. unstable internet connection or service unavailability)
+             */
+
             androidx.compose.animation.AnimatedVisibility(
-                visible = isEmpty,
+                visible = model.isTimeout.value,
                 enter = fadeIn()
             ) {
                 Column(
@@ -300,23 +305,41 @@ fun EpisodesSheetScreen(
             }
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = isReady,
+                visible = episodes.isNotEmpty(),
                 enter = fadeIn()
             ) {
                 LazyColumn {
-                    episodes?.let { episodes ->
-                        items(episodes) { episodeEntity ->
-                            val updatedTimestamp =
-                                DateUtils.getRelativeTimeSpanString(
-                                    LocalContext.current,
-                                    episodeEntity.uploadTimestamp * 1000L
-                                )
+                    items(episodes) { episodeEntity ->
+                        val updatedTimestamp =
+                            DateUtils.getRelativeTimeSpanString(
+                                LocalContext.current,
+                                episodeEntity.uploadTimestamp * 1000L
+                            )
+                        val isViewed = episodeEntity.watchingTime > 0
+                        val textColor = if (isViewed)
+                            Color.Gray else Color.Unspecified
 
-                            ListItem(
-                                headlineString = if (episodeEntity.name.isNullOrEmpty()) "Эпизод #${episodeEntity.episode}" else episodeEntity.name,
-                                trailingString = updatedTimestamp.toString(),
-                                overlineString = "#${episodeEntity.episode}"
-                            ) {
+                        ListItem(
+                            overlineContent = {
+                                Text(
+                                    text = "#${episodeEntity.episode}",
+                                    color = textColor
+                                )
+                            },
+                            headlineContent = {
+                                Text(
+                                    text = if (episodeEntity.name.isNullOrEmpty())
+                                        stringResource(
+                                            R.string.anime_episode,
+                                            episodeEntity.episode
+                                        ) else episodeEntity.name,
+                                    color = textColor
+                                )
+                            },
+                            trailingContent = {
+                                Text(updatedTimestamp.toString())
+                            },
+                            modifier = Modifier.clickable {
                                 when (episodeEntity.type) {
                                     ContentType.ANIME -> context.startActivity(
                                         Intent(
@@ -328,7 +351,7 @@ fun EpisodesSheetScreen(
                                                     streamUrls = it.videos,
                                                     openingMarkers = it.videoMarkers
                                                 )
-                                            }
+                                            }.reversed()
 
                                             putExtra("content_uid", episodeEntity.contentUid)
                                             putExtra("name", content.name)
@@ -338,8 +361,8 @@ fun EpisodesSheetScreen(
 
                                     else -> {}
                                 }
-                            }
-                        }
+                            },
+                        )
                     }
                 }
             }

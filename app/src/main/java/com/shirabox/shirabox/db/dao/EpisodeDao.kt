@@ -7,17 +7,18 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.shirabox.shirabox.db.entity.EpisodeEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EpisodeDao {
     @Query("SELECT * FROM episode")
-    fun all(): List<EpisodeEntity>
+    fun all(): Flow<List<EpisodeEntity>>
 
     @Query("SELECT * FROM episode WHERE content_uid = :contentUid AND episode = :episode LIMIT 1")
     fun getEpisodeByParentAndEpisode(contentUid: Int, episode: Int): EpisodeEntity
 
     @Query("SELECT * FROM episode WHERE content_uid = :contentUid")
-    fun getEpisodesByParent(contentUid: Int): List<EpisodeEntity>
+    fun getEpisodesByParent(contentUid: Int): Flow<List<EpisodeEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertEpisodes(vararg episodeEntity: EpisodeEntity)

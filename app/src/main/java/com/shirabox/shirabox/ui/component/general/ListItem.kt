@@ -27,39 +27,6 @@ import com.shirabox.shirabox.R
 
 @Composable
 fun ListItem(
-    headlineString: String,
-    supportingString: String,
-    coverImage: ImageBitmap,
-    trailingIcon: ImageVector,
-    onClick: () -> Unit,
-    onTrailingIconClick: () -> Unit ) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        headlineContent = { Text(headlineString) },
-        supportingContent = { Text(supportingString) },
-        trailingContent = {
-            Surface(onTrailingIconClick) {
-                Icon(
-                    trailingIcon, trailingIcon.name,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        leadingContent = {
-            Image(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .height(72.dp)
-                    .width(54.dp),
-                painter = BitmapPainter(coverImage),
-                contentDescription = stringResource(id = R.string.history),
-                contentScale = ContentScale.Crop)
-        }
-    )
-}
-
-@Composable
-fun ListItem(
     headlineContent: @Composable () -> Unit,
     supportingString: String,
     coverImage: ImageBitmap,
@@ -119,7 +86,7 @@ fun ListItem(
 }
 
 @Composable
-fun ListItem(
+fun ExtendedListItem(
     headlineContent: @Composable () -> Unit,
     overlineContent: @Composable () -> Unit = {},
     supportingContent: @Composable () -> Unit = {},
@@ -128,14 +95,14 @@ fun ListItem(
     clickable: Boolean = true,
     onTrailingIconClick: () -> Unit = {},
     onClick: () -> Unit = {}
-    ) {
+) {
     ListItem(
-        modifier = if(clickable) Modifier.clickable(onClick = onClick) else Modifier,
+        modifier = if (clickable) Modifier.clickable(onClick = onClick) else Modifier,
         overlineContent = overlineContent,
         headlineContent = headlineContent,
         supportingContent = supportingContent,
         trailingContent = {
-            trailingIcon?.let{
+            trailingIcon?.let {
                 Surface(onTrailingIconClick) {
                     Icon(
                         imageVector = trailingIcon,
@@ -146,7 +113,7 @@ fun ListItem(
             }
         },
         leadingContent = {
-            coverImage?.let{
+            coverImage?.let {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(coverImage)
@@ -160,21 +127,6 @@ fun ListItem(
                     contentScale = ContentScale.Crop
                 )
             }
-        }
-    )
-}
-@Composable
-fun ListItem(
-    headlineString: String,
-    overlineString: String,
-    trailingString: String,
-    onClick: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        overlineContent = { Text(overlineString) },
-        headlineContent = { Text(headlineString) },
-        trailingContent = {
-            Text(trailingString)
         }
     )
 }

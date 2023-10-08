@@ -58,6 +58,7 @@
     <string name="watch">Смотреть</string>
     <string name="read">Читать</string>
     <string name="resource_status">%d из %d эп. по ~%d мин.</string>
+    <string name="anime_episode">Серия #%1$s</string>
     <string name="unknown_production">Неизвестный издатель</string>
     <string name="no_sources">Не удалось найти подходящий ресурс</string>
     <string name="no_contents">Что то пошло не так…</string>

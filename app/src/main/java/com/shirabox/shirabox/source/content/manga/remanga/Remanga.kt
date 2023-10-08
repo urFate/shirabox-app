@@ -55,6 +55,7 @@ object Remanga : AbstractContentSource (
         return chaptersData.map {
             EpisodeEntity(
                 name = it.name,
+                source = this.name,
                 episode = it.index,
                 uploadTimestamp = (dateFormat.parse(it.uploadDate)?.time ?: 0),
                 pages = fetchChapterPages(it.id),

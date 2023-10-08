@@ -40,6 +40,7 @@ object AniLibria : AbstractContentSource (
             entry.value.let {
                 EpisodeEntity(
                     name = it.name,
+                    source = this.name,
                     episode = it.episode,
                     uploadTimestamp = it.createdTimestamp.toLong(),
                     videos = buildMap {

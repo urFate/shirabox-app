@@ -82,7 +82,7 @@ import com.shirabox.shirabox.R
 import com.shirabox.shirabox.model.ContentType
 import com.shirabox.shirabox.ui.component.general.ContentCard
 import com.shirabox.shirabox.ui.component.general.ExpandableBox
-import com.shirabox.shirabox.ui.component.general.ListItem
+import com.shirabox.shirabox.ui.component.general.ExtendedListItem
 import com.shirabox.shirabox.ui.component.general.RatingView
 import com.shirabox.shirabox.ui.theme.ShiraBoxTheme
 import com.shirabox.shirabox.util.Util
@@ -360,7 +360,8 @@ fun Resource(
                                 stringResource(
                                     id = R.string.resource_status,
                                     content.episodesAired ?: 0,
-                                    content.episodes,
+                                    if (content.episodes == 0) (content.episodesAired
+                                        ?: 0) else content.episodes,
                                     content.episodeDuration ?: 20
                                 )
                             )
@@ -386,13 +387,24 @@ fun Resource(
                         }
                     }
 
+                    /**
+                     * Remove pseudo-tags from description
+                     */
+
+                    val cleanedDescription = remember {
+                        content.description?.replace(
+                            "\\[.*?\\]".toRegex(),
+                            ""
+                        ).toString()
+                    }
+
                     content.description?.let {
-                        if(it != "null") {
+                        if (it != "null") {
                             ExpandableBox(
                                 startHeight = 128.dp
                             ) {
                                 Text(
-                                    text = it,
+                                    text = cleanedDescription,
                                     fontWeight = FontWeight.Thin,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -444,35 +456,37 @@ fun Resource(
                  * Resource relations
                  */
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.padding(16.dp, 0.dp),
-                        text = stringResource(id = R.string.related),
-                        fontSize = 21.sp,
-                        fontWeight = FontWeight.W800
-                    )
-
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(16.dp)
+                if (relations.isNotEmpty()) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(relations) {
-                            ContentCard(
-                                modifier = Modifier.size(150.dp, 210.dp),
-                                typeBadge = false,
-                                item = it
-                            ) {
-                                context.startActivity(
-                                    Intent(
-                                        context,
-                                        ResourceActivity::class.java
-                                    ).apply {
-                                        putExtra("id", it.shikimoriID)
-                                        putExtra("type", it.type)
-                                    }
-                                )
+                        Text(
+                            modifier = Modifier.padding(16.dp, 0.dp),
+                            text = stringResource(id = R.string.related),
+                            fontSize = 21.sp,
+                            fontWeight = FontWeight.W800
+                        )
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            items(relations) {
+                                ContentCard(
+                                    modifier = Modifier.size(150.dp, 210.dp),
+                                    typeBadge = false,
+                                    item = it
+                                ) {
+                                    context.startActivity(
+                                        Intent(
+                                            context,
+                                            ResourceActivity::class.java
+                                        ).apply {
+                                            putExtra("id", it.shikimoriID)
+                                            putExtra("type", it.type)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -512,7 +526,7 @@ fun ResourceDataLabel(icon: ImageVector, text: String){
 
 @Composable
 fun CommentComponent(username: String, avatar: String, timestamp: String, text: String) {
-    ListItem(
+    ExtendedListItem(
         headlineContent = {
             Box(
                 modifier = Modifier.fillMaxWidth()

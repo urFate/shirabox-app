@@ -43,8 +43,8 @@ class PlayerViewModel(
 
     fun fetchEpisodePositions() {
         viewModelScope.launch(Dispatchers.IO) {
-            db?.episodeDao()?.getEpisodesByParent(contentUid)?.let { entities ->
-                episodesPositions.putAll(entities.associate {
+            db?.episodeDao()?.getEpisodesByParent(contentUid)?.collect { entityList ->
+                episodesPositions.putAll(entityList.associate {
                     it.episode.dec() to it.watchingTime
                 })
             }
