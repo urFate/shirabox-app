@@ -1,6 +1,6 @@
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# proguardFiles setting in shit.groovy.
 #
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
@@ -22,7 +22,7 @@
 
 -dontobfuscate
 
--keep,allowoptimization class com.shirabox.**
+-keep,allowoptimization class live.shirabox.**
 
 
 # Keep `Companion` object fields of serializable classes.
