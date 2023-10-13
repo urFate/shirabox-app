@@ -82,7 +82,7 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-placeholder-material3:0.30.1")
 
     // Kotlin Serialization
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Exo Player
     val media3Version = "1.1.1"
