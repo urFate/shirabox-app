@@ -1,9 +1,8 @@
-import com.android.build.api.dsl.Packaging
-
 plugins {
     id ("com.android.application")
     kotlin("android")
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
     kotlin("plugin.serialization") version "1.9.0"
 }
 
@@ -101,11 +100,15 @@ dependencies {
     ksp ("androidx.room:room-compiler:$roomVersion")
     implementation ("androidx.room:room-ktx:$roomVersion")
 
+    // Firebase
+    implementation (platform("com.google.firebase:firebase-bom:32.3.1"))
+    implementation ("com.google.firebase:firebase-messaging-ktx")
+
     // Network
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation ("io.coil-kt:coil-compose:2.4.0")
 
     // Project modules
-    implementation(project(":app:core"))
-    implementation(project(":app:data"))
+    implementation (project(":app:core"))
+    implementation (project(":app:data"))
 }
 
