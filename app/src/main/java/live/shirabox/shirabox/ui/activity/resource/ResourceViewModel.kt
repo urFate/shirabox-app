@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -129,9 +131,19 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
         viewModelScope.launch(Dispatchers.IO) {
             val content = db?.contentDao()?.getContent(id)
             content?.let {
-                if (pinnedSources.contains(source.name)) pinnedSources.remove(source.name) else pinnedSources.add(
-                    source.name
-                )
+                val contentTopic = "${source.name.lowercase()}_${content.code}"
+
+                when (pinnedSources.contains(source.name)) {
+                    true -> {
+                        pinnedSources.remove(source.name)
+
+                        Firebase.messaging.unsubscribeFromTopic(contentTopic)
+                    }
+                    else -> {
+                        pinnedSources.add(source.name)
+                        Firebase.messaging.subscribeToTopic(contentTopic)
+                    }
+                }
 
                 db?.contentDao()?.updateContents(it.copy(pinnedSources = pinnedSources))
             }
