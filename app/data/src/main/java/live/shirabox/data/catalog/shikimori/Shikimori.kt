@@ -12,7 +12,7 @@ import live.shirabox.core.util.Util
 
 object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
 
-    private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
+    private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true; encodeDefaults = true }
 
     override suspend fun fetchOngoings(page: Int, type: ContentType): List<Content> {
         return when (type) {
@@ -129,7 +129,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                         image = "$url/${it.image.original}",
                         releaseYear = it.airedOn?.substring(0..3) ?: "2001",
                         type = type,
-                        kind = decodeKind(it.kind),
+                        kind = decodeKind(it.kind.toString()),
                         status = decodeStatus(it.status),
                         episodes = it.episodes,
                         episodesAired = it.episodesAired,
@@ -221,7 +221,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                         image = "$url/${it.image.original}",
                         releaseYear = it.airedOn?.substring(0..3) ?: "2001",
                         type = ContentType.ANIME,
-                        kind = decodeKind(it.kind),
+                        kind = decodeKind(it.kind.toString()),
                         status = decodeStatus(it.status),
                         episodes = it.episodes,
                         episodesAired = it.episodesAired,

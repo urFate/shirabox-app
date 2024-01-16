@@ -16,7 +16,7 @@ data class LibraryAnimeData(
     @SerialName("aired_on") val airedOn: String?,
     val russian: String,
     @SerialName("episodes_aired") val episodesAired: Int,
-    val kind: String,
+    val kind: String? = "tv",
     val name: String,
     val url: String,
     val episodes: Int,
