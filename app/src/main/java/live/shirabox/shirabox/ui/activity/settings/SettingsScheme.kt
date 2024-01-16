@@ -1,9 +1,6 @@
 package live.shirabox.shirabox.ui.activity.settings
 
-import android.os.Build
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import live.shirabox.shirabox.R
 
 object SettingsScheme {
     const val DATASTORE_NAME = "settings"

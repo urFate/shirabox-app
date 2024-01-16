@@ -32,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import live.shirabox.shirabox.R
-import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.activity.settings.SettingsActivity
 import live.shirabox.shirabox.ui.component.navigation.NestedNavItems
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme

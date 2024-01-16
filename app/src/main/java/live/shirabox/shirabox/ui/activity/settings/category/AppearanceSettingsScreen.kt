@@ -1,7 +1,6 @@
 package live.shirabox.shirabox.ui.activity.settings.category
 
 import android.os.Build
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
