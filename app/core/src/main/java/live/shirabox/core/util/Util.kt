@@ -1,5 +1,7 @@
 package live.shirabox.core.util
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.text.Html
@@ -93,6 +95,7 @@ class Util {
                 episodeDuration = content.episodeDuration,
                 rating = content.rating,
                 shikimoriID = content.shikimoriID,
+                code = encodeString(content.altName),
                 genres = content.genres,
                 isFavourite = isFavourite,
                 lastViewTimestamp = lastViewTimestamp,
@@ -113,6 +116,24 @@ class Util {
                 .replace(Regex("([0-9])([a-zA-Z]^[nd])"), "$1-$2")
                 .replace(Regex("-{2,}"), "-")
                 .lowercase()
+        }
+
+        fun getAppVersion(
+            context: Context,
+        ): String? {
+            return try {
+                val packageManager = context.packageManager
+                val packageName = context.packageName
+                val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
+                } else {
+                    packageManager.getPackageInfo(packageName, 0)
+                }
+
+                packageInfo.versionName
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 }

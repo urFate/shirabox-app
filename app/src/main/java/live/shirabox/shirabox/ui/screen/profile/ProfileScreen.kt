@@ -1,5 +1,6 @@
 package live.shirabox.shirabox.ui.screen.profile
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,15 +27,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import live.shirabox.shirabox.R
+import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
+import live.shirabox.shirabox.ui.activity.settings.SettingsActivity
 import live.shirabox.shirabox.ui.component.navigation.NestedNavItems
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 
 @Composable
 fun ProfileScreen(navController: NavController){
+    val context = LocalContext.current
+
     ShiraBoxTheme {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -98,7 +104,14 @@ fun ProfileScreen(navController: NavController){
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.settings)) },
-                    modifier = Modifier.clickable {  },
+                    modifier = Modifier.clickable {
+                        context.startActivity(
+                            Intent(
+                                context,
+                                SettingsActivity::class.java
+                            )
+                        )
+                    },
                     leadingContent = {
                         Icon(
                             Icons.Outlined.Settings,

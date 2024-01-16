@@ -17,13 +17,13 @@ sealed class BottomNavItems(
     val selectedIcon: ImageVector,
     val children: List<String> = emptyList()
 ) {
-    object Explore : BottomNavItems(R.string.explore, "explore",
+    data object Explore : BottomNavItems(R.string.explore, "explore",
         Icons.Outlined.Explore, Icons.Filled.Explore,
         listOf(NestedNavItems.Notifications.route)
     )
-    object Favourites : BottomNavItems(R.string.favourites, "favourites",
+    data object Favourites : BottomNavItems(R.string.favourites, "favourites",
         Icons.Outlined.BookmarkBorder, Icons.Filled.Bookmark)
-    object Profile : BottomNavItems(R.string.profile, "profile",
+    data object Profile : BottomNavItems(R.string.profile, "profile",
         Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle,
         listOf(NestedNavItems.History.route)
     )

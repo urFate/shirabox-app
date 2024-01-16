@@ -88,4 +88,42 @@
     -->
     <string name="title_activity_search">SearchActivity</string>
     <string name="instant_seek_time">10 секунд</string>
+
+    <!--
+        Notifications dialog
+    -->
+    <string name="notifications_request">Включить уведомления</string>
+    <string name="notifications_request_text">Вы сможете получать уведомления о выходе новых серий и обновлений ShiraBox. Обещаем, мы не будем надоедать вам &#10084;&#65039;️</string>
+    <string name="enable_notifications">Включить уведомления</string>
+    <string name="disable_notifications">Нет, спасибо</string>
+    <string name="notifications_disabled">Уведомления отключены</string>
+    <string name="notifications_disabled_text">Вы больше не сможете получать уведомления о выходе новых серий и обновлений ShiraBox. Обещаем, мы не будем надоедать вам &#10084;&#65039;</string>
+    <string name="notifications_disabled_confirm">Хорошо</string>
+    <string name="clear_notifications">Очистить</string>
+    <string name="no_notifications">Уведомлений нет</string>
+
+    <!--
+        Settings Activity
+    -->
+
+    <string name="title_activity_settings">Настройки</string>
+    <string name="general_settings">Основные</string>
+    <string name="general_setting_contents">Язык, уведомления</string>
+    <string name="theme_settings">Внешний вид</string>
+    <string name="theme_settings_description">Тема, формат даты и времени</string>
+    <string name="playback_settings">Воспроизведение</string>
+    <string name="reader_and_player_settings_description">Режим просмотра и чтения, качество</string>
+    <string name="about_app">О приложении</string>
+    <string name="about_settings_description">Версия, наши социальные сети</string>
+    <string name="settings_language">Язык приложения</string>
+    <string name="settings_notifications">Уведомления</string>
+    <string name="notifications_settings_description">Управление настройками уведомлений</string>
+    <string name="notifications_subscription_settings">Подписка на уведомления</string>
+    <string name="notifications_subscription_settings_description">Автоматическая подписка на уведомления при закреплении любимого источника</string>
+    <string name="dark_theme_settings">Тёмный режим</string>
+    <string name="dark_theme_settings_description">Основной цветовой акцент приложения</string>
+    <string name="user_theme_settings">Системная палитра</string>
+    <string name="user_theme_settings_description">Использование пользовательской системной палитры (Android 12+)</string>
+    <string name="theme_options_block">Тема</string>
+
 </resources>

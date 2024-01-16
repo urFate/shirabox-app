@@ -3,10 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -14,23 +17,44 @@
         android:theme="@style/Theme.ShiraBox"
         tools:targetApi="34">
         <activity
-            android:name="live.shirabox.shirabox.ui.activity.search.SearchActivity"
+            android:name=".ui.activity.settings.SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.ShiraBox" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_shirabox_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/primary" />
+
+        <service
+            android:name=".NotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name=".ui.activity.search.SearchActivity"
             android:exported="false"
             android:label="@string/title_activity_search"
             android:theme="@style/Theme.ShiraBox" />
         <activity
-            android:name="live.shirabox.shirabox.ui.activity.player.PlayerActivity"
+            android:name=".ui.activity.player.PlayerActivity"
             android:configChanges="orientation|screenSize|layoutDirection"
             android:exported="false"
             android:label="@string/title_activity_player"
             android:theme="@style/Theme.ShiraBox" />
         <activity
-            android:name="live.shirabox.shirabox.ui.activity.resource.ResourceActivity"
+            android:name=".ui.activity.resource.ResourceActivity"
             android:exported="false"
             android:label="@string/title_activity_resource"
             android:theme="@style/Theme.ShiraBox" />
         <activity
-            android:name="live.shirabox.shirabox.ui.activity.MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:exported="true"
             android:hardwareAccelerated="true"
             android:theme="@style/Theme.ShiraBox">

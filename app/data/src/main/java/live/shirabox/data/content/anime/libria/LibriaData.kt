@@ -5,6 +5,11 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
+data class LibriaSearchWrapper(
+    val list: List<LibriaAnimeData>
+)
+
+@Serializable
 data class LibriaAnimeData(
     val announce: String?,
     val code: String,
