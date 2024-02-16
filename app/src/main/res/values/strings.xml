@@ -125,5 +125,11 @@
     <string name="user_theme_settings">Системная палитра</string>
     <string name="user_theme_settings_description">Использование пользовательской системной палитры (Android 12+)</string>
     <string name="theme_options_block">Тема</string>
+    <string name="playback_default_quality">Качество видео</string>
+    <string name="playback_default_quality_desc">Качество воспроизведения по умолчанию</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="high_quality">Высокое качество</string>
+    <string name="medium_quality">Среднее качество</string>
+    <string name="low_quality">Низкое качество</string>
 
 </resources>
