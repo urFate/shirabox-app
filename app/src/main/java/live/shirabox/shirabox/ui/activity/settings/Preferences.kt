@@ -28,6 +28,7 @@ fun SwitchPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     description: String,
+    icon: @Composable () -> Unit = {},
     enabled: Boolean = true,
     model: SettingsViewModel,
     key: Preferences.Key<Boolean>,
@@ -49,27 +50,34 @@ fun SwitchPreference(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp, 16.dp),
-            horizontalArrangement = Arrangement.Absolute.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                title()
-                Text(
-                    modifier = Modifier.width(256.dp),
-                    text = description,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
+            icon()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Absolute.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    title()
+                    Text(
+                        modifier = Modifier.width(256.dp),
+                        text = description,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                }
+                Switch(
+                    modifier = Modifier.padding(0.dp, 0.dp),
+                    checked = checked.value,
+                    onCheckedChange = {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            model.writeBooleanData(context, key, !checked.value)
+                        }
+                    }
                 )
             }
-            Switch(
-                modifier = Modifier.padding(0.dp, 0.dp),
-                checked = checked.value,
-                onCheckedChange = {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        model.writeBooleanData(context, key, !checked.value)
-                    }
-                }
-            )
         }
     }
 }
@@ -96,7 +104,8 @@ fun Preference (
                 Text(text = title)
                 Text(
                     text = description,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
                 )
             }
         }

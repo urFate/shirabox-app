@@ -10,4 +10,5 @@ object SettingsScheme {
     val FIELD_DARK_MODE = booleanPreferencesKey("dark_mode")
     val FIELD_USER_COLOR_PALETTE = booleanPreferencesKey("user_colors")
     val FIELD_DEFAULT_QUALITY = intPreferencesKey("default_quality")
+    val FIELD_OPENING_SKIP = booleanPreferencesKey("opening_skip")
 }
