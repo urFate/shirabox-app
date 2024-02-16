@@ -347,6 +347,7 @@ fun EpisodesSheetScreen(
                                         ).apply {
                                             val playlist = episodes.map {
                                                 live.shirabox.core.model.PlaylistVideo(
+                                                    episode = it.episode,
                                                     streamUrls = it.videos,
                                                     openingMarkers = it.videoMarkers
                                                 )

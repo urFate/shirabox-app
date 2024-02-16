@@ -89,6 +89,10 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         model.playlist[exoPlayer.currentMediaItemIndex].openingMarkers
     }
 
+    val currentEpisode = remember(currentMediaItemIndex) {
+        model.playlist[exoPlayer.currentMediaItemIndex].episode
+    }
+
     val showSkipButton = remember(currentPosition) {
         currentItemMarkers.let {
             currentPosition in it.first..it.second
@@ -140,7 +144,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     ) {
         Scaffold(
             topBar = {
-                PlayerTopBar(model.contentName, currentMediaItemIndex) {
+                PlayerTopBar(model.contentName, currentEpisode) {
                     model.bottomSheetVisibilityState = true
                 }
             },
