@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -81,9 +80,8 @@ private fun SettingsOptions(
     model: PlayerViewModel
 ) {
 
-    val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
-        skipPartiallyExpanded = skipPartiallyExpanded
+        skipPartiallyExpanded = true
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -190,9 +188,8 @@ fun QualityBottomSheet(
     exoPlayer: ExoPlayer,
     model: PlayerViewModel
 ) {
-    val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
-        skipPartiallyExpanded = skipPartiallyExpanded
+        skipPartiallyExpanded = true
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -243,9 +240,8 @@ fun PlaybackSpeedBottomSheet(
     currentSheetScreen: MutableState<SettingsSheetScreen>,
     model: PlayerViewModel
 ) {
-    val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
-        skipPartiallyExpanded = skipPartiallyExpanded
+        skipPartiallyExpanded = true
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -304,9 +300,8 @@ fun PlaybackSpeedBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClosedCationsBottomSheet(currentSheetScreen: MutableState<SettingsSheetScreen>) {
-    val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
-        skipPartiallyExpanded = skipPartiallyExpanded
+        skipPartiallyExpanded = true
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -323,7 +318,7 @@ fun ClosedCationsBottomSheet(currentSheetScreen: MutableState<SettingsSheetScree
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Text(modifier = Modifier.padding(128.dp), text = "В разработке...")
+            Text(modifier = Modifier.padding(96.dp), text = "В разработке...")
         }
     }
 }
