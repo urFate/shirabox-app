@@ -77,6 +77,11 @@
     <string name="subtitles">Субтитры</string>
     <string name="normal_speed">Обычная</string>
     <string name="opening_skip">Пропустить</string>
+    <string name="slow_playback_speed">Медленно</string>
+    <string name="normal_playback_speed">Нормально</string>
+    <string name="faster_playback_speed">Немного быстрее</string>
+    <string name="fast_playback_speed">Быстро</string>
+    <string name="very_fast_playback_speed">Очень быстро</string>
 
     <!--
         Reader Activity
@@ -136,5 +141,4 @@
     <string name="animeskip_preference">Anime Skip</string>
     <string name="animeskip_preference_desc">Авторизуйтесь, что бы использовать данные ресурса anime-skip.com для определения заставок эпизодов</string>
     <string name="opening_preferences">Заставка</string>
-
 </resources>
