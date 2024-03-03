@@ -73,13 +73,13 @@ private fun RatingBar(label: Int, value: Float) {
         }
 
         LinearProgressIndicator(
+            progress = { value },
             modifier = Modifier
                 .clip(RoundedCornerShape(100))
                 .height(9.dp)
                 .fillMaxWidth(),
-            progress = value,
             color = MaterialTheme.colorScheme.tertiary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     }
 }

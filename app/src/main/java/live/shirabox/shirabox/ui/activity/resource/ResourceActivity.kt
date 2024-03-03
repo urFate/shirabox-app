@@ -30,8 +30,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LiveTv
@@ -42,8 +42,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -211,7 +211,7 @@ fun Resource(
                             IconButton(
                                 onClick = { activity?.finish() },
                             ) {
-                                Icon(Icons.Outlined.ArrowBack, "ArrowBack Icon")
+                                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "ArrowBack Icon")
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
@@ -329,10 +329,10 @@ fun Resource(
                     }
                 }
 
-                Divider(
-                    thickness = 1.dp,
+                HorizontalDivider(
                     modifier = Modifier
-                        .padding(48.dp, 0.dp, 48.dp, 16.dp)
+                        .padding(48.dp, 0.dp, 48.dp, 16.dp),
+                    thickness = 1.dp
                 )
 
                 /**
@@ -413,10 +413,10 @@ fun Resource(
                     }
                 }
 
-                Divider(
-                    thickness = 1.dp,
+                HorizontalDivider(
                     modifier = Modifier
-                        .padding(horizontal = 48.dp, vertical = 16.dp)
+                        .padding(horizontal = 48.dp, vertical = 16.dp),
+                    thickness = 1.dp
                 )
 
                 Column(
@@ -445,10 +445,10 @@ fun Resource(
                     )
                 }
 
-                Divider(
-                    thickness = 1.dp,
+                HorizontalDivider(
                     modifier = Modifier
-                        .padding(horizontal = 48.dp, vertical = 16.dp)
+                        .padding(horizontal = 48.dp, vertical = 16.dp),
+                    thickness = 1.dp
                 )
 
 

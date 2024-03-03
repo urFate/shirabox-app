@@ -18,7 +18,7 @@ object Remanga : AbstractContentSource(
             ?: emptyList()
     }
 
-    private suspend fun search(query: String) : LibraryWrapperData<SearchBookData>? {
+    private suspend fun search(query: String) : LibraryWrapperData<SearchBookData> {
         val response = "$url/api/search".httpGet(listOf("query" to query)).body
 
         return json.decodeFromString<LibraryWrapperData<SearchBookData>>(response)

@@ -18,7 +18,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -100,7 +100,7 @@ fun BaseMediaScreen(
             OngoingsRow(isReady = isReady, contents = ongoings, ongoingsListState = ongoingsListState)
         }
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.padding(32.dp, 12.dp)
         )
 
