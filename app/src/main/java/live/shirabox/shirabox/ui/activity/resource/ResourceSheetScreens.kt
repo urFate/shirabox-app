@@ -355,7 +355,8 @@ fun EpisodesSheetScreen(
 
                                             putExtra("content_uid", episodeEntity.contentUid)
                                             putExtra("name", content.name)
-                                            putExtra("episode", episodeEntity.episode.dec())
+                                            putExtra("episode", episodeEntity.episode)
+                                            putExtra("start_index", playlist.indexOfFirst { it.episode == episodeEntity.episode})
                                             putExtra("playlist", Json.encodeToString(playlist))
                                         })
 

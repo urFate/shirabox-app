@@ -46,7 +46,8 @@ class PlayerActivity : ComponentActivity() {
                             context = context,
                             contentUid = arguments?.getInt("content_uid") ?: -1,
                             contentName = arguments?.getString("name").toString(),
-                            startEpisode = arguments?.getInt("episode") ?: 0,
+                            episode = arguments?.getInt("episode") ?: 0,
+                            startIndex = arguments?.getInt("start_index") ?: 0,
                             playlist = Json.decodeFromString(
                                 arguments?.getString("playlist") ?: ""
                             )

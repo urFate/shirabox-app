@@ -83,7 +83,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     var playbackState by remember { mutableIntStateOf(exoPlayer.playbackState) }
     var hasNextMediaItem by remember { mutableStateOf(exoPlayer.hasNextMediaItem()) }
     var hasPreviousMediaItem by remember { mutableStateOf(exoPlayer.hasPreviousMediaItem()) }
-    var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex + 1) }
+    var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex) }
 
     val currentItemMarkers = remember(currentMediaItemIndex) {
         model.playlist[exoPlayer.currentMediaItemIndex].openingMarkers

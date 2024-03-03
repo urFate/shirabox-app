@@ -36,7 +36,7 @@ fun ShiraPlayer(model: PlayerViewModel) {
     }
 
     val startPosition by remember {
-        derivedStateOf { model.episodesPositions[model.startEpisode] }
+        derivedStateOf { model.episodesPositions[model.episode] }
     }
 
     LaunchedEffect(Unit) {
@@ -51,7 +51,7 @@ fun ShiraPlayer(model: PlayerViewModel) {
                         it.streamUrls[model.currentQuality] ?: ""
                     )
                 })
-                seekTo(model.startEpisode, it)
+                seekTo(model.startIndex, it)
                 playWhenReady = true
             }
         }
@@ -78,12 +78,14 @@ fun ShiraPlayer(model: PlayerViewModel) {
 
     LaunchedEffect(model.playbackSpeed) { exoPlayer.setPlaybackSpeed(model.playbackSpeed) }
 
+    val interactionSource = remember(::MutableInteractionSource)
+
     Column {
         Box(
             modifier = Modifier
                 .background(Color(0xFF000000))
                 .clickable(
-                    interactionSource = MutableInteractionSource(), indication = null
+                    interactionSource = interactionSource, indication = null
                 ) {
                     coroutineScope.launch {
                         model.controlsVisibilityState = !model.controlsVisibilityState

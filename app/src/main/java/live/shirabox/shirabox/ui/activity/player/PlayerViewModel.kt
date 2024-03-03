@@ -19,7 +19,8 @@ class PlayerViewModel(
     context: Context,
     val contentUid: Int,
     val contentName: String,
-    val startEpisode: Int,
+    val episode: Int,
+    val startIndex: Int,
     val playlist: List<PlaylistVideo>
 ) : ViewModel() {
     private val db = AppDatabase.getAppDataBase(context)
@@ -44,7 +45,7 @@ class PlayerViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             db?.episodeDao()?.getEpisodesByParent(contentUid)?.collect { entityList ->
                 episodesPositions.putAll(entityList.associate {
-                    it.episode.dec() to it.watchingTime
+                    it.episode to it.watchingTime
                 })
             }
         }
