@@ -31,7 +31,7 @@ data class LibriaNames(
 data class LibriaPlayer(
     @SerialName("alternative_player") val alternativePlayer: String?,
     val host: String,
-    val list: Map<String, LibriaEpisode>
+    val list: List<LibriaEpisode>
 )
 
 @Serializable

@@ -19,16 +19,16 @@ class AniLibria : AbstractContentSource(
 
     private suspend fun search(query: String): List<EpisodeEntity> {
         val response =
-            "$url/v3/title".httpGet(listOf("code" to query))
+            "$url/v3/title".httpGet(listOf("code" to query, "playlist_type" to "array"))
 
-        var data: LibriaAnimeData?
+        val data: LibriaAnimeData?
 
         return when(response.statusCode) {
             200 -> {
                 data = json.decodeFromString<LibriaAnimeData>(response.body)
 
                 data.player.list.map { entry ->
-                    mapEpisode(entry.value, data!!.player.host)
+                    mapEpisode(entry, data.player.host)
                 }
             }
 
@@ -39,14 +39,14 @@ class AniLibria : AbstractContentSource(
 
             404 -> {
                 val retryResponse = "$url/v3/title/search"
-                    .httpGet(listOf("search" to query)).also {
+                    .httpGet(listOf("search" to query, "playlist_type" to "array")).also {
                         if (it.statusCode != 200) return emptyList()
                     }
                 data = json.decodeFromString<LibriaSearchWrapper>(retryResponse.body).list.firstOrNull()
 
                 data?.let {
                     data.player.list.map { entry ->
-                        mapEpisode(entry.value, data.player.host)
+                        mapEpisode(entry, data.player.host)
                     }
                 } ?: emptyList()
             }
