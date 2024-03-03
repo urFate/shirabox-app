@@ -293,9 +293,9 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
         val year = localDateTime.year
 
         return when (localDateTime.monthNumber) {
-            in 0 until 3 -> "winter_$year"
-            in 3 until 6 -> "spring_$year"
-            in 6 until 9 -> "summer_$year"
+            in 0 until 4 -> "winter_$year"
+            in 4 until 7 -> "spring_$year"
+            in 7 until 9 -> "summer_$year"
             else -> "fall_$year"
         }
     }
