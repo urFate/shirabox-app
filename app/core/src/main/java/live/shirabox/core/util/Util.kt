@@ -46,12 +46,8 @@ class Util {
         }
 
         fun decodeHtml(str: String): String {
-            return when {
-                Build.VERSION.SDK_INT >= 24 -> Html.fromHtml(str, Html.FROM_HTML_MODE_LEGACY)
-                    .toString()
-
-                else -> Html.fromHtml(str).toString()
-            }
+            return Html.fromHtml(str, Html.FROM_HTML_MODE_LEGACY)
+                .toString()
         }
 
         fun mapEntityToContent(contentEntity: ContentEntity): Content {

@@ -3,6 +3,8 @@ package live.shirabox.data.content
 import kotlinx.serialization.json.Json
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.ContentType
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 abstract class AbstractContentSource (
     val name: String,
@@ -12,6 +14,10 @@ abstract class AbstractContentSource (
     ) {
 
     val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
+
+    val myClient = OkHttpClient().newBuilder()
+        .connectTimeout(2L, TimeUnit.SECONDS)
+        .build()
 
     abstract suspend fun searchEpisodes(query: String): List<EpisodeEntity>
 }
