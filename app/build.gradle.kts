@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "live.shirabox.shirabox"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
