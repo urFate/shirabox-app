@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.settings.OptionsBlock
@@ -18,8 +17,6 @@ import live.shirabox.shirabox.ui.activity.settings.SwitchPreference
 fun AppearanceSettingsScreen(
     viewModel: SettingsViewModel
 ) {
-    val context = LocalContext.current
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
