@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
     val isFavourite = mutableStateOf(false)
     val pinnedSources = mutableStateListOf<String>()
 
-    val isTimeout = mutableStateOf(false)
+    val episodeFetchComplete = mutableStateOf(false)
 
     private val db = AppDatabase.getAppDataBase(context)
 
@@ -89,28 +90,33 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
 
     fun fetchEpisodes(id: Int, query: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            db?.contentDao()?.collectedContent(id)?.let { collectedContent ->
-                sources.forEach { source ->
-                    source.searchEpisodes(query).let { list ->
-                        list.mapIndexed { index, episodeEntity ->
-                            val matchingEpisode = collectedContent.episodes.getOrNull(index)
+            val finishedDeferred = async {
+                db?.contentDao()?.collectedContent(id)?.let { collectedContent ->
+                    sources.forEach { source ->
+                        source.searchEpisodes(query).let { list ->
+                            list.mapIndexed { index, episodeEntity ->
+                                val matchingEpisode = collectedContent.episodes.getOrNull(index)
 
-                            /**
-                             * Keep local data (e.g. watching time and id's)
-                             */
+                                /**
+                                 * Keep local data (e.g. watching time and id's)
+                                 */
 
-                            episodeEntity.copy(
-                                uid = matchingEpisode?.uid,
-                                contentUid = collectedContent.content.uid,
-                                watchingTime = matchingEpisode?.watchingTime ?: -1L,
-                                readingPage = matchingEpisode?.readingPage ?: -1
-                            )
-                        }.toTypedArray().let { entities ->
-                            db.episodeDao().insertEpisodes(*entities)
+                                episodeEntity.copy(
+                                    uid = matchingEpisode?.uid,
+                                    contentUid = collectedContent.content.uid,
+                                    watchingTime = matchingEpisode?.watchingTime ?: -1L,
+                                    readingPage = matchingEpisode?.readingPage ?: -1
+                                )
+                            }.toTypedArray().let { entities ->
+                                db.episodeDao().insertEpisodes(*entities)
+                            }
                         }
                     }
                 }
+                true
             }
+
+            episodeFetchComplete.value = finishedDeferred.await()
         }
     }
 

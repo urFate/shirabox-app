@@ -42,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -86,12 +85,6 @@ fun ResourceBottomSheet(
     LaunchedEffect(Unit) {
         // Update cache
         model.fetchEpisodes(content.shikimoriID, content.altName)
-    }
-
-    LaunchedEffect(episodes) {
-        delay(10000).let {
-            if (episodes.isEmpty()) model.isTimeout.value = true
-        }
     }
 
     if (visibilityState.value) {
@@ -147,7 +140,7 @@ fun SourcesSheetScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             androidx.compose.animation.AnimatedVisibility(
-                visible = episodes.isEmpty() && !model.isTimeout.value,
+                visible = episodes.isEmpty() && !model.episodeFetchComplete.value,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -157,7 +150,7 @@ fun SourcesSheetScreen(
             }
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = model.isTimeout.value,
+                visible = model.episodeFetchComplete.value && episodes.isEmpty(),
                 exit = fadeOut()
             ) {
                 Column(
@@ -265,7 +258,7 @@ fun EpisodesSheetScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             androidx.compose.animation.AnimatedVisibility(
-                visible = episodes.isEmpty() && !model.isTimeout.value,
+                visible = episodes.isEmpty() && !model.episodeFetchComplete.value,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -280,7 +273,7 @@ fun EpisodesSheetScreen(
              */
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = model.isTimeout.value,
+                visible = model.episodeFetchComplete.value && episodes.isEmpty(),
                 enter = fadeIn()
             ) {
                 Column(
