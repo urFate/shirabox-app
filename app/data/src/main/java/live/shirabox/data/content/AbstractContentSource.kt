@@ -17,6 +17,8 @@ abstract class AbstractContentSource (
 
     val myClient = OkHttpClient().newBuilder()
         .connectTimeout(2L, TimeUnit.SECONDS)
+        .readTimeout(2L, TimeUnit.SECONDS)
+        .writeTimeout(2L, TimeUnit.SECONDS)
         .build()
 
     abstract suspend fun searchEpisodes(query: String): List<EpisodeEntity>

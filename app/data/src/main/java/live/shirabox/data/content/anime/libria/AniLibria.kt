@@ -11,6 +11,7 @@ import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
 import live.shirabox.core.util.Util
 import live.shirabox.data.content.AbstractContentSource
+import java.net.SocketTimeoutException
 
 
 class AniLibria : AbstractContentSource(
@@ -28,26 +29,26 @@ class AniLibria : AbstractContentSource(
             val codeSearchDeferred = async { codeSearch(Util.encodeString(query)) }
             val classicSearchDeferred = async { classicSearch(query) }
 
-            val classicSearchResult = classicSearchDeferred.await()
-
-            return@withContext codeSearchDeferred.await() ?: classicSearchResult
+            return@withContext codeSearchDeferred.await() ?: classicSearchDeferred.await()
         }
     }
 
     private suspend fun classicSearch(query: String): List<EpisodeEntity> {
-        val data: LibriaAnimeData?
+        try {
+            val retryResponse = "$url/v3/title/search"
+                .httpGet(listOf("search" to query, "playlist_type" to "array")).also {
+                    if (it.statusCode != 200) return emptyList()
+                }
+            val data = json.decodeFromString<LibriaSearchWrapper>(retryResponse.body).list.firstOrNull()
 
-        val retryResponse = "$url/v3/title/search"
-            .httpGet(listOf("search" to query, "playlist_type" to "array")).also {
-                if (it.statusCode != 200) return emptyList()
-            }
-        data = json.decodeFromString<LibriaSearchWrapper>(retryResponse.body).list.firstOrNull()
-
-        return data?.let {
-            data.player.list.map { entry ->
-                mapEpisode(entry, data.player.host)
-            }
-        } ?: emptyList()
+            return data?.let {
+                data.player.list.map { entry ->
+                    mapEpisode(entry, data.player.host)
+                }
+            } ?: emptyList()
+        } catch (_: SocketTimeoutException) {
+            return emptyList()
+        }
     }
 
     private suspend fun codeSearch(code: String): List<EpisodeEntity>? {
@@ -62,17 +63,20 @@ class AniLibria : AbstractContentSource(
             .build()
 
         val fuel = FuelBuilder().config(myClient).build()
-        val response = fuel.get(request)
 
-        return when (response.statusCode) {
-            200 -> {
-                val data = json.decodeFromString<LibriaAnimeData>(response.body)
-                data.player.list.map { entry ->
-                    mapEpisode(entry, data.player.host)
+        return try {
+            val response = fuel.get(request)
+
+            when (response.statusCode) {
+                200 -> {
+                    val data = json.decodeFromString<LibriaAnimeData>(response.body)
+                    data.player.list.map { entry ->
+                        mapEpisode(entry, data.player.host)
+                    }
                 }
+                else -> null
             }
-            else -> null
-        }
+        } catch (_: SocketTimeoutException) { null }
     }
 
     private fun mapEpisode(data: LibriaEpisode, host: String) : EpisodeEntity {
