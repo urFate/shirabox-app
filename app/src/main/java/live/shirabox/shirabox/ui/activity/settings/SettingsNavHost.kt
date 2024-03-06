@@ -16,8 +16,8 @@ import live.shirabox.core.util.Util
 import live.shirabox.shirabox.ui.activity.settings.category.AboutSettingsScreen
 import live.shirabox.shirabox.ui.activity.settings.category.AppearanceSettingsScreen
 import live.shirabox.shirabox.ui.activity.settings.category.GeneralSettingsScreen
-import live.shirabox.shirabox.ui.activity.settings.category.playback.PlaybackSettingsScreen
 import live.shirabox.shirabox.ui.activity.settings.category.SettingsRootScreen
+import live.shirabox.shirabox.ui.activity.settings.category.playback.PlaybackSettingsScreen
 
 @Composable
 fun SettingsNavHost(
