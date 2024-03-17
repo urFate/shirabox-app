@@ -11,7 +11,8 @@ import live.shirabox.core.model.Rating
 data class ContentEntity(
     @PrimaryKey(autoGenerate = true) val uid: Int = 0,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "alt_name") val altName: String,
+    @ColumnInfo(name = "en_name") val enName: String,
+    @ColumnInfo(name = "alt_names") val altNames: List<String>,
     @ColumnInfo(name = "description") val description: String?,
     @ColumnInfo(name = "image") val image: String,
     @ColumnInfo(name = "production") val production: String?,
@@ -24,7 +25,6 @@ data class ContentEntity(
     @ColumnInfo(name = "episode_duration") val episodeDuration: Int?,
     @Embedded val rating: Rating,
     @ColumnInfo(name = "shikimori_id") val shikimoriID: Int,
-    @ColumnInfo(name = "code") val code: String,
     @ColumnInfo(name = "genres") val genres: List<String> = emptyList(),
     @ColumnInfo(name = "favourite") val isFavourite: Boolean,
     @ColumnInfo(name = "last_view") val lastViewTimestamp: Long,

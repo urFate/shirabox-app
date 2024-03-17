@@ -1,15 +1,13 @@
 package live.shirabox.data.content.anime.libria
 
-import fuel.FuelBuilder
-import fuel.Request
 import fuel.httpGet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import live.shirabox.core.entity.EpisodeEntity
+import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
-import live.shirabox.core.util.Util
 import live.shirabox.data.content.AbstractContentSource
 import java.net.SocketTimeoutException
 
@@ -20,26 +18,31 @@ class AniLibria : AbstractContentSource(
     ContentType.ANIME,
     "https://anilibria.tv/favicons/apple-touch-icon.png"
 ) {
-    override suspend fun searchEpisodes(query: String): List<EpisodeEntity> {
-        return smartSearch(query = query)
-    }
-
-    private suspend fun smartSearch(query: String): List<EpisodeEntity> {
+    override suspend fun searchEpisodes(content: Content): List<EpisodeEntity> {
         return withContext(Dispatchers.IO) {
-            val codeSearchDeferred = async { codeSearch(Util.encodeString(query)) }
-            val classicSearchDeferred = async { classicSearch(query) }
-
-            return@withContext codeSearchDeferred.await() ?: classicSearchDeferred.await()
+            return@withContext async {
+                advancedSearch(content)
+            }.await()
         }
     }
 
-    private suspend fun classicSearch(query: String): List<EpisodeEntity> {
+    private suspend fun advancedSearch(content: Content): List<EpisodeEntity> {
+        val altNamesListQuery = "(${content.altNames.joinToString { "\"${it}\"" }})"
+
         try {
-            val retryResponse = "$url/v3/title/search"
-                .httpGet(listOf("search" to query, "playlist_type" to "array")).also {
+            val response = "$url/v3/title/search/advanced"
+                .httpGet(listOf(
+                    "query" to "${content.releaseYear?.let { "{season.year} == $it" }} " +
+                            "and {type.code} == ${libriaKind(content.kind)} and " +
+                            "({names.en} == \"${content.enName}\" or " +
+                            "{names.ru} == \"${content.name}\"" +
+                            (if(content.altNames.isNotEmpty()) " or {names.en} in $altNamesListQuery or {names.ru} in $altNamesListQuery" else "") +
+                            ")",
+                    "playlist_type" to "array"
+                )).also {
                     if (it.statusCode != 200) return emptyList()
                 }
-            val data = json.decodeFromString<LibriaSearchWrapper>(retryResponse.body).list.firstOrNull()
+            val data = json.decodeFromString<LibriaSearchWrapper>(response.body).list.firstOrNull()
 
             return data?.let {
                 data.player.list.map { entry ->
@@ -49,34 +52,6 @@ class AniLibria : AbstractContentSource(
         } catch (_: SocketTimeoutException) {
             return emptyList()
         }
-    }
-
-    private suspend fun codeSearch(code: String): List<EpisodeEntity>? {
-        val request = Request.Builder()
-            .url("$url/v3/title")
-            .parameters(
-                listOf(
-                    "code" to code,
-                    "playlist_type" to "array"
-                )
-            )
-            .build()
-
-        val fuel = FuelBuilder().config(myClient).build()
-
-        return try {
-            val response = fuel.get(request)
-
-            when (response.statusCode) {
-                200 -> {
-                    val data = json.decodeFromString<LibriaAnimeData>(response.body)
-                    data.player.list.map { entry ->
-                        mapEpisode(entry, data.player.host)
-                    }
-                }
-                else -> null
-            }
-        } catch (_: SocketTimeoutException) { null }
     }
 
     private fun mapEpisode(data: LibriaEpisode, host: String) : EpisodeEntity {
@@ -98,5 +73,16 @@ class AniLibria : AbstractContentSource(
             ),
             type = this.contentType
         )
+    }
+
+    private fun libriaKind(kind: String): Int? {
+        return when(kind) {
+            "Фильм" -> 0
+            "Сериал" -> 1
+            "OVA" -> 2
+            "ONA" -> 3
+            "Спешл" -> 4
+            else -> null
+        }
     }
 }

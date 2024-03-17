@@ -249,7 +249,7 @@ fun Resource(
 
                 Text(
                     modifier = Modifier.padding(16.dp, 0.dp),
-                    text = model.content.value?.altName.toString(),
+                    text = model.content.value?.enName.toString(),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.W300
                 )

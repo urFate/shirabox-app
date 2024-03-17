@@ -45,6 +45,7 @@ data class AnimeData(
     val id: Int,
     val name: String,
     val russian: String,
+    val synonyms: List<String> = emptyList(),
     val image: Image,
     val url: String,
     val kind: String,

@@ -53,7 +53,8 @@ class Util {
         fun mapEntityToContent(contentEntity: ContentEntity): Content {
             return Content(
                 name = contentEntity.name,
-                altName = contentEntity.altName,
+                enName = contentEntity.enName,
+                altNames = contentEntity.altNames,
                 description = contentEntity.description,
                 image = contentEntity.image,
                 production = contentEntity.production,
@@ -78,7 +79,8 @@ class Util {
         ): ContentEntity {
             return ContentEntity(
                 name = content.name,
-                altName = content.altName,
+                enName = content.enName,
+                altNames = content.altNames,
                 description = content.description,
                 image = content.image,
                 production = content.production,
@@ -91,7 +93,6 @@ class Util {
                 episodeDuration = content.episodeDuration,
                 rating = content.rating,
                 shikimoriID = content.shikimoriID,
-                code = encodeString(content.altName),
                 genres = content.genres,
                 isFavourite = isFavourite,
                 lastViewTimestamp = lastViewTimestamp,
@@ -103,16 +104,6 @@ class Util {
             object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T = f() as T
             }
-
-        fun encodeString(str: String): String {
-            return str.replace(Regex("[^a-zA-Z_0-9]"), "-")
-                .replace(Regex("(^[A-Z][A-Z]^[A-Z])"), "-$1")
-                .replace(Regex("^-"), "").replace(Regex("-$"), "")
-                .replace(Regex("([a-zA-Z])([0-9])"), "$1-$2")
-                .replace(Regex("([0-9])([a-zA-Z]^[nd])"), "$1-$2")
-                .replace(Regex("-{2,}"), "-")
-                .lowercase()
-        }
 
         fun getAppVersion(
             context: Context,

@@ -76,7 +76,7 @@ fun ContentCard(modifier: Modifier = Modifier, item: live.shirabox.core.model.Co
                     ),
                 model = request,
                 imageLoader = context.imageLoader,
-                contentDescription = item.altName,
+                contentDescription = item.enName,
                 contentScale = ContentScale.Crop
             )
 

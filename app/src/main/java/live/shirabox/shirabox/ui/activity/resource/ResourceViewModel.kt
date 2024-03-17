@@ -88,12 +88,12 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
     fun fetchCachedEpisodes():
             Flow<List<EpisodeEntity>> = db?.episodeDao()?.all() ?: emptyFlow()
 
-    fun fetchEpisodes(id: Int, query: String) {
+    fun fetchEpisodes(content: Content) {
         viewModelScope.launch(Dispatchers.IO) {
             val finishedDeferred = async {
-                db?.contentDao()?.collectedContent(id)?.let { collectedContent ->
+                db?.contentDao()?.collectedContent(content.shikimoriID)?.let { collectedContent ->
                     sources.forEach { source ->
-                        source.searchEpisodes(query).let { list ->
+                        source.searchEpisodes(content).let { list ->
                             list.mapIndexed { index, episodeEntity ->
                                 val matchingEpisode = collectedContent.episodes.getOrNull(index)
 

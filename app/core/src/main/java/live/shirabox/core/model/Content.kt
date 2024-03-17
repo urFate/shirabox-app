@@ -2,7 +2,8 @@ package live.shirabox.core.model
 
 data class Content(
     val name: String,
-    val altName: String,
+    val enName: String,
+    val altNames: List<String> = emptyList(),
     val description: String? = null,
     val image: String,
     val production: String? = null,

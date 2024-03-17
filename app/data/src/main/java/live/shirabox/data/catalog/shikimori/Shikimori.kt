@@ -67,7 +67,8 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                 val data = json.decodeFromString<AnimeData>(response)
 
                 Content(name = data.russian,
-                    altName = data.name,
+                    enName = data.name,
+                    altNames = data.synonyms,
                     description = Util.decodeHtml(data.description.toString()),
                     image = "$url/${data.image.original}",
                     production = data.studios.first().name,
@@ -90,7 +91,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                 val data = json.decodeFromString<BookData>(response)
 
                 Content(name = data.russian,
-                    altName = data.name,
+                    enName = data.name,
                     description = Util.decodeHtml(data.description.toString()),
                     image = "$url/${data.image.original}",
                     production = data.publishers.firstOrNull()?.name ?: "",
@@ -125,7 +126,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                 data.map {
                     Content(
                         name = it.russian,
-                        altName = it.name,
+                        enName = it.name,
                         image = "$url/${it.image.original}",
                         releaseYear = it.airedOn?.substring(0..3) ?: "2001",
                         type = type,
@@ -145,7 +146,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                 data.map {
                     Content(
                         name = it.russian,
-                        altName = it.name,
+                        enName = it.name,
                         image = "$url/${it.image.original}",
                         releaseYear = it.airedOn.substring(0..3),
                         type = type,
@@ -168,7 +169,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
             when {
                 it.anime != null -> Content(
                     name = it.anime.russian,
-                    altName = it.anime.name,
+                    enName = it.anime.name,
                     image = "$url/${it.anime.image.original}",
                     releaseYear = it.anime.releasedOn,
                     type = ContentType.ANIME,
@@ -182,7 +183,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
 
                 it.manga != null -> Content(
                     name = it.manga.russian,
-                    altName = it.manga.name,
+                    enName = it.manga.name,
                     image = "$url/${it.manga.image.original}",
                     releaseYear = it.manga.releasedOn ?: "",
                     type = ContentType.MANGA,
@@ -217,7 +218,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                 data.map {
                     Content(
                         name = it.russian,
-                        altName = it.name,
+                        enName = it.name,
                         image = "$url/${it.image.original}",
                         releaseYear = it.airedOn?.substring(0..3) ?: "2001",
                         type = ContentType.ANIME,
@@ -237,7 +238,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                 data.map {
                     Content(
                         name = it.russian,
-                        altName = it.name,
+                        enName = it.name,
                         image = "$url/${it.image.original}",
                         releaseYear = it.airedOn.substring(0..3),
                         type = ContentType.fromString(section),

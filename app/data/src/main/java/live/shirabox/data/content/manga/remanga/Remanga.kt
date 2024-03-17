@@ -2,6 +2,7 @@ package live.shirabox.data.content.manga.remanga
 
 import fuel.httpGet
 import live.shirabox.core.entity.EpisodeEntity
+import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.data.content.AbstractContentSource
 import java.text.SimpleDateFormat
@@ -13,8 +14,8 @@ object Remanga : AbstractContentSource(
     ContentType.MANGA,
     "https://remanga.org/apple-touch-icon.png"
 ) {
-    override suspend fun searchEpisodes(query: String): List<EpisodeEntity> {
-        return search(query)?.content?.firstOrNull()?.dir?.let { fetchBookChapters(it, false) }
+    override suspend fun searchEpisodes(content: Content): List<EpisodeEntity> {
+        return search(content.name).content.firstOrNull()?.dir?.let { fetchBookChapters(it, false) }
             ?: emptyList()
     }
 

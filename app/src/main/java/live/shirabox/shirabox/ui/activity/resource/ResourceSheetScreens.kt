@@ -84,7 +84,7 @@ fun ResourceBottomSheet(
 
     LaunchedEffect(Unit) {
         // Update cache
-        model.fetchEpisodes(content.shikimoriID, content.altName)
+        model.fetchEpisodes(content)
     }
 
     if (visibilityState.value) {
