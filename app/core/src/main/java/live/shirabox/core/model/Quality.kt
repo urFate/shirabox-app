@@ -12,5 +12,16 @@ enum class Quality(val quality: Int) {
     HD(720),
 
     @SerialName("FHD")
-    FHD(1080)
+    FHD(1080);
+
+    companion object {
+        fun valueOfInt(i: Int): Quality {
+            return when(i) {
+                480 -> SD
+                720 -> HD
+                1080 -> FHD
+                else -> HD
+            }
+        }
+    }
 }

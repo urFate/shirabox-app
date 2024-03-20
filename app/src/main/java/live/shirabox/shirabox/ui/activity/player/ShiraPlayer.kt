@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.launch
+import live.shirabox.core.model.Quality
 
 
 @Composable
@@ -39,17 +41,25 @@ fun ShiraPlayer(model: PlayerViewModel) {
         derivedStateOf { model.episodesPositions[model.episode] }
     }
 
+    val defaultQuality = model.defaultQualityPreferenceFlow(context).collectAsState(initial = 480)
+
     LaunchedEffect(Unit) {
+        model.currentQuality = Quality.valueOfInt(defaultQuality.value)
         model.fetchEpisodePositions()
     }
 
     LaunchedEffect(startPosition) {
         startPosition?.let {
             exoPlayer.apply {
-                setMediaItems(model.playlist.map {
-                    MediaItem.fromUri(
-                        it.streamUrls[model.currentQuality] ?: ""
-                    )
+                setMediaItems(model.playlist.map { video ->
+                    // Choose stream quality using default value, otherwise use highest available
+                    val stream = video.streamUrls.entries.findLast {
+                        it.key == Quality.valueOfInt(defaultQuality.value)
+                    } ?: video.streamUrls.maxBy { it.key.quality }
+
+                    model.currentQuality = stream.key
+
+                    return@map MediaItem.fromUri(stream.value)
                 })
                 seekTo(model.startIndex, it)
                 playWhenReady = true
