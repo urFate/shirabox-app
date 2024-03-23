@@ -50,7 +50,7 @@ fun TopBar(navController: NavController?) {
                 .weight(weight = 1f, fill = false)
                 .height(SearchBarDefaults.InputFieldHeight)
                 .clip(SearchBarDefaults.dockedShape)
-                .background(MaterialTheme.colorScheme.tertiaryContainer)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
                 .clickable {
                     context.startActivity(
                         Intent(
