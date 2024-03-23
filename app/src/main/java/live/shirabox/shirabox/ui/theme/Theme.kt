@@ -1,6 +1,7 @@
 package live.shirabox.shirabox.ui.theme
 
 import android.app.Activity
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,11 +11,20 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import live.shirabox.shirabox.ui.activity.dataStore
+import live.shirabox.shirabox.ui.activity.settings.SettingsScheme
+import java.io.IOException
 
 private val LightColorScheme = lightColorScheme(
     primary = light_primary,
@@ -82,9 +92,9 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun ShiraBoxTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = darkMode(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = useDynamicColor(),
     transparentStatusBar: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -119,4 +129,40 @@ fun ShiraBoxTheme(
         typography = Typography,
         content = content
     )
+}
+
+@Composable
+private fun darkMode() : Boolean {
+    val isDarkModeOverridenFlow =
+        booleanPreferenceFlow(LocalContext.current, SettingsScheme.FIELD_DARK_MODE).collectAsState(
+            initial = isSystemInDarkTheme()
+        )
+
+    return when(isDarkModeOverridenFlow.value) {
+        true -> true
+        false -> isSystemInDarkTheme()
+    }
+}
+
+@Composable
+fun useDynamicColor() : Boolean {
+    return booleanPreferenceFlow(
+        LocalContext.current,
+        SettingsScheme.FIELD_USER_COLOR_PALETTE
+    ).collectAsState(
+        initial = true
+    ).value
+}
+
+private fun booleanPreferenceFlow(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
+    return context.dataStore.data.catch {
+        if (it is IOException) {
+            it.printStackTrace()
+            emit(emptyPreferences())
+        } else {
+            throw it
+        }
+    }.map {
+        it[key] ?: false
+    }
 }
