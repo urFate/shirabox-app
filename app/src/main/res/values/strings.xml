@@ -137,7 +137,7 @@
     <string name="medium_quality">Среднее качество</string>
     <string name="low_quality">Низкое качество</string>
     <string name="opening_skip_preference">Автоматический пропуск</string>
-    <string name="opening_skip_preference_desc">Автоматический пропуск начальной и конечной заставки</string>
+    <string name="opening_skip_preference_desc">Автоматический пропуск начальной заставки</string>
     <string name="animeskip_preference">Anime Skip</string>
     <string name="animeskip_preference_desc">Авторизуйтесь, что бы использовать данные ресурса anime-skip.com для определения заставок эпизодов</string>
     <string name="opening_preferences">Заставка</string>

@@ -17,7 +17,7 @@ object SettingsScheme {
         Pair(FIELD_SUBSCRIPTION, true),
         Pair(FIELD_DARK_MODE, false),
         Pair(FIELD_USER_COLOR_PALETTE, true),
-        Pair(FIELD_OPENING_SKIP, false)
+        Pair(FIELD_OPENING_SKIP, true)
     )
 
     val INT_DEFAULTS = mapOf(
