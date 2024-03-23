@@ -68,4 +68,14 @@ class PlayerViewModel(
             it[SettingsScheme.FIELD_DEFAULT_QUALITY] ?: 0
         }
     }
+    fun openingSkipPreferenceFlow(context: Context): Flow<Boolean> {
+        return context.dataStore.data.catch {
+            if (it is IOException) {
+                it.printStackTrace()
+                emit(emptyPreferences())
+            } else throw it
+        }.map {
+            it[SettingsScheme.FIELD_OPENING_SKIP] ?: false
+        }
+    }
 }

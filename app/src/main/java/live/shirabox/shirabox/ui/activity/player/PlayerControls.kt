@@ -2,6 +2,7 @@ package live.shirabox.shirabox.ui.activity.player
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,6 +11,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +19,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Settings
@@ -43,6 +45,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -53,6 +56,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -93,11 +97,22 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         model.playlist[exoPlayer.currentMediaItemIndex].episode
     }
 
-    val showSkipButton = remember(currentPosition) {
-        currentItemMarkers.let {
-            currentPosition in it.first..it.second
+    val forceHideSkipButton = remember { mutableStateOf(false) }
+
+    val showSkipButton = remember(currentPosition, forceHideSkipButton) {
+        if (forceHideSkipButton.value || playbackState == Player.STATE_BUFFERING) {
+            false
+        } else {
+            currentItemMarkers.let {
+                currentPosition in it.first..it.second
+            }
         }
     }
+
+    val openingSkipPreferenceFlow =
+        model.openingSkipPreferenceFlow(LocalContext.current).collectAsState(
+            initial = false
+        )
 
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
@@ -181,12 +196,26 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         enter = fadeIn(),
         exit = fadeOut()
     ) {
-        SkipButton {
-            currentItemMarkers.let {
-                exoPlayer.seekTo(it.second)
-                model.controlsVisibilityState = true
-            }
-        }
+        SkipButton(
+            autoSkip = openingSkipPreferenceFlow.value,
+            isPlaying = isPlaying,
+            onTimeout = {
+                currentItemMarkers.let {
+                    exoPlayer.seekTo(it.second)
+                    model.controlsVisibilityState = true
+                }
+                forceHideSkipButton.value = true
+            },
+            onClick = {
+                if (openingSkipPreferenceFlow.value) {
+                    forceHideSkipButton.value = true
+                } else {
+                    currentItemMarkers.let {
+                        exoPlayer.seekTo(it.second)
+                        model.controlsVisibilityState = true
+                    }
+                }
+        })
     }
 }
 
@@ -292,28 +321,66 @@ fun PlaybackControls(
 
 @Composable
 fun SkipButton(
+    autoSkip: Boolean,
+    isPlaying: Boolean,
+    onTimeout: () -> Unit,
     onClick: () -> Unit
 ) {
+    var percentage by remember { mutableIntStateOf(0) }
+    val orientation = LocalConfiguration.current.orientation
+    val isVerticalOrientation =
+        orientation == Configuration.ORIENTATION_PORTRAIT || orientation == Configuration.ORIENTATION_UNDEFINED
+    val contentAlignment = if (isVerticalOrientation) Alignment.CenterEnd else Alignment.BottomEnd
+
+    if (autoSkip) {
+        LaunchedEffect(isPlaying) {
+            if (isPlaying && percentage >= 0) {
+                while (percentage < 100) {
+                    percentage++
+                    delay(40L)
+                }
+                onTimeout()
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp, 64.dp),
-        contentAlignment = Alignment.BottomEnd
+        contentAlignment = contentAlignment
     ) {
+        val endPadding = if (isVerticalOrientation) 0.dp else 16.dp
+
         OutlinedButton(
+            modifier = Modifier.padding(0.dp, 128.dp, endPadding, 0.dp),
             border = BorderStroke(1.dp, Color.White),
+            shape = RoundedCornerShape(40),
+            contentPadding = PaddingValues(0.dp),
             onClick = onClick
         ) {
             Row(
+                modifier = Modifier
+                    .drawBehind {
+                        if (autoSkip) {
+                            drawRoundRect(
+                                color = Color.Gray.copy(alpha = 0.5f),
+                                size = size.copy(
+                                    size.width
+                                        .div(100)
+                                        .times(percentage)
+                                )
+                            )
+                        }
+                    }
+                    .padding(18.dp, 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardDoubleArrowRight,
-                    tint = Color.White,
-                    contentDescription = "opening skip"
+                Text(
+                    text = stringResource(id = if (autoSkip) R.string.watch else R.string.opening_skip),
+                    color = Color.White
                 )
-                Text(text = stringResource(id = R.string.opening_skip), color = Color.White)
             }
         }
     }
