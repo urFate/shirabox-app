@@ -39,7 +39,7 @@ fun RatingView(averageRating: Double, votes: Int, values: Map<Int, Float>){
             )
             Text(
                 text = stringResource(id = R.string.votes, votes),
-                fontWeight = FontWeight.Thin,
+                fontWeight = FontWeight.Normal,
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.secondary
             )

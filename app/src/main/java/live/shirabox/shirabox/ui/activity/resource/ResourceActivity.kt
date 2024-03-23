@@ -405,7 +405,7 @@ fun Resource(
                             ) {
                                 Text(
                                     text = cleanedDescription,
-                                    fontWeight = FontWeight.Thin,
+                                    fontWeight = FontWeight.Light,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
