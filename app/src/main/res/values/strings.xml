@@ -141,4 +141,7 @@
     <string name="animeskip_preference">Anime Skip</string>
     <string name="animeskip_preference_desc">Авторизуйтесь, что бы использовать данные ресурса anime-skip.com для определения заставок эпизодов</string>
     <string name="opening_preferences">Заставка</string>
+    <string name="version">Версия</string>
+    <string name="license">Лицензия GNU GPLv3</string>
+    <string name="privacy_policy">Политика конфиденциальности</string>
 </resources>
