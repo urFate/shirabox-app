@@ -48,8 +48,9 @@ fun RatingView(averageRating: Double, votes: Int, values: Map<Int, Float>){
         Column(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            values.forEach { (label, value) ->
-                RatingBar(label = label, value = value)
+            for(i in 10 downTo 6 step 1) {
+                val entry = values[i] ?: 0f
+                RatingBar(label = i, value = entry)
             }
         }
     }
