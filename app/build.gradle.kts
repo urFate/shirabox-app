@@ -64,28 +64,27 @@ dependencies {
     implementation ("androidx.core:core-ktx:1.12.0")
     implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation ("androidx.activity:activity-compose:1.8.2")
-    implementation ("androidx.compose.ui:ui:1.6.2")
-    implementation ("androidx.compose.ui:ui-graphics:1.6.2")
-    implementation ("androidx.compose.ui:ui-tooling-preview:1.6.2")
+    implementation ("androidx.compose.ui:ui:1.6.4")
+    implementation ("androidx.compose.ui:ui-graphics:1.6.4")
+    implementation ("androidx.compose.ui:ui-tooling-preview:1.6.4")
     implementation ("androidx.core:core-ktx:1.12.0")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation (platform("androidx.compose:compose-bom:2024.02.01"))
+    implementation (platform("androidx.compose:compose-bom:2024.03.00"))
     implementation (platform("org.jetbrains.kotlin:kotlin-bom:1.9.0"))
-    implementation(platform("androidx.compose:compose-bom:2024.02.01"))
+    implementation(platform("androidx.compose:compose-bom:2024.03.00"))
 
     testImplementation ("junit:junit:4.13.2")
     androidTestImplementation ("androidx.test.ext:junit:1.1.5")
     androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation ("androidx.compose.ui:ui-test-junit4:1.6.2")
-    androidTestImplementation (platform("androidx.compose:compose-bom:2024.02.01"))
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.01"))
-    debugImplementation ("androidx.compose.ui:ui-tooling:1.6.2")
-    debugImplementation ("androidx.compose.ui:ui-test-manifest:1.6.2")
+    androidTestImplementation ("androidx.compose.ui:ui-test-junit4:1.6.4")
+    androidTestImplementation (platform("androidx.compose:compose-bom:2024.03.00"))
+    debugImplementation ("androidx.compose.ui:ui-tooling:1.6.4")
+    debugImplementation ("androidx.compose.ui:ui-test-manifest:1.6.4")
 
     // Compose UI
     implementation ("de.mr-pine.utils:zoomables:1.4.0")
-    implementation ("androidx.compose.material3:material3:1.2.0")
-    implementation ("androidx.compose.material:material-icons-extended:1.6.2")
+    implementation ("androidx.compose.material3:material3:1.2.1")
+    implementation ("androidx.compose.material:material-icons-extended:1.6.4")
     implementation ("androidx.navigation:navigation-compose:2.7.7")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation ("com.google.accompanist:accompanist-placeholder-material3:0.30.1")
@@ -94,7 +93,7 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Exo Player
-    val media3Version = "1.2.1"
+    val media3Version = "1.3.0"
 
     implementation ("androidx.media3:media3-exoplayer:$media3Version")
     implementation ("androidx.media3:media3-exoplayer-dash:$media3Version")
@@ -110,7 +109,7 @@ dependencies {
     implementation ("androidx.room:room-ktx:$roomVersion")
 
     // Firebase
-    implementation (platform("com.google.firebase:firebase-bom:32.7.3"))
+    implementation (platform("com.google.firebase:firebase-bom:32.8.0"))
     implementation ("com.google.firebase:firebase-crashlytics-ktx")
     implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-messaging-ktx")
