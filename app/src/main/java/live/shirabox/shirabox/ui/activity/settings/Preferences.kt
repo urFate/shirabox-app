@@ -13,15 +13,17 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import live.shirabox.core.datastore.AppDataStore
+import live.shirabox.core.datastore.DataStoreField
 
 @Composable
 fun SwitchPreference(
@@ -30,18 +32,22 @@ fun SwitchPreference(
     description: String,
     icon: @Composable () -> Unit = {},
     enabled: Boolean = true,
-    model: SettingsViewModel,
-    key: Preferences.Key<Boolean>,
+    dsField: DataStoreField<Boolean>,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val checked = model.booleanPreferenceFlow(context, key).collectAsState(initial = false)
+
+    val checkedState =
+        AppDataStore.read(context, dsField.key).collectAsState(initial = dsField.defaultValue)
+    val checked = remember(checkedState.value) {
+        checkedState.value ?: dsField.defaultValue
+    }
 
     Box(
         modifier = Modifier
             .clickable(enabled = enabled, onClickLabel = null, role = null, onClick = {
                 coroutineScope.launch(Dispatchers.IO) {
-                    model.writeBooleanData(context, key, !checked.value)
+                    AppDataStore.write(context, dsField.key, !checked)
                 }
             })
             .then(modifier)
@@ -70,10 +76,10 @@ fun SwitchPreference(
                 }
                 Switch(
                     modifier = Modifier.padding(0.dp, 0.dp),
-                    checked = checked.value,
+                    checked = checked,
                     onCheckedChange = {
                         coroutineScope.launch(Dispatchers.IO) {
-                            model.writeBooleanData(context, key, !checked.value)
+                            AppDataStore.write(context, dsField.key, !checked)
                         }
                     }
                 )

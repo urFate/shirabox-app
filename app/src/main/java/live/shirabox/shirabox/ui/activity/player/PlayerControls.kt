@@ -74,6 +74,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.core.util.Util
 import live.shirabox.core.util.Values
 import live.shirabox.shirabox.R
@@ -111,8 +112,12 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
     val openingSkipPreferenceFlow =
         model.openingSkipPreferenceFlow(LocalContext.current).collectAsState(
-            initial = false
+            initial = DataStoreScheme.FIELD_OPENING_SKIP.defaultValue
         )
+    val openingAutoSkip = remember(openingSkipPreferenceFlow) {
+        openingSkipPreferenceFlow.value ?: DataStoreScheme.FIELD_OPENING_SKIP.defaultValue
+    }
+
 
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
@@ -197,7 +202,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         exit = fadeOut()
     ) {
         SkipButton(
-            autoSkip = openingSkipPreferenceFlow.value,
+            autoSkip = openingAutoSkip,
             isPlaying = isPlaying,
             onTimeout = {
                 currentItemMarkers.let {
@@ -207,7 +212,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                 forceHideSkipButton.value = true
             },
             onClick = {
-                if (openingSkipPreferenceFlow.value) {
+                if (openingAutoSkip) {
                     forceHideSkipButton.value = true
                 } else {
                     currentItemMarkers.let {

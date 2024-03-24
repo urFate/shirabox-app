@@ -16,17 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.settings.OptionsBlock
 import live.shirabox.shirabox.ui.activity.settings.Preference
-import live.shirabox.shirabox.ui.activity.settings.SettingsScheme
-import live.shirabox.shirabox.ui.activity.settings.SettingsViewModel
 import live.shirabox.shirabox.ui.activity.settings.SwitchPreference
 
 @Composable
-fun PlaybackSettingsScreen(
-    viewModel: SettingsViewModel
-) {
+fun PlaybackSettingsScreen() {
     val qualityVisibilityState = remember {
         mutableStateOf(false)
     }
@@ -61,8 +58,7 @@ fun PlaybackSettingsScreen(
                         contentDescription = "animeskip"
                     )
                 },
-                model = viewModel,
-                key = SettingsScheme.FIELD_OPENING_SKIP
+                dsField = DataStoreScheme.FIELD_OPENING_SKIP
             )
 
             Preference(
@@ -82,5 +78,5 @@ fun PlaybackSettingsScreen(
         }
     }
 
-    QualityDialog(viewModel, qualityVisibilityState)
+    QualityDialog(qualityVisibilityState)
 }

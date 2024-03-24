@@ -8,19 +8,15 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import live.shirabox.core.datastore.AppDataStore
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.core.model.PlaylistVideo
 import live.shirabox.shirabox.db.AppDatabase
-import live.shirabox.shirabox.ui.activity.dataStore
-import live.shirabox.shirabox.ui.activity.settings.SettingsScheme
-import java.io.IOException
 
 class PlayerViewModel(
     context: Context,
@@ -58,24 +54,10 @@ class PlayerViewModel(
         }
     }
 
-    fun defaultQualityPreferenceFlow(context: Context): Flow<Int> {
-        return context.dataStore.data.catch {
-            if (it is IOException) {
-                it.printStackTrace()
-                emit(emptyPreferences())
-            } else throw it
-        }.map {
-            it[SettingsScheme.FIELD_DEFAULT_QUALITY] ?: 0
-        }
+    fun defaultQualityPreferenceFlow(context: Context): Flow<Int?> {
+        return AppDataStore.read(context, DataStoreScheme.FIELD_DEFAULT_QUALITY.key)
     }
-    fun openingSkipPreferenceFlow(context: Context): Flow<Boolean> {
-        return context.dataStore.data.catch {
-            if (it is IOException) {
-                it.printStackTrace()
-                emit(emptyPreferences())
-            } else throw it
-        }.map {
-            it[SettingsScheme.FIELD_OPENING_SKIP] ?: false
-        }
+    fun openingSkipPreferenceFlow(context: Context): Flow<Boolean?> {
+        return AppDataStore.read(context, DataStoreScheme.FIELD_OPENING_SKIP.key)
     }
 }

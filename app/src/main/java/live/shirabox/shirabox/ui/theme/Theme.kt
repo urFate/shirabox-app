@@ -1,7 +1,6 @@
 package live.shirabox.shirabox.ui.theme
 
 import android.app.Activity
-import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -18,16 +17,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import live.shirabox.shirabox.ui.activity.dataStore
-import live.shirabox.shirabox.ui.activity.settings.SettingsScheme
-import java.io.IOException
+import live.shirabox.core.datastore.AppDataStore
+import live.shirabox.core.datastore.DataStoreScheme
 
 private val LightColorScheme = lightColorScheme(
     primary = light_primary,
@@ -103,12 +96,12 @@ fun ShiraBoxTheme(
     val isSystemInDarkTheme = isSystemInDarkTheme()
 
     val darkModeOverrideFlow =
-        booleanPreferenceFlow(context, SettingsScheme.FIELD_DARK_MODE).collectAsState(
-            initial = false
+        AppDataStore.read(context, DataStoreScheme.FIELD_DARK_MODE.key).collectAsState(
+            initial = DataStoreScheme.FIELD_DARK_MODE.defaultValue
         )
     val dynamicColorOverrideFlow =
-        booleanPreferenceFlow(context, SettingsScheme.FIELD_USER_COLOR_PALETTE).collectAsState(
-            initial = false
+        AppDataStore.read(context, DataStoreScheme.FIELD_DYNAMIC_COLOR.key).collectAsState(
+            initial = DataStoreScheme.FIELD_DYNAMIC_COLOR.defaultValue
         )
 
     val darkMode = remember(isSystemInDarkTheme, darkModeOverrideFlow.value) {
@@ -116,9 +109,9 @@ fun ShiraBoxTheme(
 
         val state: Boolean
         runBlocking {
-            state = when(syncBooleanPreferenceFlow(context, SettingsScheme.FIELD_DARK_MODE)) {
+            state = when(AppDataStore.read(context, DataStoreScheme.FIELD_DARK_MODE.key).first()) {
                 true -> true
-                false -> isSystemInDarkTheme
+                false, null -> isSystemInDarkTheme
             }
         }
 
@@ -128,7 +121,8 @@ fun ShiraBoxTheme(
     val dynamicColor = remember(dynamicColorOverrideFlow.value) {
         val state: Boolean
         runBlocking {
-            state = syncBooleanPreferenceFlow(context, SettingsScheme.FIELD_USER_COLOR_PALETTE)
+            state = AppDataStore.read(context, DataStoreScheme.FIELD_DYNAMIC_COLOR.key).first()
+                ?: DataStoreScheme.FIELD_DYNAMIC_COLOR.defaultValue
         }
 
         state
@@ -164,30 +158,4 @@ fun ShiraBoxTheme(
         typography = Typography,
         content = content
     )
-}
-
-private suspend fun syncBooleanPreferenceFlow(context: Context, key: Preferences.Key<Boolean>): Boolean {
-    return context.dataStore.data.catch {
-        if (it is IOException) {
-            it.printStackTrace()
-            emit(emptyPreferences())
-        } else {
-            throw it
-        }
-    }.map {
-        return@map it[key] ?: false
-    }.first()
-}
-
-private fun booleanPreferenceFlow(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
-    return context.dataStore.data.catch {
-        if (it is IOException) {
-            it.printStackTrace()
-            emit(emptyPreferences())
-        } else {
-            throw it
-        }
-    }.map {
-        return@map it[key] ?: false
-    }
 }

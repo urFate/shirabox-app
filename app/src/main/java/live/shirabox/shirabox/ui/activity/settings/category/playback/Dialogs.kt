@@ -18,6 +18,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -26,20 +27,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import live.shirabox.core.datastore.AppDataStore
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.shirabox.R
-import live.shirabox.shirabox.ui.activity.settings.SettingsScheme
-import live.shirabox.shirabox.ui.activity.settings.SettingsViewModel
 
 @Composable
-fun QualityDialog(viewModel: SettingsViewModel, visibilityState: MutableState<Boolean>) {
+fun QualityDialog(visibilityState: MutableState<Boolean>) {
     val context = LocalContext.current
-    val currentQualityFlowState =
-        viewModel.intPreferenceFlow(context, SettingsScheme.FIELD_DEFAULT_QUALITY).collectAsState(
-            initial = 0
-        )
     val coroutineScope = rememberCoroutineScope()
 
-    if(visibilityState.value) {
+    val field = DataStoreScheme.FIELD_DEFAULT_QUALITY
+
+    val currentQualityFlowState =
+        AppDataStore.read(context, field.key).collectAsState(
+            initial = field.defaultValue
+        )
+    val currentQuality = remember(currentQualityFlowState.value) {
+        currentQualityFlowState.value ?: field.defaultValue
+    }
+
+    if (visibilityState.value) {
         AlertDialog(
             onDismissRequest = {
                 visibilityState.value = false
@@ -71,14 +78,10 @@ fun QualityDialog(viewModel: SettingsViewModel, visibilityState: MutableState<Bo
                                 text = stringResource(id = R.string.high_quality),
                                 description = "1080p",
                                 icon = Icons.Outlined.HighQuality,
-                                selected = currentQualityFlowState.value == 1080
+                                selected = (currentQuality == 1080)
                             ) {
                                 coroutineScope.launch {
-                                    viewModel.writeIntData(
-                                        context,
-                                        SettingsScheme.FIELD_DEFAULT_QUALITY,
-                                        1080
-                                    )
+                                    AppDataStore.write(context, field.key, 1080)
                                 }
                             }
 
@@ -86,14 +89,10 @@ fun QualityDialog(viewModel: SettingsViewModel, visibilityState: MutableState<Bo
                                 text = stringResource(id = R.string.medium_quality),
                                 description = "720p",
                                 icon = Icons.Outlined.Hd,
-                                selected = currentQualityFlowState.value == 720
+                                selected = (currentQuality == 720)
                             ) {
                                 coroutineScope.launch {
-                                    viewModel.writeIntData(
-                                        context,
-                                        SettingsScheme.FIELD_DEFAULT_QUALITY,
-                                        720
-                                    )
+                                    AppDataStore.write(context, field.key, 720)
                                 }
                             }
 
@@ -101,14 +100,10 @@ fun QualityDialog(viewModel: SettingsViewModel, visibilityState: MutableState<Bo
                                 text = stringResource(id = R.string.low_quality),
                                 description = "480p",
                                 icon = Icons.Outlined.Sd,
-                                selected = currentQualityFlowState.value == 480
+                                selected = (currentQuality == 480)
                             ) {
                                 coroutineScope.launch {
-                                    viewModel.writeIntData(
-                                        context,
-                                        SettingsScheme.FIELD_DEFAULT_QUALITY,
-                                        480
-                                    )
+                                    AppDataStore.write(context, field.key, 480)
                                 }
                             }
                         }

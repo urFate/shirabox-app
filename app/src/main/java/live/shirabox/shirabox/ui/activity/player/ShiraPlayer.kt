@@ -23,6 +23,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.launch
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.core.model.Quality
 
 
@@ -41,10 +42,14 @@ fun ShiraPlayer(model: PlayerViewModel) {
         derivedStateOf { model.episodesPositions[model.episode] }
     }
 
-    val defaultQuality = model.defaultQualityPreferenceFlow(context).collectAsState(initial = 480)
+    val defaultQualityState = model.defaultQualityPreferenceFlow(context)
+        .collectAsState(initial = DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue)
+    val defaultQuality = remember(defaultQualityState) {
+        defaultQualityState.value ?: DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue
+    }
 
     LaunchedEffect(Unit) {
-        model.currentQuality = Quality.valueOfInt(defaultQuality.value)
+        model.currentQuality = Quality.valueOfInt(defaultQuality)
         model.fetchEpisodePositions()
     }
 
@@ -54,7 +59,7 @@ fun ShiraPlayer(model: PlayerViewModel) {
                 setMediaItems(model.playlist.map { video ->
                     // Choose stream quality using default value, otherwise use highest available
                     val stream = video.streamUrls.entries.findLast {
-                        it.key == Quality.valueOfInt(defaultQuality.value)
+                        it.key == Quality.valueOfInt(defaultQuality)
                     } ?: video.streamUrls.maxBy { it.key.quality }
 
                     model.currentQuality = stream.key

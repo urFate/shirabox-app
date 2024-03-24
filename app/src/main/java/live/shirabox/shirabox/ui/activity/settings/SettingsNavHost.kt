@@ -7,12 +7,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import live.shirabox.core.util.Util
 import live.shirabox.shirabox.ui.activity.settings.category.AboutSettingsScreen
 import live.shirabox.shirabox.ui.activity.settings.category.AppearanceSettingsScreen
 import live.shirabox.shirabox.ui.activity.settings.category.GeneralSettingsScreen
@@ -20,12 +18,7 @@ import live.shirabox.shirabox.ui.activity.settings.category.SettingsRootScreen
 import live.shirabox.shirabox.ui.activity.settings.category.playback.PlaybackSettingsScreen
 
 @Composable
-fun SettingsNavHost(
-    navController: NavHostController,
-    model: SettingsViewModel = viewModel(factory = Util.viewModelFactory {
-        SettingsViewModel()
-    })
-) {
+fun SettingsNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = "settings",
@@ -56,15 +49,15 @@ fun SettingsNavHost(
 
             composable(
                 route = SettingsNavItems.General.route
-            ) { GeneralSettingsScreen(viewModel = model) }
+            ) { GeneralSettingsScreen() }
 
             composable(
                 route = SettingsNavItems.Appearance.route
-            ) { AppearanceSettingsScreen(viewModel = model) }
+            ) { AppearanceSettingsScreen() }
 
             composable(
                 route = SettingsNavItems.Playback.route
-            ) { PlaybackSettingsScreen(viewModel = model) }
+            ) { PlaybackSettingsScreen() }
 
             composable(
                 route = SettingsNavItems.About.route
