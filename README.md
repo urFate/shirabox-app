@@ -20,7 +20,7 @@
         padding: 5px">
     <img alt="screenshot-2" src="./images/source_choose.png" width="200" style="border-radius: 15px;
         padding: 5px">
-    <img alt="screenshot-3" src="./images/history.png" width="200" style="border-radius: 15px;
+    <img alt="screenshot-3" src="./images/about.png" width="200" style="border-radius: 15px;
         padding: 5px">
 </div>
 
@@ -30,7 +30,7 @@
 2. [x] Catalog implementation - ✅
 3. [x] At least one video source - ✅
 4. [x] Player functionality - ✅
-5. [ ] Settings backend - 🏗️
+5. [x] Settings backend - ✅
 6. [ ] Notifications - 🏗️
 7. [ ] Opening skips  API integration - ❌
 8. [ ] User's watch statistics - ❌
