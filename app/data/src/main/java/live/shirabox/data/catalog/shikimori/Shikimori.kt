@@ -1,6 +1,8 @@
 package live.shirabox.data.catalog.shikimori
 
 import fuel.httpGet
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.Clock.System.now
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -110,54 +112,57 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
         }
     }
 
-    override suspend fun search(query: String, type: ContentType): List<Content> {
+    override fun search(query: String, type: ContentType): Flow<List<Content>> {
+        return flow {
+            val response = "$url/api/${sectionFromType(type)}".httpGet(
+                listOf(
+                    "search" to query,
+                    "limit" to "50"
+                )
+            ).body
 
-        val response = "$url/api/${sectionFromType(type)}".httpGet(
-            listOf(
-                "search" to query,
-                "limit" to "50"
-            )
-        ).body
+            val list = when (type) {
+                ContentType.ANIME -> {
+                    val data = json.decodeFromString<List<LibraryAnimeData>>(response)
 
-        return when (type) {
-            ContentType.ANIME -> {
-                val data = json.decodeFromString<List<LibraryAnimeData>>(response)
+                    data.filter { it.kind != "music" }.map {
+                        Content(
+                            name = it.russian,
+                            enName = it.name,
+                            image = "$url/${it.image.original}",
+                            releaseYear = it.airedOn?.substring(0..3) ?: "2001",
+                            type = type,
+                            kind = decodeKind(it.kind.toString()),
+                            status = decodeStatus(it.status),
+                            episodes = it.episodes,
+                            episodesAired = it.episodesAired,
+                            rating = Rating(it.score.toDouble()),
+                            shikimoriID = it.id
+                        )
+                    }
+                }
 
-                data.map {
-                    Content(
-                        name = it.russian,
-                        enName = it.name,
-                        image = "$url/${it.image.original}",
-                        releaseYear = it.airedOn?.substring(0..3) ?: "2001",
-                        type = type,
-                        kind = decodeKind(it.kind.toString()),
-                        status = decodeStatus(it.status),
-                        episodes = it.episodes,
-                        episodesAired = it.episodesAired,
-                        rating = Rating(it.score.toDouble()),
-                        shikimoriID = it.id
-                    )
+                ContentType.MANGA, ContentType.RANOBE -> {
+                    val data = json.decodeFromString<List<LibraryBookData>>(response)
+
+                    data.filter { it.kind != "music" }.map {
+                        Content(
+                            name = it.russian,
+                            enName = it.name,
+                            image = "$url/${it.image.original}",
+                            releaseYear = it.airedOn.substring(0..3),
+                            type = type,
+                            kind = decodeKind(it.kind),
+                            status = decodeStatus(it.status),
+                            episodes = it.chapters,
+                            rating = Rating(it.score.toDouble()),
+                            shikimoriID = it.id
+                        )
+                    }
                 }
             }
 
-            ContentType.MANGA, ContentType.RANOBE -> {
-                val data = json.decodeFromString<List<LibraryBookData>>(response)
-
-                data.map {
-                    Content(
-                        name = it.russian,
-                        enName = it.name,
-                        image = "$url/${it.image.original}",
-                        releaseYear = it.airedOn.substring(0..3),
-                        type = type,
-                        kind = decodeKind(it.kind),
-                        status = decodeStatus(it.status),
-                        episodes = it.chapters,
-                        rating = Rating(it.score.toDouble()),
-                        shikimoriID = it.id
-                    )
-                }
-            }
+            emit(list)
         }
     }
 

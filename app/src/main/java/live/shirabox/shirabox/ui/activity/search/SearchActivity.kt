@@ -19,12 +19,14 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import live.shirabox.core.model.ContentType
+import live.shirabox.data.catalog.shikimori.Shikimori
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.ListItem
@@ -53,9 +56,7 @@ class SearchActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
-                ) {
-                    SearchScreen()
-                }
+                ) { SearchScreen() }
             }
         }
     }
@@ -63,41 +64,23 @@ class SearchActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(model: SearchViewModel = viewModel()) {
+fun SearchScreen() {
     val context = LocalContext.current
     val activity = context as? Activity
 
     var text by remember { mutableStateOf("") }
     val searchHistory = remember { mutableStateListOf("") }
-    val results = model.results
     val focusRequester = remember { FocusRequester() }
 
-    var loading by remember {
-        mutableStateOf(false)
-    }
-    var showTypesBar by remember {
-        mutableStateOf(false)
-    }
+    val searchStateFlow = Shikimori.search(text, ContentType.ANIME).collectAsState(initial = null)
 
-    LaunchedEffect(model.currentContentType) { if (text.isNotEmpty()) model.search(text) }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     SearchBar(
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
+        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
         query = text,
-        onQueryChange = {
-            text = it
-            if (text.isEmpty()) showTypesBar = false
-        },
-        onSearch = {
-            model.search(text)
-            searchHistory.add(text)
-
-            showTypesBar = true
-            loading = true
-        },
+        onQueryChange = { text = it },
+        onSearch = { searchHistory.add(text) },
         active = true,
         onActiveChange = {},
         placeholder = {
@@ -107,20 +90,15 @@ fun SearchScreen(model: SearchViewModel = viewModel()) {
             Icon(imageVector = Icons.Default.Search, contentDescription = "Search icon")
         },
         trailingIcon = {
-            Icon(
-                modifier = Modifier.clickable {
-                    if (text.isNotEmpty()) {
-                        text = ""
-                        showTypesBar = false
-                    } else {
-                        activity?.finish()
-                    }
-                },
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close icon"
-            )
-        }
-    ) {
+            IconButton(onClick = {
+                if (text.isNotEmpty()) {
+                    searchHistory.add(text)
+                    text = ""
+                } else activity?.finish()
+            }) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = "Close icon")
+            }
+        }) {
 
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,25 +106,19 @@ fun SearchScreen(model: SearchViewModel = viewModel()) {
             if (text.isEmpty()) {
                 items(searchHistory) {
                     if (it.isNotEmpty()) {
-                        androidx.compose.material3.ListItem(
-                            modifier = Modifier
-                                .clickable {
-                                    text = it
-                                    showTypesBar = true
-                                },
-                            headlineContent = {
-                                Text(it)
-                            },
-                            leadingContent = {
-                                Icon(imageVector = Icons.Default.History, contentDescription = null)
-                            }
-                        )
+                        androidx.compose.material3.ListItem(modifier = Modifier.clickable {
+                                text = it
+                            }, headlineContent = {
+                            Text(it)
+                        }, leadingContent = {
+                            Icon(imageVector = Icons.Default.History, contentDescription = null)
+                        })
                     }
                 }
                 return@LazyColumn
             }
 
-            if (loading) {
+            if (searchStateFlow.value == null) {
                 item {
                     Box(
                         modifier = Modifier
@@ -159,28 +131,22 @@ fun SearchScreen(model: SearchViewModel = viewModel()) {
                 }
             }
 
-            items(results) {
-                loading = false
-
-                ListItem(
-                    headlineContent = {
-                        Text(
-                            text = it.name,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    supportingString = "${it.releaseYear}, ${it.kind}",
-                    coverImage = it.image
-                ) {
-                    context.startActivity(
-                        Intent(
-                            context,
-                            ResourceActivity::class.java
+            searchStateFlow.value?.let { contents ->
+                items(contents) {
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = it.name, fontWeight = FontWeight.Bold
+                            )
+                        }, supportingString = "${it.releaseYear}, ${it.kind}", coverImage = it.image
+                    ) {
+                        context.startActivity(Intent(
+                            context, ResourceActivity::class.java
                         ).apply {
                             putExtra("id", it.shikimoriID)
                             putExtra("type", it.type)
-                        }
-                    )
+                        })
+                    }
                 }
             }
         }
