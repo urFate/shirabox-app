@@ -71,7 +71,7 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
                     altNames = data.synonyms,
                     description = Util.decodeHtml(data.description.toString()),
                     image = "$url/${data.image.original}",
-                    production = data.studios.first().name,
+                    production = data.studios.firstOrNull()?.name,
                     releaseYear = data.airedOn?.substring(0..3),
                     type = type,
                     kind = decodeKind(data.kind),
