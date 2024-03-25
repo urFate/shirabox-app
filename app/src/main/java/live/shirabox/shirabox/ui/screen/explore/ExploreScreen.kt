@@ -8,14 +8,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import live.shirabox.shirabox.ui.component.top.TopBar
 
 
 @ExperimentalMaterial3Api
 @Composable
-fun ExploreScreen(navController: NavController, model: ExploreViewModel = viewModel()) {
+fun ExploreScreen(navController: NavController) {
 
     val lazyListState = rememberLazyListState()
 
@@ -26,10 +25,7 @@ fun ExploreScreen(navController: NavController, model: ExploreViewModel = viewMo
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item { TopBar(navController) }
-
-        item {
-            BaseMediaScreen(viewModel = model, lazyListState = lazyListState)
-        }
+        item { BaseMediaScreen(lazyListState = lazyListState) }
     }
 }
 

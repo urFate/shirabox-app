@@ -7,8 +7,8 @@ import live.shirabox.core.model.ContentType
 abstract class AbstractCatalog internal constructor(
     val name: String, val url: String
 ) {
-    abstract suspend fun fetchOngoings(page: Int, type: ContentType): List<Content>
-    abstract suspend fun fetchPopulars(page: Int, type: ContentType): List<Content>
+    abstract fun fetchOngoings(page: Int, type: ContentType): Flow<List<Content>>
+    abstract fun fetchPopulars(pages: IntRange, type: ContentType): Flow<List<Content>>
 
     abstract suspend fun fetchContent(id: Int, type: ContentType): Content?
     abstract fun search(query: String, type: ContentType): Flow<List<Content>>

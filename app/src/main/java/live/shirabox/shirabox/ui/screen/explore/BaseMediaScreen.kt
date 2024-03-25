@@ -24,9 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -35,49 +34,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
-import kotlinx.coroutines.launch
+import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
+import live.shirabox.data.catalog.shikimori.Shikimori
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
-import live.shirabox.shirabox.ui.component.general.ContentCard
+import live.shirabox.shirabox.ui.component.general.BaseCard
 import live.shirabox.shirabox.ui.component.general.ContentCardPlaceholder
 
 @Composable
 fun BaseMediaScreen(
-    viewModel: ExploreViewModel,
     lazyListState: LazyListState
 ) {
-    val popularsPage = remember {
-        mutableStateMapOf(ContentType.ANIME to 1, ContentType.MANGA to 1, ContentType.RANOBE to 1)
-    }
-
-    val ongoings = viewModel.currentOngoings()
-
-    val populars = viewModel.currentPopulars()
-
-    val isReady by remember(ongoings, populars) {
-        derivedStateOf {
-            ongoings.isNotEmpty() && populars.isNotEmpty()
-        }
-    }
-
+    val popularsPage = remember { mutableIntStateOf(1) }
     val ongoingsListState = rememberLazyListState()
 
-    LaunchedEffect(viewModel.currentContentType) {
-        launch { if (ongoings.isEmpty()) viewModel.fetchOngoings(1) }
+    val popularsStateFlow = Shikimori.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
+        .collectAsStateWithLifecycle(initialValue = null)
+    val ongoingsStateFlow = Shikimori.fetchOngoings(1, ContentType.ANIME).collectAsStateWithLifecycle(
+            initialValue = null
+        )
 
-        // Reset scroll states on tab change
-        ongoingsListState.animateScrollToItem(0)
+    val isReady = remember(popularsStateFlow.value, ongoingsStateFlow.value) {
+        (popularsStateFlow.value != null && ongoingsStateFlow.value != null)
     }
-
-    LaunchedEffect(popularsPage[viewModel.currentContentType], viewModel.currentContentType) {
-        popularsPage[viewModel.currentContentType]?.let { viewModel.fetchPopulars(it) }
-    }
-
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -89,15 +74,18 @@ fun BaseMediaScreen(
                 modifier = Modifier
                     .padding(16.dp, 0.dp)
                     .placeholder(
-                        visible = !isReady,
-                        highlight = PlaceholderHighlight.fade()
+                        visible = !isReady, highlight = PlaceholderHighlight.fade()
                     ),
                 text = stringResource(id = R.string.actual),
                 fontSize = 22.sp,
                 fontWeight = FontWeight(500)
             )
 
-            OngoingsRow(isReady = isReady, contents = ongoings, ongoingsListState = ongoingsListState)
+            OngoingsRow(
+                isReady = isReady,
+                contents = ongoingsStateFlow.value ?: emptyList(),
+                ongoingsListState = ongoingsListState
+            )
         }
 
         HorizontalDivider(
@@ -119,10 +107,13 @@ fun BaseMediaScreen(
                 fontWeight = FontWeight(500)
             )
 
-            PopularsGrid(isReady = isReady, contents = populars)
+            PopularsGrid(
+                isReady = isReady,
+                contents = popularsStateFlow.value ?: emptyList()
+            )
         }
 
-        AnimatedVisibility(visible = populars.isNotEmpty()) {
+        AnimatedVisibility(visible = isReady) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -135,8 +126,7 @@ fun BaseMediaScreen(
         }
 
         LaunchedEffect(lazyListState.canScrollForward) {
-            if(!lazyListState.canScrollForward) popularsPage [viewModel.currentContentType] =
-                popularsPage[viewModel.currentContentType]?.plus(1) ?: 1
+            if(!lazyListState.canScrollForward && isReady) popularsPage.intValue += 1
         }
     }
 }
@@ -144,7 +134,7 @@ fun BaseMediaScreen(
 @Composable
 private fun OngoingsRow(
     isReady: Boolean,
-    contents: SnapshotStateList<live.shirabox.core.model.Content>,
+    contents: List<Content>,
     ongoingsListState: LazyListState
 ) {
     val context = LocalContext.current
@@ -168,9 +158,9 @@ private fun OngoingsRow(
         }
 
         items(contents) {
-            ContentCard(
+            BaseCard(
                 modifier = Modifier.size(cardWidth.dp, 220.dp),
-                item = it
+                title = it.name, image = it.image, type = it.type
             ) {
                 context.startActivity(
                     Intent(
@@ -187,7 +177,7 @@ private fun OngoingsRow(
 }
 
 @Composable
-private fun PopularsGrid(isReady: Boolean, contents: SnapshotStateList<live.shirabox.core.model.Content>) {
+private fun PopularsGrid(isReady: Boolean, contents: List<Content>) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
 
@@ -198,7 +188,7 @@ private fun PopularsGrid(isReady: Boolean, contents: SnapshotStateList<live.shir
     val gridHeight by remember(contents) {
         derivedStateOf {
             Util.calcGridHeight(
-                itemsCount = if (contents.size == 0) 6 else contents.size,
+                itemsCount = if (contents.isEmpty()) 6 else contents.size,
                 itemHeight = cardHeight,
                 columns = columns
             ).dp
@@ -212,15 +202,15 @@ private fun PopularsGrid(isReady: Boolean, contents: SnapshotStateList<live.shir
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         userScrollEnabled = false
     ) {
-        if(!isReady) items(6) {
+        if (!isReady) items(6) {
             ContentCardPlaceholder(modifier = Modifier.size(cardWidth.dp, cardHeight.dp))
         }
 
         items(contents) {
-            ContentCard(
+            BaseCard(
                 modifier = Modifier
                     .size(cardWidth.dp, cardHeight.dp),
-                item = it
+                title = it.name, image = it.image, type = it.type
             ) {
                 context.startActivity(
                     Intent(

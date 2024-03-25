@@ -16,47 +16,61 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true; encodeDefaults = true }
 
-    override suspend fun fetchOngoings(page: Int, type: ContentType): List<Content> {
-        return when (type) {
-            ContentType.ANIME -> fetchCatalogContent(
-                "animes", page, listOf(
-                    "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
+    override fun fetchOngoings(page: Int, type: ContentType): Flow<List<Content>> {
+        return flow {
+            val list = when (type) {
+                ContentType.ANIME -> fetchCatalogContent(
+                    "animes", page, listOf(
+                        "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
+                    )
                 )
-            )
 
-            ContentType.MANGA -> fetchCatalogContent(
-                "mangas", page, listOf(
-                    "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
+                ContentType.MANGA -> fetchCatalogContent(
+                    "mangas", page, listOf(
+                        "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
+                    )
                 )
-            )
 
-            ContentType.RANOBE -> fetchCatalogContent(
-                "ranobe", page, listOf(
-                    "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
+                ContentType.RANOBE -> fetchCatalogContent(
+                    "ranobe", page, listOf(
+                        "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
+                    )
                 )
-            )
+            }
+
+            emit(list)
         }
     }
 
-    override suspend fun fetchPopulars(page: Int, type: ContentType): List<Content> {
-        return when (type) {
-            ContentType.ANIME -> fetchCatalogContent(
-                "animes", page, listOf(
-                    "order" to "popularity"
-                )
-            )
+    override fun fetchPopulars(pages: IntRange, type: ContentType): Flow<List<Content>> {
+        return flow {
+            val list = when (type) {
+                ContentType.ANIME -> {
+                    pages.map {
+                        fetchCatalogContent("animes", it, listOf(
+                                "order" to "popularity"
+                            ))
+                    }.flatten()
+                }
 
-            ContentType.MANGA -> fetchCatalogContent(
-                "mangas", page, listOf(
-                    "order" to "popularity"
-                )
-            )
+                ContentType.MANGA -> {
+                    pages.map {
+                        fetchCatalogContent("mangas", it, listOf(
+                                "order" to "popularity"
+                            ))
+                    }.flatten()
+                }
 
-            ContentType.RANOBE -> fetchCatalogContent(
-                "ranobe", page, listOf(
-                    "order" to "popularity"
-                )
-            )
+                ContentType.RANOBE -> {
+                    pages.map {
+                        fetchCatalogContent("ranobe", it, listOf(
+                                "order" to "popularity"
+                            ))
+                    }.flatten()
+                }
+            }
+
+            emit(list)
         }
     }
 
@@ -68,7 +82,8 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
             ContentType.ANIME -> {
                 val data = json.decodeFromString<AnimeData>(response)
 
-                Content(name = data.russian,
+                Content(
+                    name = data.russian,
                     enName = data.name,
                     altNames = data.synonyms,
                     description = Util.decodeHtml(data.description.toString()),
@@ -92,7 +107,8 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
             ContentType.MANGA, ContentType.RANOBE -> {
                 val data = json.decodeFromString<BookData>(response)
 
-                Content(name = data.russian,
+                Content(
+                    name = data.russian,
                     enName = data.name,
                     description = Util.decodeHtml(data.description.toString()),
                     image = "$url/${data.image.original}",
