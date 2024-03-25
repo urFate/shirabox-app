@@ -430,9 +430,8 @@ fun Resource(
                     )
 
                     val rating = content.rating
-                    val votes = remember {
-                        rating.scores.values.sum()
-                    }
+                    val votes = remember(rating.scores.values::sum)
+
                     val values = remember {
                         rating.scores.mapValues { (it.value.toFloat() / votes.toFloat()) }
                             .minus(0..5)
