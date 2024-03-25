@@ -232,48 +232,50 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
             )
         ).body
 
-        return when (section) {
-            "animes" -> {
-                val data = json.decodeFromString<List<LibraryAnimeData>>(response)
+        return try {
+            when (section) {
+                "animes" -> {
+                    val data = json.decodeFromString<List<LibraryAnimeData>>(response)
 
-                data.map {
-                    Content(
-                        name = it.russian,
-                        enName = it.name,
-                        image = "$url/${it.image.original}",
-                        releaseYear = it.airedOn?.substring(0..3) ?: "2001",
-                        type = ContentType.ANIME,
-                        kind = decodeKind(it.kind.toString()),
-                        status = decodeStatus(it.status),
-                        episodes = it.episodes,
-                        episodesAired = it.episodesAired,
-                        rating = Rating(it.score.toDouble()),
-                        shikimoriID = it.id
-                    )
+                    data.map {
+                        Content(
+                            name = it.russian,
+                            enName = it.name,
+                            image = "$url/${it.image.original}",
+                            releaseYear = it.airedOn?.substring(0..3) ?: "2001",
+                            type = ContentType.ANIME,
+                            kind = decodeKind(it.kind.toString()),
+                            status = decodeStatus(it.status),
+                            episodes = it.episodes,
+                            episodesAired = it.episodesAired,
+                            rating = Rating(it.score.toDouble()),
+                            shikimoriID = it.id
+                        )
+                    }
                 }
-            }
 
-            "mangas", "ranobe" -> {
-                val data = json.decodeFromString<List<LibraryBookData>>(response)
+                "mangas", "ranobe" -> {
+                    val data = json.decodeFromString<List<LibraryBookData>>(response)
 
-                data.map {
-                    Content(
-                        name = it.russian,
-                        enName = it.name,
-                        image = "$url/${it.image.original}",
-                        releaseYear = it.airedOn.substring(0..3),
-                        type = ContentType.fromString(section),
-                        kind = decodeKind(it.kind),
-                        status = decodeStatus(it.status),
-                        episodes = it.chapters,
-                        rating = Rating(it.score.toDouble()),
-                        shikimoriID = it.id
-                    )
+                    data.map {
+                        Content(
+                            name = it.russian,
+                            enName = it.name,
+                            image = "$url/${it.image.original}",
+                            releaseYear = it.airedOn.substring(0..3),
+                            type = ContentType.fromString(section),
+                            kind = decodeKind(it.kind),
+                            status = decodeStatus(it.status),
+                            episodes = it.chapters,
+                            rating = Rating(it.score.toDouble()),
+                            shikimoriID = it.id
+                        )
+                    }
                 }
-            }
 
-            else -> emptyList()
-        }
+                else -> emptyList()
+            }
+        } catch (_: Exception) { emptyList() }
     }
 
     private fun sectionFromType(contentType: ContentType): String {
@@ -284,17 +286,18 @@ object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
         }
     }
 
-    private fun decodeKind(str: String): String {
+    private fun decodeKind(str: String?): String {
         return when(str) {
             "tv" -> "Сериал"
             "movie" -> "Фильм"
-            "special" -> "Спешл"
+            "special", "tv_special" -> "Спешл"
             "manga" -> "Манга"
             "manhua" -> "Маньхуа"
             "light_novel" -> "Ранобэ"
             "novel" -> "Новелла"
             "one_shot" -> "Ван-шот"
             "doujin" -> "Додзинси"
+            null, "null" -> "Неизвестно"
             else -> str.uppercase()
         }
     }

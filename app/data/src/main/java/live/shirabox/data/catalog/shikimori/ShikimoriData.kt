@@ -48,7 +48,7 @@ data class AnimeData(
     val synonyms: List<String> = emptyList(),
     val image: Image,
     val url: String,
-    val kind: String,
+    val kind: String?,
     val score: String,
     val status: String,
     val episodes: Int,
