@@ -14,5 +14,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "ShiraBox"
 include ':app'
-include ':app:data'
-include ':app:core'
+include ':data'
+include ':core'

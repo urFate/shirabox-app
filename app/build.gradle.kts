@@ -122,7 +122,7 @@ dependencies {
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
     // Project modules
-    implementation (project(":app:core"))
-    implementation (project(":app:data"))
+    implementation (project(":core"))
+    implementation (project(":data"))
 }
 
