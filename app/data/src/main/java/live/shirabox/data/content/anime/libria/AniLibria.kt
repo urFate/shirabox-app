@@ -1,9 +1,8 @@
 package live.shirabox.data.content.anime.libria
 
 import fuel.httpGet
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
@@ -18,16 +17,13 @@ class AniLibria : AbstractContentSource(
     ContentType.ANIME,
     "https://anilibria.tv/favicons/apple-touch-icon.png"
 ) {
-    override suspend fun searchEpisodes(content: Content): List<EpisodeEntity> {
-        return withContext(Dispatchers.IO) {
-            return@withContext async {
-                advancedSearch(content)
-            }.await()
-        }
+    override suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>> {
+        return flow { emit(advancedSearch(content)) }
     }
 
     private suspend fun advancedSearch(content: Content): List<EpisodeEntity> {
         val altNamesListQuery = "(${content.altNames.joinToString { "\"${it}\"" }})"
+        if(libriaKind(content.kind) == null) return emptyList()
 
         try {
             val response = "$url/v3/title/search/advanced"

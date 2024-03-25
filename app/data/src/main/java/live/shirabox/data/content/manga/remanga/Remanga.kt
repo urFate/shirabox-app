@@ -1,6 +1,8 @@
 package live.shirabox.data.content.manga.remanga
 
 import fuel.httpGet
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
@@ -14,9 +16,13 @@ object Remanga : AbstractContentSource(
     ContentType.MANGA,
     "https://remanga.org/apple-touch-icon.png"
 ) {
-    override suspend fun searchEpisodes(content: Content): List<EpisodeEntity> {
-        return search(content.name).content.firstOrNull()?.dir?.let { fetchBookChapters(it, false) }
-            ?: emptyList()
+    override suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>> {
+        return flow {
+            emit(
+                search(content.name).content.firstOrNull()?.dir?.let { fetchBookChapters(it, false) }
+                    ?: emptyList()
+            )
+        }
     }
 
     private suspend fun search(query: String) : LibraryWrapperData<SearchBookData> {

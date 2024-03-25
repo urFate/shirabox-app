@@ -93,7 +93,7 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
             val finishedDeferred = async {
                 db?.contentDao()?.collectedContent(content.shikimoriID)?.let { collectedContent ->
                     sources.forEach { source ->
-                        source.searchEpisodes(content).let { list ->
+                        source.searchEpisodes(content).collect { list ->
                             list.mapIndexed { index, episodeEntity ->
                                 val matchingEpisode = collectedContent.episodes.getOrNull(index)
 
