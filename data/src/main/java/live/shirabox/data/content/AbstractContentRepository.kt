@@ -6,7 +6,7 @@ import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 
-abstract class AbstractContentSource (
+abstract class AbstractContentRepository (
     val name: String,
     val url: String,
     val contentType: ContentType,

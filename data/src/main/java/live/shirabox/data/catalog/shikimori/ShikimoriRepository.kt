@@ -12,7 +12,7 @@ import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Rating
 import live.shirabox.core.util.Util
 
-object Shikimori : AbstractCatalog("Shikimori", "https://shikimori.me") {
+object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shikimori.me") {
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true; encodeDefaults = true }
 

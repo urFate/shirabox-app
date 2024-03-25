@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 
-abstract class AbstractCatalog internal constructor(
+abstract class AbstractCatalogRepository internal constructor(
     val name: String, val url: String
 ) {
     abstract fun fetchOngoings(page: Int, type: ContentType): Flow<List<Content>>

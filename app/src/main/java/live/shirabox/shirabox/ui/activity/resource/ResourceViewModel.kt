@@ -18,8 +18,8 @@ import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util.Companion.mapContentToEntity
 import live.shirabox.core.util.Util.Companion.mapEntityToContent
 import live.shirabox.data.DataSources
-import live.shirabox.data.catalog.shikimori.Shikimori
-import live.shirabox.data.content.AbstractContentSource
+import live.shirabox.data.catalog.shikimori.ShikimoriRepository
+import live.shirabox.data.content.AbstractContentRepository
 import live.shirabox.shirabox.db.AppDatabase
 
 class ResourceViewModel(context: Context, private val contentType: ContentType) : ViewModel() {
@@ -50,7 +50,7 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
                 return@launch
             }
 
-            val data = Shikimori.fetchContent(shikimoriId, contentType)
+            val data = ShikimoriRepository.fetchContent(shikimoriId, contentType)
 
             db?.let { database ->
                 data.let {
@@ -72,7 +72,7 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
 
     fun fetchRelated(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Shikimori.fetchRelated(id, contentType).forEach { it?.let(related::add) }
+            ShikimoriRepository.fetchRelated(id, contentType).forEach { it?.let(related::add) }
 
             db?.relatedDao()?.insertRelated(
                 *related.map {
@@ -131,7 +131,7 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
         }
     }
 
-    fun switchSourcePinStatus(id: Int, source: AbstractContentSource) {
+    fun switchSourcePinStatus(id: Int, source: AbstractContentRepository) {
         viewModelScope.launch(Dispatchers.IO) {
             val content = db?.contentDao()?.getContent(id)
             content?.let {

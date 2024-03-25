@@ -41,7 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import live.shirabox.core.model.ContentType
-import live.shirabox.data.catalog.shikimori.Shikimori
+import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.ListItem
@@ -72,12 +72,15 @@ fun SearchScreen() {
     val searchHistory = remember { mutableStateListOf("") }
     val focusRequester = remember { FocusRequester() }
 
-    val searchStateFlow = Shikimori.search(text, ContentType.ANIME).collectAsState(initial = null)
+    val searchStateFlow =
+        ShikimoriRepository.search(text, ContentType.ANIME).collectAsState(initial = null)
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     SearchBar(
-        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+        modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester),
         query = text,
         onQueryChange = { text = it },
         onSearch = { searchHistory.add(text) },

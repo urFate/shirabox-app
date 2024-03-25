@@ -7,11 +7,11 @@ import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
-import live.shirabox.data.content.AbstractContentSource
+import live.shirabox.data.content.AbstractContentRepository
 import java.net.SocketTimeoutException
 
 
-class AniLibria : AbstractContentSource(
+class LibriaRepository : AbstractContentRepository(
     "AniLibria",
     "https://api.anilibria.tv",
     ContentType.ANIME,

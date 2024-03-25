@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.flow
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
-import live.shirabox.data.content.AbstractContentSource
+import live.shirabox.data.content.AbstractContentRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-object Remanga : AbstractContentSource(
+object RemangaRepository : AbstractContentRepository(
     "ReManga",
     "https://api.remanga.org",
     ContentType.MANGA,

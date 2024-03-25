@@ -48,7 +48,7 @@ import kotlinx.serialization.json.Json
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
-import live.shirabox.data.content.AbstractContentSource
+import live.shirabox.data.content.AbstractContentRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.player.PlayerActivity
 import live.shirabox.shirabox.ui.component.general.ExtendedListItem
@@ -72,7 +72,7 @@ fun ResourceBottomSheet(
         }
     }
 
-    val sortedEpisodesMap: Map<AbstractContentSource?, List<EpisodeEntity>> = remember(episodes) {
+    val sortedEpisodesMap: Map<AbstractContentRepository?, List<EpisodeEntity>> = remember(episodes) {
         episodes.groupBy { it.source }
             .mapKeys { map ->
                 model.sources.find { it.name == map.key }
@@ -114,7 +114,7 @@ fun ResourceBottomSheet(
 fun SourcesSheetScreen(
     content: Content,
     model: ResourceViewModel,
-    episodes: Map<AbstractContentSource?, List<EpisodeEntity>>,
+    episodes: Map<AbstractContentRepository?, List<EpisodeEntity>>,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
     visibilityState: MutableState<Boolean>,
 ) {
@@ -366,5 +366,5 @@ fun EpisodesSheetScreen(
 
 sealed class ResourceSheetScreen {
     data class Sources(val model: ResourceViewModel) : ResourceSheetScreen()
-    data class Episodes(val content: Content, val source: AbstractContentSource) : ResourceSheetScreen()
+    data class Episodes(val content: Content, val source: AbstractContentRepository) : ResourceSheetScreen()
 }

@@ -41,7 +41,7 @@ import com.google.accompanist.placeholder.material3.placeholder
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
-import live.shirabox.data.catalog.shikimori.Shikimori
+import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.BaseCard
@@ -54,9 +54,11 @@ fun BaseMediaScreen(
     val popularsPage = remember { mutableIntStateOf(1) }
     val ongoingsListState = rememberLazyListState()
 
-    val popularsStateFlow = Shikimori.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
-        .collectAsStateWithLifecycle(initialValue = null)
-    val ongoingsStateFlow = Shikimori.fetchOngoings(1, ContentType.ANIME).collectAsStateWithLifecycle(
+    val popularsStateFlow =
+        ShikimoriRepository.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
+            .collectAsStateWithLifecycle(initialValue = null)
+    val ongoingsStateFlow =
+        ShikimoriRepository.fetchOngoings(1, ContentType.ANIME).collectAsStateWithLifecycle(
             initialValue = null
         )
 
