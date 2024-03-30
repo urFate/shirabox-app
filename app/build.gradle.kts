@@ -117,6 +117,7 @@ dependencies {
 
     // Network
     implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-svg:2.6.0")
 
     // Datastore
     implementation ("androidx.datastore:datastore-preferences:1.0.0")

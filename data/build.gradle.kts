@@ -42,6 +42,7 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:1.9.20")
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
 
     // Network
     implementation("com.github.kittinunf.fuel:fuel:3.0.0-alpha1")

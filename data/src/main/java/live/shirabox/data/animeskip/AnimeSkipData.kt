@@ -12,15 +12,7 @@ data class BaseResponse<T>(
 @Serializable
 data class LoginData(
     @SerialName("login")
-    val login: Login,
-    @SerialName("account")
-    val account: AccountData
-)
-
-@Serializable
-data class AccountData(
-    @SerialName("account")
-    val account: AnimeSkipAccount
+    val login: Login
 )
 
 @Serializable
@@ -36,7 +28,9 @@ data class Login(
     @SerialName("authToken")
     val authToken: String,
     @SerialName("refreshToken")
-    val refreshToken: String
+    val refreshToken: String,
+    @SerialName("account")
+    val account: AnimeSkipAccount
 )
 
 @Serializable
@@ -47,8 +41,6 @@ data class ClientKeyData(
 
 @Serializable
 data class CreateApiClient(
-    @SerialName("appName")
-    val appName: String,
     @SerialName("id")
     val id: String
 )
@@ -70,7 +62,7 @@ data class LoginRefresh(
     @SerialName("loginRefresh")
     val loginRefresh: Login,
     @SerialName("account")
-    val account: AccountData
+    val account: AnimeSkipAccount
 )
 
 @Serializable
@@ -115,4 +107,10 @@ data class Timestamp(
 data class Type(
     @SerialName("name")
     val name: String
+)
+
+@Serializable
+data class PostWrapper(
+    @SerialName("query")
+    val query: String
 )

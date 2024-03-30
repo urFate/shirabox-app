@@ -82,6 +82,7 @@
     <string name="faster_playback_speed">Немного быстрее</string>
     <string name="fast_playback_speed">Быстро</string>
     <string name="very_fast_playback_speed">Очень быстро</string>
+    <string name="instant_seek_time">10 секунд</string>
 
     <!--
         Reader Activity
@@ -92,7 +93,6 @@
         Search Activity
     -->
     <string name="title_activity_search">SearchActivity</string>
-    <string name="instant_seek_time">10 секунд</string>
 
     <!--
         Notifications dialog
@@ -144,4 +144,23 @@
     <string name="version">Версия</string>
     <string name="license">Лицензия GNU GPLv3</string>
     <string name="privacy_policy">Политика конфиденциальности</string>
+    <string name="animeskip_preference_desc_authorized">Использовать данные сервиса anime-skip.com для определения заставок</string>
+    <string name="animeskip_client_key">Ключ клиента</string>
+    <string name="animeskip_client_key_desc">Ваш ключ доступа к базе данных anime-skip.com</string>
+    <string name="anime_skip_key_label">Ключ клиента</string>
+    <string name="logout">Выйти из учётной записи</string>
+    <string name="animeskip_invalid_key">Ключ клиента недействителен! Требуется повторный вход.</string>
+
+    <!--
+        Auth Activity
+    -->
+    <string name="title_activity_auth">AuthActivity</string>
+    <string name="email">Адрес электронной почты</string>
+    <string name="password">Пароль</string>
+    <string name="register">Регистрация</string>
+    <string name="login">Войти</string>
+    <string name="login_title">Войти в аккаунт</string>
+    <string name="invalid_credentials">Неверный Email или пароль</string>
+    <string name="no_internet_connection">Отсутствует подключение к сети</string>
+    <string name="forgot_password">Восстановить доступ</string>
 </resources>
