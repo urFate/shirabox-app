@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun NoContentsPopup(
+fun DespondencyEmoticon(
     modifier: Modifier = Modifier,
     emoticon: String = "(￢_￢;)",
     text: String
@@ -36,6 +36,34 @@ fun NoContentsPopup(
             text = text,
             fontSize = 12.sp,
             fontWeight = FontWeight.ExtraLight,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun ScaredEmoticon(
+    modifier: Modifier = Modifier,
+    emoticon: String = "(｡>﹏<)",
+    text: String
+) {
+    Column(
+        modifier = Modifier
+            .padding(64.dp)
+            .then(modifier),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = emoticon,
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Center
         )
     }

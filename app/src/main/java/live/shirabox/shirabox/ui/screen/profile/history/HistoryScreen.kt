@@ -30,8 +30,8 @@ import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
+import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
 import live.shirabox.shirabox.ui.component.general.ListItem
-import live.shirabox.shirabox.ui.component.general.NoContentsPopup
 import live.shirabox.shirabox.ui.component.top.TopBar
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -82,7 +82,7 @@ fun History(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (filteredContentsByTypeAndDate.isEmpty())
-                NoContentsPopup(
+                DespondencyEmoticon(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(id = R.string.empty_library)
                 )
