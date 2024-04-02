@@ -20,7 +20,7 @@ import live.shirabox.shirabox.db.AppDatabase
 
 class PlayerViewModel(
     context: Context,
-    val contentUid: Int,
+    val contentUid: Long,
     val contentName: String,
     val episode: Int,
     val startIndex: Int,

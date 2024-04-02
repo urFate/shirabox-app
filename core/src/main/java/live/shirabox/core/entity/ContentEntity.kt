@@ -9,7 +9,7 @@ import live.shirabox.core.model.Rating
 
 @Entity(tableName = "content")
 data class ContentEntity(
-    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
+    @PrimaryKey(autoGenerate = true) val uid: Long = 0,
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "en_name") val enName: String,
     @ColumnInfo(name = "alt_names") val altNames: List<String>,

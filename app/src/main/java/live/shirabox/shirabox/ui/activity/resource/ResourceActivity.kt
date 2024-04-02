@@ -135,7 +135,7 @@ fun Resource(
     val content = model.content.value
     val relations by remember {
         derivedStateOf {
-            model.related.filter { it.type == ContentType.ANIME }
+            model.relatedContents.filter { it.type == ContentType.ANIME }
         }
     }
     val isFavourite = model.isFavourite.value

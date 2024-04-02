@@ -9,7 +9,7 @@ import live.shirabox.core.model.Quality
 @Entity(tableName = "episode")
 data class EpisodeEntity(
     @PrimaryKey(autoGenerate = true) val uid: Int? = 0,
-    @ColumnInfo(name = "content_uid") val contentUid: Int = -1,
+    @ColumnInfo(name = "content_uid") val contentUid: Long = -1,
     @ColumnInfo(name = "source") val source: String,
     @ColumnInfo(name = "name") val name: String?,
     @ColumnInfo(name = "episode") val episode: Int,

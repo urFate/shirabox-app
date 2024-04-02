@@ -65,9 +65,9 @@ fun ResourceBottomSheet(
 
     val episodesState = model.fetchCachedEpisodes().collectAsState(initial = emptyList())
 
-    val episodes = remember(episodesState.value, model.databaseUid) {
-        model.databaseUid.intValue.let { uid ->
-            if (uid >= 0) episodesState.value.filter { it.contentUid == model.databaseUid.intValue }
+    val episodes = remember(episodesState.value, model.internalContentUid) {
+        model.internalContentUid.longValue.let { uid ->
+            if (uid >= 0) episodesState.value.filter { it.contentUid == model.internalContentUid.longValue }
             else emptyList()
         }
     }
@@ -75,7 +75,7 @@ fun ResourceBottomSheet(
     val sortedEpisodesMap: Map<AbstractContentRepository?, List<EpisodeEntity>> = remember(episodes) {
         episodes.groupBy { it.source }
             .mapKeys { map ->
-                model.sources.find { it.name == map.key }
+                model.repositories.find { it.name == map.key }
             }
             .mapValues { entry ->
                 entry.value.sortedByDescending { it.episode }
