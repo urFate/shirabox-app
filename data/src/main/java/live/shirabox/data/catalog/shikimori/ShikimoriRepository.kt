@@ -19,63 +19,60 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true; encodeDefaults = true }
 
-    override fun fetchOngoings(page: Int, type: ContentType): Flow<List<Content>> {
-        return flow {
-            val list = when (type) {
-                ContentType.ANIME -> fetchCatalogContent(
-                    "animes", page, listOf(
-                        "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
-                    )
+    override fun fetchOngoings(page: Int, type: ContentType): Flow<List<Content>> = flow {
+        val list = when (type) {
+            ContentType.ANIME -> fetchCatalogContent(
+                "animes", page, listOf(
+                    "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
                 )
+            )
 
-                ContentType.MANGA -> fetchCatalogContent(
-                    "mangas", page, listOf(
-                        "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
-                    )
+            ContentType.MANGA -> fetchCatalogContent(
+                "mangas", page, listOf(
+                    "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
                 )
+            )
 
-                ContentType.RANOBE -> fetchCatalogContent(
-                    "ranobe", page, listOf(
-                        "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
-                    )
+            ContentType.RANOBE -> fetchCatalogContent(
+                "ranobe", page, listOf(
+                    "status" to "ongoing", "order" to "ranked", "season" to currentSeason()
                 )
-            }
-
-            emit(list)
+            )
         }
+
+        emit(list)
     }
 
-    override fun fetchPopulars(pages: IntRange, type: ContentType): Flow<List<Content>> {
-        return flow {
-            val list = when (type) {
-                ContentType.ANIME -> {
-                    pages.map {
-                        fetchCatalogContent("animes", it, listOf(
-                                "order" to "popularity"
-                            ))
-                    }.flatten()
-                }
-
-                ContentType.MANGA -> {
-                    pages.map {
-                        fetchCatalogContent("mangas", it, listOf(
-                                "order" to "popularity"
-                            ))
-                    }.flatten()
-                }
-
-                ContentType.RANOBE -> {
-                    pages.map {
-                        fetchCatalogContent("ranobe", it, listOf(
-                                "order" to "popularity"
-                            ))
-                    }.flatten()
-                }
+    override fun fetchPopulars(pages: IntRange, type: ContentType): Flow<List<Content>> = flow {
+        val list = when (type) {
+            ContentType.ANIME -> {
+                pages.map {
+                    fetchCatalogContent("animes", it, listOf(
+                            "order" to "popularity"
+                        ))
+                }.flatten()
             }
 
-            emit(list)
+            ContentType.MANGA -> {
+                pages.map {
+                    fetchCatalogContent("mangas", it, listOf(
+                            "order" to "popularity"
+                        ))
+                }.flatten()
+            }
+
+            ContentType.RANOBE -> {
+                pages.map {
+                    fetchCatalogContent("ranobe", it, listOf(
+                            "order" to "popularity"
+                        ))
+                }.flatten()
+            }
         }
+
+        emit(list)
     }
+
 
     override fun fetchContent(id: Int, type: ContentType): Flow<Content> = flow {
         val request: Request = Request.Builder().apply {
@@ -138,58 +135,56 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
         } catch (ex: Exception) { throw ex } catch (ex: SocketTimeoutException) { throw ex }
     }
 
-    override fun search(query: String, type: ContentType): Flow<List<Content>> {
-        return flow {
-            val response = "$url/api/${sectionFromType(type)}".httpGet(
-                listOf(
-                    "search" to query,
-                    "limit" to "50"
-                )
-            ).body
+    override fun search(query: String, type: ContentType): Flow<List<Content>> = flow {
+        val response = "$url/api/${sectionFromType(type)}".httpGet(
+            listOf(
+                "search" to query,
+                "limit" to "50"
+            )
+        ).body
 
-            val list = when (type) {
-                ContentType.ANIME -> {
-                    val data = json.decodeFromString<List<LibraryAnimeData>>(response)
+        val list = when (type) {
+            ContentType.ANIME -> {
+                val data = json.decodeFromString<List<LibraryAnimeData>>(response)
 
-                    data.filter { it.kind != "music" }.map {
-                        Content(
-                            name = it.russian,
-                            enName = it.name,
-                            image = "$url/${it.image.original}",
-                            releaseYear = it.airedOn?.substring(0..3) ?: "2001",
-                            type = type,
-                            kind = decodeKind(it.kind.toString()),
-                            status = decodeStatus(it.status),
-                            episodes = it.episodes,
-                            episodesAired = it.episodesAired,
-                            rating = Rating(it.score.toDouble()),
-                            shikimoriID = it.id
-                        )
-                    }
-                }
-
-                ContentType.MANGA, ContentType.RANOBE -> {
-                    val data = json.decodeFromString<List<LibraryBookData>>(response)
-
-                    data.filter { it.kind != "music" }.map {
-                        Content(
-                            name = it.russian,
-                            enName = it.name,
-                            image = "$url/${it.image.original}",
-                            releaseYear = it.airedOn.substring(0..3),
-                            type = type,
-                            kind = decodeKind(it.kind),
-                            status = decodeStatus(it.status),
-                            episodes = it.chapters,
-                            rating = Rating(it.score.toDouble()),
-                            shikimoriID = it.id
-                        )
-                    }
+                data.filter { it.kind != "music" }.map {
+                    Content(
+                        name = it.russian,
+                        enName = it.name,
+                        image = "$url/${it.image.original}",
+                        releaseYear = it.airedOn?.substring(0..3) ?: "2001",
+                        type = type,
+                        kind = decodeKind(it.kind.toString()),
+                        status = decodeStatus(it.status),
+                        episodes = it.episodes,
+                        episodesAired = it.episodesAired,
+                        rating = Rating(it.score.toDouble()),
+                        shikimoriID = it.id
+                    )
                 }
             }
 
-            emit(list)
+            ContentType.MANGA, ContentType.RANOBE -> {
+                val data = json.decodeFromString<List<LibraryBookData>>(response)
+
+                data.filter { it.kind != "music" }.map {
+                    Content(
+                        name = it.russian,
+                        enName = it.name,
+                        image = "$url/${it.image.original}",
+                        releaseYear = it.airedOn.substring(0..3),
+                        type = type,
+                        kind = decodeKind(it.kind),
+                        status = decodeStatus(it.status),
+                        episodes = it.chapters,
+                        rating = Rating(it.score.toDouble()),
+                        shikimoriID = it.id
+                    )
+                }
+            }
         }
+
+        emit(list)
     }
 
     override fun fetchRelated(id: Int, type: ContentType): Flow<List<Content>> = flow {
