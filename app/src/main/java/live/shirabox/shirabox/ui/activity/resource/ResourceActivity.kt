@@ -109,6 +109,17 @@ class ResourceActivity : ComponentActivity() {
             ShiraBoxTheme(
                 transparentStatusBar = true
             ) {
+                val activity = LocalContext.current as Activity?
+
+                val arguments = intent.extras
+                if(arguments == null) {
+                    activity?.finish()
+                    return@ShiraBoxTheme
+                }
+
+                val resourceId = arguments.getInt("id")
+                val type = arguments.getString("type")!!.let { ContentType.fromString(it) }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
