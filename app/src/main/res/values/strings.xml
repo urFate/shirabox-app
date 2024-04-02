@@ -66,6 +66,8 @@
     <string name="votes">%d Голосов</string>
     <string name="related">Связанное</string>
     <string name="discussion">Обсуждение</string>
+    <string name="no_internet_connection_variant">Ой… А где интернет-то?</string>
+    <string name="go_back">Вернуться</string>
 
     <!--
         Player Activity

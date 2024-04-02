@@ -3,7 +3,6 @@ package live.shirabox.shirabox.ui.activity.resource
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -85,7 +84,9 @@ import live.shirabox.shirabox.ui.component.general.ContentCard
 import live.shirabox.shirabox.ui.component.general.ExpandableBox
 import live.shirabox.shirabox.ui.component.general.ExtendedListItem
 import live.shirabox.shirabox.ui.component.general.RatingView
+import live.shirabox.shirabox.ui.component.general.ScaredEmoticon
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
+import java.io.IOException
 
 class ResourceActivity : ComponentActivity() {
 
@@ -93,17 +94,6 @@ class ResourceActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        val arguments = intent.extras
-        val resourceId = arguments?.getInt("id") ?: -1
-        val type = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> arguments?.getSerializable(
-                "type",
-                ContentType::class.java
-            )
-
-            else -> arguments?.getSerializable("type") as ContentType
-        } ?: ContentType.ANIME
 
         setContent {
             ShiraBoxTheme(
@@ -142,7 +132,7 @@ fun Resource(
     }),
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
-
+    val activity = LocalContext.current as Activity?
     val content = model.content.value
     val relations by remember {
         derivedStateOf {
@@ -164,11 +154,36 @@ fun Resource(
         model.fetchRelated(id)
     }
 
-    AnimatedVisibility(visible = !isReady, exit = fadeOut()) {
+    AnimatedVisibility(
+        visible = (!isReady && model.contentObservationException.value == null),
+        exit = fadeOut()
+    ) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) { CircularProgressIndicator() }
+    }
+
+    AnimatedVisibility(
+        visible = model.contentObservationException.value != null,
+        exit = fadeOut()
+    ) {
         Box(
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            val errorText = when(model.contentObservationException.value) {
+                is IOException -> stringResource(id = R.string.no_internet_connection_variant)
+                else -> stringResource(id = R.string.no_contents)
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ScaredEmoticon(text = errorText)
+                Button(onClick = { activity?.finish() }) {
+                    Text(stringResource(id = R.string.go_back))
+                }
+            }
         }
     }
 
@@ -183,7 +198,6 @@ fun Resource(
                     .verticalScroll(rememberScrollState()),
             ) {
                 Box {
-                    val activity = (LocalContext.current as? Activity)
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(content.image)
@@ -205,8 +219,7 @@ fun Resource(
                                                     colorScheme.background.green,
                                                     colorScheme.background.blue,
                                                     0.7f
-                                                ),
-                                                colorScheme.background
+                                                ), colorScheme.background
                                             )
                                         ), blendMode = BlendMode.SrcAtop
                                     )
