@@ -34,8 +34,8 @@ fun DespondencyEmoticon(
         )
         Text(
             text = text,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.ExtraLight,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Center
         )
     }
@@ -62,7 +62,7 @@ fun ScaredEmoticon(
         )
         Text(
             text = text,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Center
         )

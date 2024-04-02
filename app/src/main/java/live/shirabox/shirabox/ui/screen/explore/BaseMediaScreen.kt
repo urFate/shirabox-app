@@ -2,10 +2,12 @@ package live.shirabox.shirabox.ui.screen.explore
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,9 +24,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +42,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
@@ -46,6 +53,9 @@ import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.BaseCard
 import live.shirabox.shirabox.ui.component.general.ContentCardPlaceholder
+import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
+import live.shirabox.shirabox.ui.component.general.ScaredEmoticon
+import java.io.IOException
 
 @Composable
 fun BaseMediaScreen(
@@ -54,17 +64,44 @@ fun BaseMediaScreen(
     val popularsPage = remember { mutableIntStateOf(1) }
     val ongoingsListState = rememberLazyListState()
 
+    val contentObservationException = remember<MutableState<Exception?>> {
+        mutableStateOf(null)
+    }
+
     val popularsStateFlow =
         ShikimoriRepository.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
+            .catch {
+                it.printStackTrace()
+                contentObservationException.value = it as Exception
+                emitAll(emptyFlow())
+            }
             .collectAsStateWithLifecycle(initialValue = null)
     val ongoingsStateFlow =
-        ShikimoriRepository.fetchOngoings(1, ContentType.ANIME).collectAsStateWithLifecycle(
-            initialValue = null
-        )
+        ShikimoriRepository.fetchOngoings(1, ContentType.ANIME)
+            .catch {
+                it.printStackTrace()
+                contentObservationException.value = it as Exception
+                emitAll(emptyFlow())
+            }
+            .collectAsStateWithLifecycle(initialValue = null)
 
     val isReady = remember(popularsStateFlow.value, ongoingsStateFlow.value) {
         (popularsStateFlow.value != null && ongoingsStateFlow.value != null)
     }
+
+    AnimatedVisibility(visible = contentObservationException.value != null, enter = fadeIn()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            when (contentObservationException.value) {
+                is IOException -> DespondencyEmoticon(text = stringResource(id = R.string.no_internet_connection_variant))
+                else -> ScaredEmoticon(text = stringResource(id = R.string.no_contents))
+            }
+        }
+    }
+
+    if(contentObservationException.value != null) return
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
