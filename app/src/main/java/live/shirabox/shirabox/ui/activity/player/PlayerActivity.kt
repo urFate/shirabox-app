@@ -1,6 +1,8 @@
 package live.shirabox.shirabox.ui.activity.player
 
+import android.app.Activity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +33,7 @@ class PlayerActivity : ComponentActivity() {
                 ) {
                     val arguments = intent.extras
                     val context = LocalContext.current
+                    val activity = context as? Activity
 
                     rememberSystemUiController().apply {
                         setStatusBarColor(
@@ -40,21 +43,26 @@ class PlayerActivity : ComponentActivity() {
                         Util.hideSystemUi(this)
                     }
 
+                    lateinit var model: PlayerViewModel
 
-                    val model: PlayerViewModel = viewModel(factory = Util.viewModelFactory {
-                        PlayerViewModel(
+                    try {
+                        model = PlayerViewModel(
                             context = context,
-                            contentUid = arguments?.getInt("content_uid") ?: -1,
-                            contentName = arguments?.getString("name").toString(),
-                            episode = arguments?.getInt("episode") ?: 0,
-                            startIndex = arguments?.getInt("start_index") ?: 0,
+                            contentUid = arguments!!.getLong("content_uid"),
+                            contentName = arguments.getString("name").toString(),
+                            episode = arguments.getInt("episode"),
+                            startIndex = arguments.getInt("start_index"),
                             playlist = Json.decodeFromString(
-                                arguments?.getString("playlist") ?: ""
+                                arguments.getString("playlist") ?: ""
                             )
                         )
-                    })
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
+                        activity?.finish()
+                        Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
+                    }
 
-                    ShiraPlayer(model = model)
+                    ShiraPlayer(model = viewModel(factory = Util.viewModelFactory { model }))
                 }
             }
         }

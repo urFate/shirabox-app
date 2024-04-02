@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -99,21 +100,28 @@ class ResourceActivity : ComponentActivity() {
             ShiraBoxTheme(
                 transparentStatusBar = true
             ) {
-                val activity = LocalContext.current as Activity?
-
-                val arguments = intent.extras
-                if(arguments == null) {
-                    activity?.finish()
-                    return@ShiraBoxTheme
-                }
-
-                val resourceId = arguments.getInt("id")
-                val type = arguments.getString("type")!!.let { ContentType.fromString(it) }
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val context = LocalContext.current
+                    val activity = context as Activity?
+
+                    var resourceId: Int = -1
+                    lateinit var type: ContentType
+
+                    try {
+                        val arguments = intent.extras!!
+
+                        resourceId = arguments.getInt("id")
+                        type = arguments.getString("type").toString()
+                            .let { ContentType.fromString(it) }
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
+                        activity?.finish()
+                        Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
+                    }
+
                     Resource(resourceId, type, LocalContext.current)
                 }
             }
