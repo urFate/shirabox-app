@@ -11,6 +11,9 @@ import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Rating
 import live.shirabox.core.util.Util
+import okhttp3.Request
+import java.net.SocketTimeoutException
+
 
 object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shikimori.me") {
 
@@ -74,58 +77,65 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
         }
     }
 
-    override suspend fun fetchContent(id: Int, type: ContentType): Content {
+    override fun fetchContent(id: Int, type: ContentType): Flow<Content> = flow {
+        val request: Request = Request.Builder().apply {
+            url("$url/api/${sectionFromType(type)}/$id")
+        }.build()
 
-        val response = "$url/api/${sectionFromType(type)}/$id".httpGet().body
+        try {
+            val response = myClient.newCall(request).execute().body.string()
 
-        return when (type) {
-            ContentType.ANIME -> {
-                val data = json.decodeFromString<AnimeData>(response)
+            val content = when (type) {
+                ContentType.ANIME -> {
+                    val data = json.decodeFromString<AnimeData>(response)
 
-                Content(
-                    name = data.russian,
-                    enName = data.name,
-                    altNames = data.synonyms,
-                    description = Util.decodeHtml(data.description.toString()),
-                    image = "$url/${data.image.original}",
-                    production = data.studios.firstOrNull()?.name,
-                    releaseYear = data.airedOn?.substring(0..3),
-                    type = type,
-                    kind = decodeKind(data.kind),
-                    status = decodeStatus(data.status),
-                    episodes = data.episodes,
-                    episodesAired = data.episodesAired,
-                    episodeDuration = data.duration.toInt(),
-                    rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
-                        it.name to it.value
-                    }),
-                    shikimoriID = data.id,
-                    genres = data.genres.map { it.russian }
-                )
+                    Content(
+                        name = data.russian,
+                        enName = data.name,
+                        altNames = data.synonyms,
+                        description = Util.decodeHtml(data.description.toString()),
+                        image = "$url/${data.image.original}",
+                        production = data.studios.firstOrNull()?.name,
+                        releaseYear = data.airedOn?.substring(0..3),
+                        type = type,
+                        kind = decodeKind(data.kind),
+                        status = decodeStatus(data.status),
+                        episodes = data.episodes,
+                        episodesAired = data.episodesAired,
+                        episodeDuration = data.duration.toInt(),
+                        rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
+                            it.name to it.value
+                        }),
+                        shikimoriID = data.id,
+                        genres = data.genres.map { it.russian }
+                    )
+                }
+
+                ContentType.MANGA, ContentType.RANOBE -> {
+                    val data = json.decodeFromString<BookData>(response)
+
+                    Content(
+                        name = data.russian,
+                        enName = data.name,
+                        description = Util.decodeHtml(data.description.toString()),
+                        image = "$url/${data.image.original}",
+                        production = data.publishers.firstOrNull()?.name ?: "",
+                        releaseYear = data.airedOn?.substring(0..3) ?: "1997",
+                        type = type,
+                        kind = decodeKind(data.kind),
+                        status = decodeStatus(data.status),
+                        episodes = data.chapters,
+                        rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
+                            it.name to it.value
+                        }),
+                        shikimoriID = data.id,
+                        genres = data.genres.map { it.russian}
+                    )
+                }
             }
 
-            ContentType.MANGA, ContentType.RANOBE -> {
-                val data = json.decodeFromString<BookData>(response)
-
-                Content(
-                    name = data.russian,
-                    enName = data.name,
-                    description = Util.decodeHtml(data.description.toString()),
-                    image = "$url/${data.image.original}",
-                    production = data.publishers.firstOrNull()?.name ?: "",
-                    releaseYear = data.airedOn?.substring(0..3) ?: "1997",
-                    type = type,
-                    kind = decodeKind(data.kind),
-                    status = decodeStatus(data.status),
-                    episodes = data.chapters,
-                    rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
-                        it.name to it.value
-                    }),
-                    shikimoriID = data.id,
-                    genres = data.genres.map { it.russian}
-                )
-            }
-        }
+            emit(content)
+        } catch (ex: Exception) { throw ex } catch (ex: SocketTimeoutException) { throw ex }
     }
 
     override fun search(query: String, type: ContentType): Flow<List<Content>> {
@@ -182,42 +192,50 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
         }
     }
 
-    override suspend fun fetchRelated(id: Int, type: ContentType): List<Content?> {
-        val response = "$url/api/${sectionFromType(type)}/$id/related".httpGet().body
-        val data = json.decodeFromString<List<RelatedItem>>(response)
+    override fun fetchRelated(id: Int, type: ContentType): Flow<List<Content>> = flow {
+        val request: Request = Request.Builder().apply {
+            url("$url/api/${sectionFromType(type)}/$id/related")
+        }.build()
 
-        return data.filter { it.relation != "Other" }.map {
-            when {
-                it.anime != null -> Content(
-                    name = it.anime.russian,
-                    enName = it.anime.name,
-                    image = "$url/${it.anime.image.original}",
-                    releaseYear = it.anime.releasedOn,
-                    type = ContentType.ANIME,
-                    kind = it.anime.kind.toString(),
-                    status = it.anime.status,
-                    episodes = it.anime.episodes,
-                    episodesAired = it.anime.episodesAired,
-                    rating = Rating(average = it.anime.score.toDouble(), scores = mapOf()),
-                    shikimoriID = it.anime.id
-                )
+        try {
+            val response = myClient.newCall(request).execute().body.string()
+            val data = json.decodeFromString<List<RelatedItem>>(response)
 
-                it.manga != null -> Content(
-                    name = it.manga.russian,
-                    enName = it.manga.name,
-                    image = "$url/${it.manga.image.original}",
-                    releaseYear = it.manga.releasedOn ?: "",
-                    type = ContentType.MANGA,
-                    kind = it.manga.kind.toString(),
-                    status = it.manga.status,
-                    episodes = it.manga.chapters,
-                    rating = Rating(average = it.manga.score.toDouble(), scores = mapOf()),
-                    shikimoriID = it.manga.id
-                )
+            val contents =  data.filter { it.relation != "Other" }.map {
+                when {
+                    it.anime != null -> Content(
+                        name = it.anime.russian,
+                        enName = it.anime.name,
+                        image = "$url/${it.anime.image.original}",
+                        releaseYear = it.anime.releasedOn,
+                        type = ContentType.ANIME,
+                        kind = it.anime.kind.toString(),
+                        status = it.anime.status,
+                        episodes = it.anime.episodes,
+                        episodesAired = it.anime.episodesAired,
+                        rating = Rating(average = it.anime.score.toDouble(), scores = mapOf()),
+                        shikimoriID = it.anime.id
+                    )
 
-                else -> null
-            }
-        }
+                    it.manga != null -> Content(
+                        name = it.manga.russian,
+                        enName = it.manga.name,
+                        image = "$url/${it.manga.image.original}",
+                        releaseYear = it.manga.releasedOn ?: "",
+                        type = ContentType.MANGA,
+                        kind = it.manga.kind.toString(),
+                        status = it.manga.status,
+                        episodes = it.manga.chapters,
+                        rating = Rating(average = it.manga.score.toDouble(), scores = mapOf()),
+                        shikimoriID = it.manga.id
+                    )
+
+                    else -> null
+                }
+            }.filterNotNull()
+
+            emit(contents)
+        } catch (ex: Exception) { throw ex}
     }
 
     private suspend fun fetchCatalogContent(

@@ -46,7 +46,7 @@ dependencies {
 
     // Network
     implementation("com.github.kittinunf.fuel:fuel:3.0.0-alpha1")
-    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.12")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Date-time
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
