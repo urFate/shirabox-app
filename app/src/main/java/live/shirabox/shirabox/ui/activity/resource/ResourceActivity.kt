@@ -80,6 +80,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
+import live.shirabox.core.util.round
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.component.general.ContentCard
 import live.shirabox.shirabox.ui.component.general.ExpandableBox
@@ -464,15 +465,20 @@ fun Resource(
                     val rating = content.rating
                     val votes = remember(rating.scores.values::sum)
 
-                    val values = remember {
+                    val scores = remember {
                         rating.scores.mapValues { (it.value.toFloat() / votes.toFloat()) }
                             .minus(0..5)
                     }
+                    val avgRating = remember {
+                        rating.scores.entries.sumOf {
+                            (it.key * it.value).toDouble()
+                        }.div(votes).round(2)
+                    }
 
                     RatingView(
-                        averageRating = rating.average,
+                        averageRating = avgRating,
                         votes = votes,
-                        values = values
+                        values = scores
                     )
                 }
 

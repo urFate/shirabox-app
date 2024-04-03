@@ -8,3 +8,4 @@ fun String.md5(): String {
     val digest = md.digest(this.toByteArray())
     return digest.toHexString()
 }
+fun Double.round(decimals: Int = 2): Double = "%.${decimals}f".format(this).toDouble()
