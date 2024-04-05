@@ -1,10 +1,15 @@
-package live.shirabox.shirabox.ui.activity.search
+    package live.shirabox.shirabox.ui.activity.search
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,11 +32,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -40,14 +47,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
+import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
+import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
 import live.shirabox.shirabox.ui.component.general.ListItem
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 
-class SearchActivity : ComponentActivity() {
+    class SearchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -69,13 +82,37 @@ fun SearchScreen() {
     val activity = context as? Activity
 
     var text by remember { mutableStateOf("") }
+    var showProgressIndicator by remember { mutableStateOf(true) }
     val searchHistory = remember { mutableStateListOf("") }
     val focusRequester = remember { FocusRequester() }
+    val queryText = remember { mutableStateOf("") }
+    val resultsList = remember<SnapshotStateList<Content>>(::mutableStateListOf)
 
     val searchStateFlow =
-        ShikimoriRepository.search(text, ContentType.ANIME).collectAsState(initial = null)
+        ShikimoriRepository.search(queryText.value, ContentType.ANIME).catch {
+            it.printStackTrace()
+            emitAll(emptyFlow())
+        }.collectAsState(initial = null)
 
+
+    val noResultsState = remember(queryText.value, searchStateFlow.value) {
+        derivedStateOf {
+            queryText.value.isNotEmpty() && searchStateFlow.value.isNullOrEmpty()
+        }
+    }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    LaunchedEffect(searchStateFlow.value) {
+        showProgressIndicator = false
+        searchStateFlow.value?.let(resultsList::addAll)
+    }
+
+    LaunchedEffect(text) {
+        showProgressIndicator = true
+        resultsList.clear()
+        delay(450L)
+        queryText.value = text
+    }
 
     SearchBar(
         modifier = Modifier
@@ -121,8 +158,8 @@ fun SearchScreen() {
                 return@LazyColumn
             }
 
-            if (searchStateFlow.value == null) {
-                item {
+            item {
+                if(showProgressIndicator && !noResultsState.value) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -134,8 +171,30 @@ fun SearchScreen() {
                 }
             }
 
-            searchStateFlow.value?.let { contents ->
-                items(contents) {
+            item {
+                AnimatedVisibility(
+                    visible = noResultsState.value,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        DespondencyEmoticon(text = stringResource(id = R.string.nothing_found))
+                    }
+                }
+            }
+
+            items(resultsList) {
+                AnimatedVisibility(
+                    visible = !showProgressIndicator,
+                    enter = fadeIn(
+                        animationSpec = tween(300, easing = LinearEasing)
+                    )
+                ) {
                     ListItem(
                         headlineContent = {
                             Text(
