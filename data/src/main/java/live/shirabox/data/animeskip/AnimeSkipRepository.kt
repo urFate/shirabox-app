@@ -39,24 +39,6 @@ object AnimeSkipRepository {
         }
     }
 
-    fun reauthorize(refreshToken: String): Flow<AuthData> {
-        return flow {
-            try {
-                val request = clientRequest(RequestBody.loginRefreshQuery(refreshToken))
-                val response = json.decodeFromString<BaseResponse<LoginRefresh>>(request.body)
-
-                emit(
-                    AuthData(
-                        authToken = response.data.loginRefresh.authToken,
-                        refreshToken = response.data.loginRefresh.authToken,
-                        account = response.data.account
-                    )
-                )
-
-            } catch (ex: Exception) { throw ex }
-        }
-    }
-
     suspend fun createApiClientKey(authToken: String): String {
         return withContext(Dispatchers.IO) {
             async {
@@ -118,13 +100,13 @@ object AnimeSkipRepository {
         }
     }
 
-    fun searchShowId(query: String, clientKey: String): Flow<String?> {
+    fun searchShowId(query: String, clientKey: String): Flow<String> {
         return flow {
             try {
                 val request = clientRequest(RequestBody.searchShowsQuery(query), clientKey)
                 val response = json.decodeFromString<BaseResponse<SearchShows>>(request.body)
 
-                emit(response.data.searchShows.firstOrNull()?.id)
+                emit(response.data.searchShows.first().id)
             } catch (ex: Exception) { throw ex }
         }
     }
@@ -134,16 +116,17 @@ object AnimeSkipRepository {
         episode: Int,
         season: Int = 1,
         clientKey: String
-    ): Flow<Pair<Double, Double>?> {
+    ): Flow<Pair<Float, Float>> {
         return flow {
             try {
                 val request =
                     clientRequest(RequestBody.findEpisodesByShowIdQuery(showId), clientKey)
                 val response = json.decodeFromString<BaseResponse<FindEpisodes>>(request.body)
 
-                val timestamps = response.data.findEpisodesByShowId.firstOrNull {
-                    it.season.toInt() == season && it.number.toInt() == episode
-                }?.timestamps
+                val timestamps =
+                    response.data.findEpisodesByShowId.filter { it.number != null }.firstOrNull {
+                        it.season.toInt() == season && it.number!!.toInt() == episode && it.timestamps.isNotEmpty()
+                    }?.timestamps
 
                 val introStartTimestamp = timestamps?.firstOrNull {
                     it.type.name == "Intro"
@@ -151,9 +134,7 @@ object AnimeSkipRepository {
                 val introEndTimestamp = timestamps?.indexOf(introStartTimestamp)
                     ?.let { timestamps[it.inc()] }
 
-                if(introStartTimestamp?.at != null && introEndTimestamp?.at != null) {
-                    emit(introStartTimestamp.at to introStartTimestamp.at)
-                } else emit(null)
+                emit(introStartTimestamp!!.at to introEndTimestamp!!.at)
             } catch (ex: Exception) { throw ex }
         }
     }

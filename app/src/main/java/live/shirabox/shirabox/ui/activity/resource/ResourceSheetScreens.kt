@@ -48,6 +48,7 @@ import kotlinx.serialization.json.Json
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
+import live.shirabox.core.model.PlaylistVideo
 import live.shirabox.data.content.AbstractContentRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.player.PlayerActivity
@@ -339,7 +340,7 @@ fun EpisodesSheetScreen(
                                             PlayerActivity::class.java
                                         ).apply {
                                             val playlist = episodes.map {
-                                                live.shirabox.core.model.PlaylistVideo(
+                                                PlaylistVideo(
                                                     episode = it.episode,
                                                     streamUrls = it.videos,
                                                     openingMarkers = it.videoMarkers
@@ -348,6 +349,7 @@ fun EpisodesSheetScreen(
 
                                             putExtra("content_uid", episodeEntity.contentUid)
                                             putExtra("name", content.name)
+                                            putExtra("en_name", content.enName)
                                             putExtra("episode", episodeEntity.episode)
                                             putExtra("start_index", playlist.indexOfFirst { it.episode == episodeEntity.episode})
                                             putExtra("playlist", Json.encodeToString(playlist))

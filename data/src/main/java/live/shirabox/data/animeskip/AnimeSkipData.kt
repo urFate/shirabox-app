@@ -58,14 +58,6 @@ data class MyApiClient(
 )
 
 @Serializable
-data class LoginRefresh(
-    @SerialName("loginRefresh")
-    val loginRefresh: Login,
-    @SerialName("account")
-    val account: AnimeSkipAccount
-)
-
-@Serializable
 data class SearchShows(
     @SerialName("searchShows")
     val searchShows: List<SearchShow>
@@ -85,12 +77,10 @@ data class FindEpisodes(
 
 @Serializable
 data class FindEpisodesByShowId(
-    @SerialName("absoluteNumber")
-    val absoluteNumber: String,
     @SerialName("number")
-    val number: String,
+    val number: String?,
     @SerialName("season")
-    val season: String,
+    val season: String = "1",
     @SerialName("timestamps")
     val timestamps: List<Timestamp>
 )
@@ -98,7 +88,7 @@ data class FindEpisodesByShowId(
 @Serializable
 data class Timestamp(
     @SerialName("at")
-    val at: Double,
+    val at: Float,
     @SerialName("type")
     val type: Type
 )

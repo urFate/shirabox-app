@@ -82,6 +82,9 @@ import live.shirabox.shirabox.R
 @Composable
 fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     var isPlaying by remember { mutableStateOf(exoPlayer.isPlaying) }
     var currentPosition by remember { mutableLongStateOf(exoPlayer.currentPosition) }
     var totalDuration by remember { mutableLongStateOf(exoPlayer.duration) }
@@ -90,23 +93,30 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     var hasPreviousMediaItem by remember { mutableStateOf(exoPlayer.hasPreviousMediaItem()) }
     var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex) }
 
-    val currentItemMarkers = remember(currentMediaItemIndex) {
-        model.playlist[exoPlayer.currentMediaItemIndex].openingMarkers
-    }
-
     val currentEpisode = remember(currentMediaItemIndex) {
         model.playlist[exoPlayer.currentMediaItemIndex].episode
+    }
+
+    val providedIntroMarkers = remember(currentMediaItemIndex) {
+        model.playlist[exoPlayer.currentMediaItemIndex].openingMarkers
+    }
+    val animeSkipIntroMarkers = remember(currentMediaItemIndex) {
+        model.animeSkipTimestamps[currentEpisode]
     }
 
     val forceHideSkipButton = remember { mutableStateOf(false) }
 
     val showSkipButton = remember(currentPosition, forceHideSkipButton) {
         if (forceHideSkipButton.value || playbackState == Player.STATE_BUFFERING) {
-            false
-        } else {
-            currentItemMarkers.let {
-                currentPosition in it.first..it.second
-            }
+            return@remember false
+        }
+
+        animeSkipIntroMarkers?.let {
+            return@remember currentPosition in it.first..it.second
+        }
+
+        providedIntroMarkers.let {
+            return@remember currentPosition in it.first..it.second
         }
     }
 
@@ -120,9 +130,12 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
 
     val activity = LocalContext.current as Activity
-    val coroutineScope = rememberCoroutineScope()
 
     activity.requestedOrientation = model.orientationState
+
+    LaunchedEffect(currentMediaItemIndex) {
+        model.fetchAnimeSkipIntroTimestamps(context = context, episode = currentEpisode)
+    }
 
     /**
      * FIXME: Any better solution to update timeline?
@@ -201,24 +214,22 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         enter = fadeIn(),
         exit = fadeOut()
     ) {
+        val introEnd = animeSkipIntroMarkers?.second ?: providedIntroMarkers.second
+
         SkipButton(
             autoSkip = openingAutoSkip,
             isPlaying = isPlaying,
             onTimeout = {
-                currentItemMarkers.let {
-                    exoPlayer.seekTo(it.second)
-                    model.controlsVisibilityState = true
-                }
+                introEnd.let(exoPlayer::seekTo)
+                model.controlsVisibilityState = true
                 forceHideSkipButton.value = true
             },
             onClick = {
                 if (openingAutoSkip) {
                     forceHideSkipButton.value = true
                 } else {
-                    currentItemMarkers.let {
-                        exoPlayer.seekTo(it.second)
-                        model.controlsVisibilityState = true
-                    }
+                    introEnd.let(exoPlayer::seekTo)
+                    model.controlsVisibilityState = true
                 }
         })
     }

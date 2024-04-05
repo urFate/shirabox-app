@@ -27,19 +27,6 @@ object RequestBody {
                 "}"
     }
 
-    fun loginRefreshQuery(refreshToken: String): String {
-        return "query LoginRefresh {\n" +
-                "  loginRefresh(refreshToken: \"$refreshToken\") {\n" +
-                "    authToken\n" +
-                "    refreshToken\n" +
-                "    account {\n" +
-                "      username\n" +
-                "      email\n" +
-                "    }\n" +
-                "  }\n" +
-                "}"
-    }
-
     fun searchShowsQuery(query: String): String {
         return "query SearchShows {\n" +
                 "\tsearchShows(search:\"$query\", limit:1){\n" +
@@ -52,7 +39,6 @@ object RequestBody {
         return "query FindEpisodes {\n" +
                 "\tfindEpisodesByShowId(showId:\"$showId\") {\n" +
                 "    number\n" +
-                "    absoluteNumber\n" +
                 "    season\n" +
                 "    timestamps {\n" +
                 "      at\n" +
