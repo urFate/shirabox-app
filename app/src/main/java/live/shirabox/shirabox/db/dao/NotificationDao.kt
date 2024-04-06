@@ -17,8 +17,8 @@ interface NotificationDao {
     fun all(): Flow<List<NotificationEntity>>
 
     @Transaction
-    @Query("SELECT * FROM notification WHERE content_code IS :code")
-    fun notificationWithContent(code: String): NotificationAndContent
+    @Query("SELECT * FROM notification WHERE content_enName IS :enName")
+    fun notificationWithContent(enName: String): NotificationAndContent
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertNotification(vararg notificationEntity: NotificationEntity)

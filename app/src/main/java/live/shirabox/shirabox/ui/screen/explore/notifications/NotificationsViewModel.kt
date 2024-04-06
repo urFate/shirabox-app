@@ -19,12 +19,12 @@ class NotificationsViewModel(context: Context): ViewModel() {
     fun fetchNotifications(): Flow<List<NotificationEntity>> =
         appDatabase?.notificationDao()?.all() ?: emptyFlow()
 
-    fun fetchNotificationsWithContent(codes: List<String>) {
+    fun fetchNotificationsWithContent(names: List<String>) {
         viewModelScope.launch(Dispatchers.IO) {
             appDatabase?.let { db ->
                 notificationsWithContent.clear()
 
-                codes.forEach {
+                names.forEach {
                     Log.d("NotificationsViewModel", "Code: $it")
                     notificationsWithContent.add(db.notificationDao().notificationWithContent(it))
                 }

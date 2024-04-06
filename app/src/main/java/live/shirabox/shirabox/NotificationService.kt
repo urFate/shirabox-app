@@ -47,14 +47,12 @@ class NotificationService : FirebaseMessagingService() {
             val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 Notification.Builder(this, mainChannelId).apply {
                     setContentTitle(title)
-                    setContentText("ПЭЙЛОАД Payload: ${data.size}")
                     setSmallIcon(R.drawable.ic_stat_shirabox_notification)
                     setAutoCancel(true)
                 }.build()
             } else {
                 Notification.Builder(this).apply {
                     setContentTitle(title)
-                    setContentText("ПЭЙЛОАД Payload: $data")
                     setSmallIcon(R.drawable.ic_stat_shirabox_notification)
                     setAutoCancel(true)
                 }.build()
@@ -67,15 +65,12 @@ class NotificationService : FirebaseMessagingService() {
 
             // Save notification into the database
 
-            Log.d("ShiraBoxService","NOTIFICATION_CODE: ${data["code"]}")
-
-            data["code"]?.let {
+            data["enName"]?.let {
                 scope.launch(Dispatchers.IO) {
                     val appDatabase = AppDatabase.getAppDataBase(this@NotificationService)!!
-                    Log.d("ShiraBoxService", "WE ADDING IT TO THE DATABASE")
 
                     appDatabase.notificationDao().insertNotification(NotificationEntity(
-                        contentCode = it,
+                        contentEnName = it,
                         receiveTimestamp = System.currentTimeMillis(),
                         text = body
                     ))

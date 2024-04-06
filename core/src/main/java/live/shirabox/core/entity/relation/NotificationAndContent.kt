@@ -9,8 +9,8 @@ data class NotificationAndContent (
     @Embedded
     val notificationEntity: NotificationEntity,
     @Relation(
-        parentColumn = "content_code",
-        entityColumn = "code"
+        parentColumn = "content_enName",
+        entityColumn = "en_name"
     )
     val contentEntity: ContentEntity
 )

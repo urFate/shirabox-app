@@ -31,8 +31,8 @@ import androidx.navigation.NavController
 import live.shirabox.core.util.Util
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
+import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
 import live.shirabox.shirabox.ui.component.general.ListItem
-import live.shirabox.shirabox.ui.component.general.NoContentsPopup
 import live.shirabox.shirabox.ui.component.top.TopBar
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,7 +70,7 @@ fun NotificationsScreen(
         
         LaunchedEffect(notifications) {
             model.fetchNotificationsWithContent(
-                notifications.value.map { it.contentCode }
+                notifications.value.map { it.contentEnName }
             )
         }
 
@@ -100,7 +100,7 @@ fun NotificationsScreen(
             }
 
             if(notifications.value.isEmpty()) {
-                NoContentsPopup(text = stringResource(id = R.string.no_notifications))
+                DespondencyEmoticon(text = stringResource(id = R.string.no_notifications))
             }
             
             filteredNotificationsByDate.forEach { entry ->
