@@ -34,7 +34,7 @@ import live.shirabox.core.util.Util
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.ContentCard
-import live.shirabox.shirabox.ui.component.general.NoContentsPopup
+import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
 import live.shirabox.shirabox.ui.component.top.TopBar
 
 @Composable
@@ -81,7 +81,7 @@ fun FavouritesScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (filteredFavourites.isEmpty()) {
-                    NoContentsPopup(text = stringResource(id = R.string.empty_library))
+                    DespondencyEmoticon(text = stringResource(id = R.string.empty_library))
                 } else {
                     FavouritesGrid(contents = filteredFavourites)
                 }

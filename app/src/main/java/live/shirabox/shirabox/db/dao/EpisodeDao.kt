@@ -15,10 +15,10 @@ interface EpisodeDao {
     fun all(): Flow<List<EpisodeEntity>>
 
     @Query("SELECT * FROM episode WHERE content_uid = :contentUid AND episode = :episode LIMIT 1")
-    fun getEpisodeByParentAndEpisode(contentUid: Int, episode: Int): EpisodeEntity
+    fun getEpisodeByParentAndEpisode(contentUid: Long, episode: Int): EpisodeEntity
 
     @Query("SELECT * FROM episode WHERE content_uid = :contentUid")
-    fun getEpisodesByParent(contentUid: Int): Flow<List<EpisodeEntity>>
+    fun getEpisodesByParent(contentUid: Long): Flow<List<EpisodeEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertEpisodes(vararg episodeEntity: EpisodeEntity)

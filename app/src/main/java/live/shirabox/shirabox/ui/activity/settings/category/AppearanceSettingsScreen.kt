@@ -6,20 +6,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.settings.OptionsBlock
-import live.shirabox.shirabox.ui.activity.settings.SettingsScheme
-import live.shirabox.shirabox.ui.activity.settings.SettingsViewModel
 import live.shirabox.shirabox.ui.activity.settings.SwitchPreference
 
 @Composable
-fun AppearanceSettingsScreen(
-    viewModel: SettingsViewModel
-) {
-    val context = LocalContext.current
-
+fun AppearanceSettingsScreen() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -31,8 +25,7 @@ fun AppearanceSettingsScreen(
                     description = stringResource(
                         id = R.string.dark_theme_settings_description
                     ),
-                    model = viewModel,
-                    key = SettingsScheme.FIELD_DARK_MODE
+                    dsField = DataStoreScheme.FIELD_DARK_MODE
                 )
                 SwitchPreference(
                     title = { Text(text = stringResource(id = R.string.user_theme_settings)) },
@@ -40,8 +33,7 @@ fun AppearanceSettingsScreen(
                         id = R.string.user_theme_settings_description
                     ),
                     enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
-                    model = viewModel,
-                    key = SettingsScheme.FIELD_USER_COLOR_PALETTE
+                    dsField = DataStoreScheme.FIELD_DYNAMIC_COLOR
                 )
             }
         }

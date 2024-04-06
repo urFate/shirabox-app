@@ -39,7 +39,7 @@ fun RatingView(averageRating: Double, votes: Int, values: Map<Int, Float>){
             )
             Text(
                 text = stringResource(id = R.string.votes, votes),
-                fontWeight = FontWeight.Thin,
+                fontWeight = FontWeight.Normal,
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -48,8 +48,9 @@ fun RatingView(averageRating: Double, votes: Int, values: Map<Int, Float>){
         Column(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            values.forEach { (label, value) ->
-                RatingBar(label = label, value = value)
+            for(i in 10 downTo 6 step 1) {
+                val entry = values[i] ?: 0f
+                RatingBar(label = i, value = entry)
             }
         }
     }
@@ -73,13 +74,13 @@ private fun RatingBar(label: Int, value: Float) {
         }
 
         LinearProgressIndicator(
+            progress = { value },
             modifier = Modifier
                 .clip(RoundedCornerShape(100))
                 .height(9.dp)
                 .fillMaxWidth(),
-            progress = value,
             color = MaterialTheme.colorScheme.tertiary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     }
 }

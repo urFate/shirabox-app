@@ -42,14 +42,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
-import live.shirabox.data.content.AbstractContentSource
+import live.shirabox.core.model.PlaylistVideo
+import live.shirabox.data.content.AbstractContentRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.player.PlayerActivity
 import live.shirabox.shirabox.ui.component.general.ExtendedListItem
@@ -66,17 +66,17 @@ fun ResourceBottomSheet(
 
     val episodesState = model.fetchCachedEpisodes().collectAsState(initial = emptyList())
 
-    val episodes = remember(episodesState.value, model.databaseUid) {
-        model.databaseUid.intValue.let { uid ->
-            if (uid >= 0) episodesState.value.filter { it.contentUid == model.databaseUid.intValue }
+    val episodes = remember(episodesState.value, model.internalContentUid) {
+        model.internalContentUid.longValue.let { uid ->
+            if (uid >= 0) episodesState.value.filter { it.contentUid == model.internalContentUid.longValue }
             else emptyList()
         }
     }
 
-    val sortedEpisodesMap: Map<AbstractContentSource?, List<EpisodeEntity>> = remember(episodes) {
+    val sortedEpisodesMap: Map<AbstractContentRepository?, List<EpisodeEntity>> = remember(episodes) {
         episodes.groupBy { it.source }
             .mapKeys { map ->
-                model.sources.find { it.name == map.key }
+                model.repositories.find { it.name == map.key }
             }
             .mapValues { entry ->
                 entry.value.sortedByDescending { it.episode }
@@ -85,13 +85,7 @@ fun ResourceBottomSheet(
 
     LaunchedEffect(Unit) {
         // Update cache
-        model.fetchEpisodes(content.shikimoriID, content.altName)
-    }
-
-    LaunchedEffect(episodes) {
-        delay(10000).let {
-            if (episodes.isEmpty()) model.isTimeout.value = true
-        }
+        model.fetchEpisodes(content)
     }
 
     if (visibilityState.value) {
@@ -121,7 +115,7 @@ fun ResourceBottomSheet(
 fun SourcesSheetScreen(
     content: Content,
     model: ResourceViewModel,
-    episodes: Map<AbstractContentSource?, List<EpisodeEntity>>,
+    episodes: Map<AbstractContentRepository?, List<EpisodeEntity>>,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
     visibilityState: MutableState<Boolean>,
 ) {
@@ -147,7 +141,7 @@ fun SourcesSheetScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             androidx.compose.animation.AnimatedVisibility(
-                visible = episodes.isEmpty() && !model.isTimeout.value,
+                visible = episodes.isEmpty() && !model.episodeFetchComplete.value,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -157,7 +151,7 @@ fun SourcesSheetScreen(
             }
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = model.isTimeout.value,
+                visible = model.episodeFetchComplete.value && episodes.isEmpty(),
                 exit = fadeOut()
             ) {
                 Column(
@@ -265,7 +259,7 @@ fun EpisodesSheetScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             androidx.compose.animation.AnimatedVisibility(
-                visible = episodes.isEmpty() && !model.isTimeout.value,
+                visible = episodes.isEmpty() && !model.episodeFetchComplete.value,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -280,7 +274,7 @@ fun EpisodesSheetScreen(
              */
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = model.isTimeout.value,
+                visible = model.episodeFetchComplete.value && episodes.isEmpty(),
                 enter = fadeIn()
             ) {
                 Column(
@@ -346,7 +340,8 @@ fun EpisodesSheetScreen(
                                             PlayerActivity::class.java
                                         ).apply {
                                             val playlist = episodes.map {
-                                                live.shirabox.core.model.PlaylistVideo(
+                                                PlaylistVideo(
+                                                    episode = it.episode,
                                                     streamUrls = it.videos,
                                                     openingMarkers = it.videoMarkers
                                                 )
@@ -354,7 +349,9 @@ fun EpisodesSheetScreen(
 
                                             putExtra("content_uid", episodeEntity.contentUid)
                                             putExtra("name", content.name)
-                                            putExtra("episode", episodeEntity.episode.dec())
+                                            putExtra("en_name", content.enName)
+                                            putExtra("episode", episodeEntity.episode)
+                                            putExtra("start_index", playlist.indexOfFirst { it.episode == episodeEntity.episode})
                                             putExtra("playlist", Json.encodeToString(playlist))
                                         })
 
@@ -371,5 +368,5 @@ fun EpisodesSheetScreen(
 
 sealed class ResourceSheetScreen {
     data class Sources(val model: ResourceViewModel) : ResourceSheetScreen()
-    data class Episodes(val content: Content, val source: AbstractContentSource) : ResourceSheetScreen()
+    data class Episodes(val content: Content, val source: AbstractContentRepository) : ResourceSheetScreen()
 }

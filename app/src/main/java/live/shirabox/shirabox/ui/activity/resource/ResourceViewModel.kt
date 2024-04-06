@@ -1,7 +1,7 @@
 package live.shirabox.shirabox.ui.activity.resource
 
 import android.content.Context
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -9,110 +9,116 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import live.shirabox.core.entity.EpisodeEntity
-import live.shirabox.core.entity.RelatedContentEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util.Companion.mapContentToEntity
 import live.shirabox.core.util.Util.Companion.mapEntityToContent
 import live.shirabox.data.DataSources
-import live.shirabox.data.catalog.shikimori.Shikimori
-import live.shirabox.data.content.AbstractContentSource
+import live.shirabox.data.catalog.shikimori.ShikimoriRepository
+import live.shirabox.data.content.AbstractContentRepository
 import live.shirabox.shirabox.db.AppDatabase
 
 class ResourceViewModel(context: Context, private val contentType: ContentType) : ViewModel() {
-    val content = mutableStateOf<Content?>(null)
-    val related = mutableStateListOf<Content>()
+    private val db = AppDatabase.getAppDataBase(context)
 
-    val databaseUid = mutableIntStateOf(-1)
+    val content = mutableStateOf<Content?>(null)
+    val relatedContents = mutableStateListOf<Content>()
+
+    val internalContentUid = mutableLongStateOf(0)
 
     val isFavourite = mutableStateOf(false)
     val pinnedSources = mutableStateListOf<String>()
 
-    val isTimeout = mutableStateOf(false)
+    val episodeFetchComplete = mutableStateOf(false)
+    val contentObservationException = mutableStateOf<Exception?>(null)
 
-    private val db = AppDatabase.getAppDataBase(context)
-
-    val sources = DataSources.contentSources.filter { it.contentType == contentType }
+    val repositories = DataSources.contentSources.filter { it.contentType == contentType }
 
     fun fetchContent(shikimoriId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val pickedData = db?.contentDao()?.collectedContent(shikimoriId)
-
-            pickedData?.let {
-                content.value = mapEntityToContent(it.content)
-                isFavourite.value = it.content.isFavourite
-                databaseUid.intValue = it.content.uid
-                pinnedSources.addAll(it.content.pinnedSources)
-
-                return@launch
-            }
-
-            val data = Shikimori.fetchContent(shikimoriId, contentType)
-
             db?.let { database ->
-                data.let {
-                    database.contentDao().insertContents(
+                val pickedData = database.contentDao().getContent(shikimoriId)
+
+                pickedData?.let {
+                    content.value = mapEntityToContent(it)
+                    isFavourite.value = it.isFavourite
+                    internalContentUid.longValue = it.uid
+                    pinnedSources.addAll(it.pinnedSources)
+
+                    return@launch
+                }
+
+                ShikimoriRepository.fetchContent(shikimoriId, contentType).catch {
+                    contentObservationException.value = it as Exception
+                    it.printStackTrace()
+                    emitAll(emptyFlow())
+                }.collect {
+                    val newUid = database.contentDao().insertContents(
                         mapContentToEntity(
                             content = it,
                             isFavourite = false,
                             lastViewTimestamp = System.currentTimeMillis(),
                             pinnedSources = emptyList()
                         )
-                    )
-                }
+                    ).first()
 
-                databaseUid.intValue = database.contentDao().getContent(shikimoriId).uid
-                content.value = data
+                    internalContentUid.longValue = newUid
+                    content.value = it
+                }
             }
         }
     }
 
     fun fetchRelated(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Shikimori.fetchRelated(id, contentType).forEach { it?.let(related::add) }
-
-            db?.relatedDao()?.insertRelated(
-                *related.map {
-                    RelatedContentEntity(
-                        contentUid = id,
-                        shikimoriID = it.shikimoriID
-                    )
-                }.toTypedArray()
-            )
+            ShikimoriRepository.fetchRelated(id, contentType).catch {
+                it.printStackTrace()
+                emitAll(emptyFlow())
+            }.collect { contents ->
+                contents.forEach { it.let(relatedContents::add) }
+            }
         }
     }
 
     fun fetchCachedEpisodes():
             Flow<List<EpisodeEntity>> = db?.episodeDao()?.all() ?: emptyFlow()
 
-    fun fetchEpisodes(id: Int, query: String) {
+    fun fetchEpisodes(content: Content) {
         viewModelScope.launch(Dispatchers.IO) {
-            db?.contentDao()?.collectedContent(id)?.let { collectedContent ->
-                sources.forEach { source ->
-                    source.searchEpisodes(query).let { list ->
-                        list.mapIndexed { index, episodeEntity ->
-                            val matchingEpisode = collectedContent.episodes.getOrNull(index)
+            val finishedDeferred = async {
+                db?.contentDao()?.collectedContent(content.shikimoriID)?.let { collectedContent ->
+                    repositories.forEach { source ->
+                        source.searchEpisodes(content).collect { list ->
+                            list.mapIndexed { index, episodeEntity ->
+                                val matchingEpisode = collectedContent.episodes.getOrNull(index)
 
-                            /**
-                             * Keep local data (e.g. watching time and id's)
-                             */
+                                /**
+                                 * Keep local data (e.g. watching time and id's)
+                                 */
 
-                            episodeEntity.copy(
-                                uid = matchingEpisode?.uid,
-                                contentUid = collectedContent.content.uid,
-                                watchingTime = matchingEpisode?.watchingTime ?: -1L,
-                                readingPage = matchingEpisode?.readingPage ?: -1
-                            )
-                        }.toTypedArray().let { entities ->
-                            db.episodeDao().insertEpisodes(*entities)
+                                episodeEntity.copy(
+                                    uid = matchingEpisode?.uid,
+                                    contentUid = collectedContent.content.uid,
+                                    watchingTime = matchingEpisode?.watchingTime ?: -1L,
+                                    readingPage = matchingEpisode?.readingPage ?: -1
+                                )
+                            }.toTypedArray().let { entities ->
+                                db.episodeDao().insertEpisodes(*entities)
+                            }
                         }
                     }
                 }
+                true
             }
+
+            episodeFetchComplete.value = finishedDeferred.await()
         }
     }
 
@@ -127,11 +133,11 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
         }
     }
 
-    fun switchSourcePinStatus(id: Int, source: AbstractContentSource) {
+    fun switchSourcePinStatus(id: Int, source: AbstractContentRepository) {
         viewModelScope.launch(Dispatchers.IO) {
             val content = db?.contentDao()?.getContent(id)
             content?.let {
-                val contentTopic = "${source.name.lowercase()}_${content.code}"
+                val contentTopic = "${source.name.lowercase()}_${content.enName}"
 
                 when (pinnedSources.contains(source.name)) {
                     true -> {

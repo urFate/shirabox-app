@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
+import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.theme.light_primary
@@ -38,8 +39,30 @@ import live.shirabox.shirabox.ui.theme.mangaPrimary
 import live.shirabox.shirabox.ui.theme.ranobePrimary
 
 @Composable
-fun ContentCard(modifier: Modifier = Modifier, item: live.shirabox.core.model.Content, typeBadge: Boolean = false, onClick: () -> Unit) {
+fun ContentCard(
+    modifier: Modifier = Modifier,
+    item: Content,
+    typeBadge: Boolean = false,
+    onClick: () -> Unit
+) {
+    BaseCard(
+        modifier = modifier,
+        title = item.name,
+        image = item.image,
+        type = item.type,
+        typeBadge = typeBadge
+    ) { onClick() }
+}
 
+@Composable
+fun BaseCard(
+    modifier: Modifier,
+    title: String,
+    image: String,
+    type: ContentType,
+    typeBadge: Boolean = false,
+    onClick: () -> Unit
+) {
     var isLoaded by remember {
         mutableStateOf(false)
     }
@@ -47,13 +70,13 @@ fun ContentCard(modifier: Modifier = Modifier, item: live.shirabox.core.model.Co
     val context = LocalContext.current
 
     val request = ImageRequest.Builder(context)
-        .data(item.image)
+        .data(image)
         .crossfade(true)
         .listener { _, _ ->
             isLoaded = true
         }
-        .memoryCacheKey(item.image)
-        .diskCacheKey(item.image)
+        .memoryCacheKey(image)
+        .diskCacheKey(image)
         .diskCachePolicy(CachePolicy.ENABLED)
         .memoryCachePolicy(CachePolicy.ENABLED)
         .build()
@@ -76,7 +99,7 @@ fun ContentCard(modifier: Modifier = Modifier, item: live.shirabox.core.model.Co
                     ),
                 model = request,
                 imageLoader = context.imageLoader,
-                contentDescription = item.altName,
+                contentDescription = title,
                 contentScale = ContentScale.Crop
             )
 
@@ -92,14 +115,14 @@ fun ContentCard(modifier: Modifier = Modifier, item: live.shirabox.core.model.Co
                         )
                     )
                     .padding(16.dp),
-                text = item.name,
+                text = title,
                 color = Color.White,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 3
             )
 
-            if(typeBadge) {
-                val typeData = contentTypeData(type = item.type)
+            if (typeBadge) {
+                val typeData = contentTypeData(type = type)
 
                 Text(
                     modifier = Modifier

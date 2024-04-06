@@ -1,11 +1,11 @@
 package live.shirabox.shirabox.ui.activity.settings
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.ui.graphics.vector.ImageVector
 import live.shirabox.shirabox.R
 
@@ -36,7 +36,7 @@ sealed class SettingsNavItems(
         R.string.playback_settings,
         R.string.reader_and_player_settings_description,
         "playback",
-        Icons.Outlined.PlaylistPlay
+        Icons.AutoMirrored.Outlined.PlaylistPlay
     )
 
     data object About : SettingsNavItems(

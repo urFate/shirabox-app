@@ -66,6 +66,8 @@
     <string name="votes">%d Голосов</string>
     <string name="related">Связанное</string>
     <string name="discussion">Обсуждение</string>
+    <string name="no_internet_connection_variant">Ой… А где интернет-то?</string>
+    <string name="go_back">Вернуться</string>
 
     <!--
         Player Activity
@@ -77,6 +79,12 @@
     <string name="subtitles">Субтитры</string>
     <string name="normal_speed">Обычная</string>
     <string name="opening_skip">Пропустить</string>
+    <string name="slow_playback_speed">Медленно</string>
+    <string name="normal_playback_speed">Нормально</string>
+    <string name="faster_playback_speed">Немного быстрее</string>
+    <string name="fast_playback_speed">Быстро</string>
+    <string name="very_fast_playback_speed">Очень быстро</string>
+    <string name="instant_seek_time">10 секунд</string>
 
     <!--
         Reader Activity
@@ -87,7 +95,7 @@
         Search Activity
     -->
     <string name="title_activity_search">SearchActivity</string>
-    <string name="instant_seek_time">10 секунд</string>
+    <string name="nothing_found">Ничего не найдено</string>
 
     <!--
         Notifications dialog
@@ -125,5 +133,37 @@
     <string name="user_theme_settings">Системная палитра</string>
     <string name="user_theme_settings_description">Использование пользовательской системной палитры (Android 12+)</string>
     <string name="theme_options_block">Тема</string>
+    <string name="playback_default_quality">Качество видео</string>
+    <string name="playback_default_quality_desc">Качество воспроизведения по умолчанию</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="high_quality">Высокое качество</string>
+    <string name="medium_quality">Среднее качество</string>
+    <string name="low_quality">Низкое качество</string>
+    <string name="opening_skip_preference">Автоматический пропуск</string>
+    <string name="opening_skip_preference_desc">Автоматический пропуск начальной заставки</string>
+    <string name="animeskip_preference">Anime Skip</string>
+    <string name="animeskip_preference_desc">Авторизуйтесь, что бы использовать данные ресурса anime-skip.com для определения заставок эпизодов</string>
+    <string name="opening_preferences">Заставка</string>
+    <string name="version">Версия</string>
+    <string name="license">Лицензия GNU GPLv3</string>
+    <string name="privacy_policy">Политика конфиденциальности</string>
+    <string name="animeskip_preference_desc_authorized">Использовать данные сервиса anime-skip.com для определения заставок</string>
+    <string name="animeskip_client_key">Ключ клиента</string>
+    <string name="animeskip_client_key_desc">Ваш ключ доступа к базе данных anime-skip.com</string>
+    <string name="anime_skip_key_label">Ключ клиента</string>
+    <string name="logout">Выйти из учётной записи</string>
+    <string name="animeskip_invalid_key">Ключ клиента недействителен! Требуется повторный вход.</string>
 
+    <!--
+        Auth Activity
+    -->
+    <string name="title_activity_auth">AuthActivity</string>
+    <string name="email">Адрес электронной почты</string>
+    <string name="password">Пароль</string>
+    <string name="register">Регистрация</string>
+    <string name="login">Войти</string>
+    <string name="login_title">Войти в аккаунт</string>
+    <string name="invalid_credentials">Неверный Email или пароль</string>
+    <string name="no_internet_connection">Отсутствует подключение к сети</string>
+    <string name="forgot_password">Восстановить доступ</string>
 </resources>

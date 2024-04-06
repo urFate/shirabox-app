@@ -25,10 +25,10 @@ interface ContentDao {
     fun collectedContent(shikimoriId: Int): CollectedContent
 
     @Query("SELECT * FROM content WHERE shikimori_id IS :shikimoriId")
-    fun getContent(shikimoriId: Int): ContentEntity
+    fun getContent(shikimoriId: Int): ContentEntity?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun insertContents(vararg contents: ContentEntity)
+    fun insertContents(vararg contents: ContentEntity): List<Long>
 
     @Update
     fun updateContents(vararg contents: ContentEntity)

@@ -12,13 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SystemUpdate
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +56,7 @@ fun ProfileScreen(navController: NavController){
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Login,
+                        imageVector = Icons.AutoMirrored.Outlined.Login,
                         contentDescription = "Login Icon",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -74,9 +74,10 @@ fun ProfileScreen(navController: NavController){
                 }
             }
             Column {
-                Divider(thickness = 1.dp,
+                HorizontalDivider(
                     modifier = Modifier
-                        .padding(horizontal = 48.dp, vertical = 8.dp))
+                        .padding(horizontal = 48.dp, vertical = 8.dp), thickness = 1.dp
+                )
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.history)) },
                     modifier = Modifier.clickable(onClick = {
@@ -119,9 +120,10 @@ fun ProfileScreen(navController: NavController){
                         )
                     }
                 )
-                Divider(thickness = 1.dp,
-                modifier = Modifier
-                    .padding(horizontal = 48.dp, vertical = 8.dp))
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(horizontal = 48.dp, vertical = 8.dp), thickness = 1.dp
+                )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.updates_check) ) },
                     modifier = Modifier.clickable {  },
@@ -138,7 +140,7 @@ fun ProfileScreen(navController: NavController){
                     modifier = Modifier.clickable {  },
                     leadingContent = {
                         Icon(
-                            Icons.Outlined.HelpOutline,
+                            Icons.AutoMirrored.Outlined.HelpOutline,
                             contentDescription = "Help icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )

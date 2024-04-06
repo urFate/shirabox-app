@@ -15,15 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.settings.Preference
-import live.shirabox.shirabox.ui.activity.settings.SettingsScheme
-import live.shirabox.shirabox.ui.activity.settings.SettingsViewModel
 import live.shirabox.shirabox.ui.activity.settings.SwitchPreference
 
 
 @Composable
-fun GeneralSettingsScreen(viewModel: SettingsViewModel) {
+fun GeneralSettingsScreen() {
     val context = LocalContext.current
 
     Column(
@@ -66,8 +65,7 @@ fun GeneralSettingsScreen(viewModel: SettingsViewModel) {
             description = stringResource(
                 id = R.string.notifications_subscription_settings_description
             ),
-            model = viewModel,
-            key = SettingsScheme.FIELD_SUBSCRIPTION
+            dsField = DataStoreScheme.FIELD_SUBSCRIPTION
         )
     }
 }

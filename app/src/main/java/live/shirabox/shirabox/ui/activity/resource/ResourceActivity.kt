@@ -3,8 +3,8 @@ package live.shirabox.shirabox.ui.activity.resource
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -30,8 +30,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LiveTv
@@ -42,8 +42,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -80,12 +80,15 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
+import live.shirabox.core.util.round
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.component.general.ContentCard
 import live.shirabox.shirabox.ui.component.general.ExpandableBox
 import live.shirabox.shirabox.ui.component.general.ExtendedListItem
 import live.shirabox.shirabox.ui.component.general.RatingView
+import live.shirabox.shirabox.ui.component.general.ScaredEmoticon
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
+import java.io.IOException
 
 class ResourceActivity : ComponentActivity() {
 
@@ -93,17 +96,6 @@ class ResourceActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        val arguments = intent.extras
-        val resourceId = arguments?.getInt("id") ?: -1
-        val type = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> arguments?.getSerializable(
-                "type",
-                ContentType::class.java
-            )
-
-            else -> arguments?.getSerializable("type") as ContentType
-        } ?: ContentType.ANIME
 
         setContent {
             ShiraBoxTheme(
@@ -113,6 +105,24 @@ class ResourceActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val context = LocalContext.current
+                    val activity = context as Activity?
+
+                    var resourceId: Int = -1
+                    lateinit var type: ContentType
+
+                    try {
+                        val arguments = intent.extras!!
+
+                        resourceId = arguments.getInt("id")
+                        type = arguments.getString("type").toString()
+                            .let { ContentType.fromString(it) }
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
+                        activity?.finish()
+                        Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
+                    }
+
                     Resource(resourceId, type, LocalContext.current)
                 }
             }
@@ -131,11 +141,11 @@ fun Resource(
     }),
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
-
+    val activity = LocalContext.current as Activity?
     val content = model.content.value
     val relations by remember {
         derivedStateOf {
-            model.related.filter { it.type == ContentType.ANIME }
+            model.relatedContents.filter { it.type == ContentType.ANIME }
         }
     }
     val isFavourite = model.isFavourite.value
@@ -153,11 +163,36 @@ fun Resource(
         model.fetchRelated(id)
     }
 
-    AnimatedVisibility(visible = !isReady, exit = fadeOut()) {
+    AnimatedVisibility(
+        visible = (!isReady && model.contentObservationException.value == null),
+        exit = fadeOut()
+    ) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) { CircularProgressIndicator() }
+    }
+
+    AnimatedVisibility(
+        visible = model.contentObservationException.value != null,
+        exit = fadeOut()
+    ) {
         Box(
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            val errorText = when(model.contentObservationException.value) {
+                is IOException -> stringResource(id = R.string.no_internet_connection_variant)
+                else -> stringResource(id = R.string.no_contents)
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ScaredEmoticon(text = errorText)
+                Button(onClick = { activity?.finish() }) {
+                    Text(stringResource(id = R.string.go_back))
+                }
+            }
         }
     }
 
@@ -172,7 +207,6 @@ fun Resource(
                     .verticalScroll(rememberScrollState()),
             ) {
                 Box {
-                    val activity = (LocalContext.current as? Activity)
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(content.image)
@@ -194,8 +228,7 @@ fun Resource(
                                                     colorScheme.background.green,
                                                     colorScheme.background.blue,
                                                     0.7f
-                                                ),
-                                                colorScheme.background
+                                                ), colorScheme.background
                                             )
                                         ), blendMode = BlendMode.SrcAtop
                                     )
@@ -211,7 +244,7 @@ fun Resource(
                             IconButton(
                                 onClick = { activity?.finish() },
                             ) {
-                                Icon(Icons.Outlined.ArrowBack, "ArrowBack Icon")
+                                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "ArrowBack Icon")
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
@@ -249,7 +282,7 @@ fun Resource(
 
                 Text(
                     modifier = Modifier.padding(16.dp, 0.dp),
-                    text = model.content.value?.altName.toString(),
+                    text = model.content.value?.enName.toString(),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.W300
                 )
@@ -329,10 +362,10 @@ fun Resource(
                     }
                 }
 
-                Divider(
-                    thickness = 1.dp,
+                HorizontalDivider(
                     modifier = Modifier
-                        .padding(48.dp, 0.dp, 48.dp, 16.dp)
+                        .padding(48.dp, 0.dp, 48.dp, 16.dp),
+                    thickness = 1.dp
                 )
 
                 /**
@@ -405,7 +438,7 @@ fun Resource(
                             ) {
                                 Text(
                                     text = cleanedDescription,
-                                    fontWeight = FontWeight.Thin,
+                                    fontWeight = FontWeight.Light,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
@@ -413,10 +446,10 @@ fun Resource(
                     }
                 }
 
-                Divider(
-                    thickness = 1.dp,
+                HorizontalDivider(
                     modifier = Modifier
-                        .padding(horizontal = 48.dp, vertical = 16.dp)
+                        .padding(horizontal = 48.dp, vertical = 16.dp),
+                    thickness = 1.dp
                 )
 
                 Column(
@@ -430,25 +463,29 @@ fun Resource(
                     )
 
                     val rating = content.rating
-                    val votes = remember {
-                        rating.scores.values.sum()
-                    }
-                    val values = remember {
+                    val votes = remember(rating.scores.values::sum)
+
+                    val scores = remember {
                         rating.scores.mapValues { (it.value.toFloat() / votes.toFloat()) }
                             .minus(0..5)
                     }
+                    val avgRating = remember {
+                        rating.scores.entries.sumOf {
+                            (it.key * it.value).toDouble()
+                        }.div(votes).round(2)
+                    }
 
                     RatingView(
-                        averageRating = rating.average,
+                        averageRating = avgRating,
                         votes = votes,
-                        values = values
+                        values = scores
                     )
                 }
 
-                Divider(
-                    thickness = 1.dp,
+                HorizontalDivider(
                     modifier = Modifier
-                        .padding(horizontal = 48.dp, vertical = 16.dp)
+                        .padding(horizontal = 48.dp, vertical = 16.dp),
+                    thickness = 1.dp
                 )
 
 

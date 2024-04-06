@@ -8,22 +8,18 @@ import androidx.room.TypeConverters
 import live.shirabox.core.entity.ContentEntity
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.entity.NotificationEntity
-import live.shirabox.core.entity.RelatedContentEntity
 import live.shirabox.shirabox.db.dao.ContentDao
 import live.shirabox.shirabox.db.dao.EpisodeDao
 import live.shirabox.shirabox.db.dao.NotificationDao
-import live.shirabox.shirabox.db.dao.RelatedDao
 
 @Database(
-    entities = [ContentEntity::class, EpisodeEntity::class,
-        RelatedContentEntity::class, NotificationEntity::class],
+    entities = [ContentEntity::class, EpisodeEntity::class, NotificationEntity::class],
     version = 1
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun contentDao(): ContentDao
     abstract fun episodeDao(): EpisodeDao
-    abstract fun relatedDao(): RelatedDao
     abstract fun notificationDao(): NotificationDao
 
     companion object {
