@@ -3,9 +3,6 @@ package live.shirabox.data.catalog.shikimori
 import fuel.httpGet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.datetime.Clock.System.now
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
@@ -13,6 +10,9 @@ import live.shirabox.core.model.Rating
 import live.shirabox.core.util.Util
 import okhttp3.Request
 import java.net.SocketTimeoutException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shikimori.me") {
@@ -327,10 +327,15 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
     }
 
     private fun currentSeason(): String {
-        val localDateTime = now().toLocalDateTime(TimeZone.currentSystemDefault())
-        val year = localDateTime.year
+        val date = Date()
 
-        return when (localDateTime.monthNumber) {
+        val monthFormat = SimpleDateFormat("MM", Locale.getDefault())
+        val yearFormat = SimpleDateFormat("YYYY", Locale.getDefault())
+
+        val month = monthFormat.format(date).toInt()
+        val year = yearFormat.format(date)
+
+        return when (month) {
             in 0 until 4 -> "winter_$year"
             in 4 until 7 -> "spring_$year"
             in 7 until 9 -> "summer_$year"
