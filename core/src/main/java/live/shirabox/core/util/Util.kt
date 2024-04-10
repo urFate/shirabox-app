@@ -3,6 +3,8 @@ package live.shirabox.core.util
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.text.Html
 import androidx.core.view.WindowInsetsControllerCompat
@@ -10,9 +12,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.C
 import com.google.accompanist.systemuicontroller.SystemUiController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import live.shirabox.core.entity.ContentEntity
 import live.shirabox.core.model.Content
+import live.shirabox.core.serializable.Topic
+import java.net.URL
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration.Companion.milliseconds
+
 
 class Util {
     companion object {
@@ -98,6 +110,37 @@ class Util {
                 lastViewTimestamp = lastViewTimestamp,
                 pinnedSources = pinnedSources
             )
+        }
+
+        @OptIn(ExperimentalEncodingApi::class)
+        fun encodeTopic(repository: String, actingTeam: String, contentEnName: String): String {
+            val json = Json.encodeToString(
+                Topic(
+                    repository = repository,
+                    actingTeam = actingTeam,
+                    md5 = contentEnName.md5()
+                )
+            )
+
+            return Base64.encode(json.toByteArray())
+        }
+        suspend fun getBitmapFromURL(url: URL): Bitmap? {
+            return try {
+                val inputStream = withContext(Dispatchers.IO) {
+                    async {
+                        val connection = url.openConnection()
+                        connection.setDoInput(true)
+                        connection.connect()
+                        connection.inputStream
+                    }
+                }
+
+                BitmapFactory.decodeStream(inputStream.await())
+            } catch (_: Exception) { null }
+        }
+
+        fun formatBadgeNumber(number: Int): String {
+            return if (number < 9) number.toString() else "9+"
         }
 
         inline fun <VM : ViewModel> viewModelFactory(crossinline f: () -> VM) =

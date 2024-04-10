@@ -6,8 +6,10 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "notification")
 data class NotificationEntity(
-    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
-    @ColumnInfo(name = "content_enName") val contentEnName: String,
+    @PrimaryKey(autoGenerate = true) val uid: Long = 0,
+    @ColumnInfo(name = "content_shikimori_id") val contentShikimoriId: Int,
     @ColumnInfo(name = "receive_timestamp") val receiveTimestamp: Long,
-    @ColumnInfo(name = "text") val text: String
+    @ColumnInfo(name = "title") val title: String,
+    @ColumnInfo(name = "body") val body: String,
+    @ColumnInfo(name = "thumbnail") val thumbnailUrl: String
 )

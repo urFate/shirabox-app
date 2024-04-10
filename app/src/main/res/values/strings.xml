@@ -28,6 +28,8 @@
     <string name="actual">Среди новинок</string>
     <string name="popular">Популярно</string>
     <string name="notifications">Уведомления</string>
+    <string name="today">Сегодня</string>
+
 
     <!--
         Favourites Screen
@@ -42,6 +44,12 @@
     <string name="settings">Настройки</string>
     <string name="updates_check">Проверить обновления</string>
     <string name="help">Помощь</string>
+
+    <!--
+        Notification Service
+    -->
+    <string name="notificaion_channel">Новые серии</string>
+    <string name="notificaion_channel_description">Уведомления о новых выпусках эпизодов</string>
 
     <!--
         Login Card

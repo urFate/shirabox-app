@@ -8,6 +8,7 @@ import androidx.room.TypeConverters
 import live.shirabox.core.entity.ContentEntity
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.entity.NotificationEntity
+import live.shirabox.core.util.Values
 import live.shirabox.shirabox.db.dao.ContentDao
 import live.shirabox.shirabox.db.dao.EpisodeDao
 import live.shirabox.shirabox.db.dao.NotificationDao
@@ -31,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     INSTANCE = Room.databaseBuilder(
                         context.applicationContext,
                         AppDatabase::class.java,
-                        "shirabox_db"
+                        Values.DATABASE_NAME
                     ).build()
                 }
             }

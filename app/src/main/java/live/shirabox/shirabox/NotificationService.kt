@@ -1,81 +1,143 @@
 package live.shirabox.shirabox
 
-import android.Manifest
 import android.app.Notification
-import android.content.pm.PackageManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.room.Room.databaseBuilder
+import androidx.annotation.RequiresApi
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import live.shirabox.core.entity.NotificationEntity
+import live.shirabox.core.model.ContentType
+import live.shirabox.core.util.Util
 import live.shirabox.shirabox.db.AppDatabase
-
+import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
+import java.net.URL
 
 class NotificationService : FirebaseMessagingService() {
-    private val mainChannelId = "SB_NOTIFICATIONS"
-    private val databaseName = "shirabox_db"
-
-    private lateinit var appDatabase: AppDatabase
+    companion object {
+        private const val TAG = "ShiraBoxService"
+        private const val MAIN_CHANNEL_ID = "SB_NOTIFICATIONS"
+        lateinit var db: AppDatabase
+    }
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
+    private data class MessageData(
+        val title: String,
+        val body: String,
+        val thumbnailUrl: String?,
+        val shikimoriId: Int
+    )
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("ShiraBoxService", "Refreshed token: $token")
+        Log.d(TAG, "New token observed: $token")
     }
 
-    override fun onMessageReceived(message: RemoteMessage) {
-        appDatabase = databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, databaseName
-        ).build()
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        super.onMessageReceived(remoteMessage)
+        remoteMessage.data.ifEmpty { return }
 
-        val data = message.data
+        Log.d(TAG, "Message data payload: ${remoteMessage.data}")
 
-        message.notification?.let { remoteNotification ->
-            val title = remoteNotification.title ?: "Undefined title"
-            val body = remoteNotification.body?: "Undefined notification body"
+        try {
+            db = AppDatabase.getAppDataBase(this)!!
 
-            val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Notification.Builder(this, mainChannelId).apply {
-                    setContentTitle(title)
-                    setSmallIcon(R.drawable.ic_stat_shirabox_notification)
-                    setAutoCancel(true)
-                }.build()
-            } else {
-                Notification.Builder(this).apply {
-                    setContentTitle(title)
-                    setSmallIcon(R.drawable.ic_stat_shirabox_notification)
-                    setAutoCancel(true)
-                }.build()
+            val data = remoteMessage.data
+
+            val messageData = MessageData(
+                title = data["title"] ?: "Undefined title",
+                body = data["body"] ?: "Undefined notification body",
+                shikimoriId = data["shikimori_id"]!!.toInt(),
+                thumbnailUrl = data["thumbnail"]
+            )
+
+            scope.launch {
+                launch { sendNotification(messageData) }
+                launch { saveNotification(messageData) }
             }
 
-            if (ActivityCompat
-                .checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                == PackageManager.PERMISSION_GRANTED
-            ) NotificationManagerCompat.from(this).notify(1, notification)
-
-            // Save notification into the database
-
-            data["enName"]?.let {
-                scope.launch(Dispatchers.IO) {
-                    val appDatabase = AppDatabase.getAppDataBase(this@NotificationService)!!
-
-                    appDatabase.notificationDao().insertNotification(NotificationEntity(
-                        contentEnName = it,
-                        receiveTimestamp = System.currentTimeMillis(),
-                        text = body
-                    ))
-                }
-            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
         }
     }
+
+    private suspend fun sendNotification(messageData: MessageData) {
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(notificationChannel(this))
+        }
+
+        val thumbnailBitmap = messageData.thumbnailUrl?.let {
+            withContext(Dispatchers.IO) {
+                async { Util.getBitmapFromURL(URL(it)) }
+            }.await()
+        }
+
+        val activityIntent = Intent(this, ResourceActivity::class.java).apply {
+            putExtra("id", messageData.shikimoriId)
+            putExtra("type", ContentType.ANIME.toString())
+        }
+        val activityPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
+            addNextIntentWithParentStack(activityIntent)
+            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
+
+        val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this@NotificationService, MAIN_CHANNEL_ID).apply {
+                setContentTitle(messageData.title)
+                setContentText(messageData.body)
+                setLargeIcon(thumbnailBitmap)
+                setSmallIcon(R.drawable.ic_stat_shirabox_notification)
+                setContentIntent(activityPendingIntent)
+                setAutoCancel(true)
+            }.build()
+        } else {
+            Notification.Builder(this@NotificationService).apply {
+                setContentTitle(messageData.title)
+                setContentText(messageData.body)
+                setLargeIcon(thumbnailBitmap)
+                setSmallIcon(R.drawable.ic_stat_shirabox_notification)
+                setContentIntent(activityPendingIntent)
+                setAutoCancel(true)
+            }.build()
+        }
+
+        manager.notify(System.nanoTime().toInt(), notification)
+    }
+
+    private suspend fun saveNotification(messageData: MessageData) {
+        withContext(Dispatchers.IO) {
+            db.notificationDao().insertNotification(
+                NotificationEntity(
+                    contentShikimoriId = messageData.shikimoriId,
+                    receiveTimestamp = System.currentTimeMillis(),
+                    title = messageData.title,
+                    body = messageData.body,
+                    thumbnailUrl = messageData.thumbnailUrl ?: ""
+                )
+            )
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun notificationChannel(context: Context) = NotificationChannel(
+        MAIN_CHANNEL_ID,
+        context.getString(R.string.notificaion_channel),
+        NotificationManager.IMPORTANCE_DEFAULT
+    ).apply { description = context.getString(R.string.notificaion_channel_description) }
 }

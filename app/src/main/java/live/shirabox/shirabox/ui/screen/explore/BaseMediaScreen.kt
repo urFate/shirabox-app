@@ -257,7 +257,7 @@ private fun PopularsGrid(isReady: Boolean, contents: List<Content>) {
                         ResourceActivity::class.java
                     ).apply {
                         putExtra("id", it.shikimoriID)
-                        putExtra("type", it.type)
+                        putExtra("type", it.type.toString())
                     }
                 )
             }

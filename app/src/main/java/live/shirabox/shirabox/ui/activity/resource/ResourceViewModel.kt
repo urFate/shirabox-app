@@ -14,10 +14,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
+import live.shirabox.core.util.Util
 import live.shirabox.core.util.Util.Companion.mapContentToEntity
 import live.shirabox.core.util.Util.Companion.mapEntityToContent
 import live.shirabox.data.DataSources
@@ -133,25 +135,42 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
         }
     }
 
-    fun switchSourcePinStatus(id: Int, source: AbstractContentRepository) {
+    fun switchSourcePinStatus(id: Int, repository: AbstractContentRepository) {
         viewModelScope.launch(Dispatchers.IO) {
             val content = db?.contentDao()?.getContent(id)
-            content?.let {
-                val contentTopic = "${source.name.lowercase()}_${content.enName}"
+            content?.let { entity ->
+                val contentTopic = Util.encodeTopic(
+                    repository = repository.name,
+                    actingTeam = repository.name,
+                    contentEnName = entity.enName
+                )
 
-                when (pinnedSources.contains(source.name)) {
+                when (pinnedSources.contains(repository.name)) {
                     true -> {
-                        pinnedSources.remove(source.name)
+                        pinnedSources.remove(repository.name)
 
                         Firebase.messaging.unsubscribeFromTopic(contentTopic)
                     }
                     else -> {
-                        pinnedSources.add(source.name)
+                        pinnedSources.add(repository.name)
                         Firebase.messaging.subscribeToTopic(contentTopic)
                     }
                 }
 
-                db?.contentDao()?.updateContents(it.copy(pinnedSources = pinnedSources))
+                db?.contentDao()?.updateContents(entity.copy(pinnedSources = pinnedSources))
+            }
+        }
+    }
+
+    fun clearNotifications(shikimoriId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            db?.notificationDao()?.notificationsFromParent(shikimoriId)?.catch {
+                it.printStackTrace()
+                emitAll(emptyFlow())
+            }?.map {
+                it.toTypedArray()
+            }?.collect {
+                db.notificationDao().deleteNotification(*it)
             }
         }
     }
