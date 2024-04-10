@@ -106,14 +106,14 @@
     <string name="nothing_found">Ничего не найдено</string>
 
     <!--
-        Notifications dialog
+        Notifications UI
     -->
     <string name="notifications_request">Включить уведомления</string>
-    <string name="notifications_request_text">Вы сможете получать уведомления о выходе новых серий и обновлений ShiraBox. Обещаем, мы не будем надоедать вам &#10084;&#65039;️</string>
+    <string name="notifications_request_text">Вы сможете получать уведомления о выходе новых серий и обновлений ShiraBox. \nОбещаем, мы не будем надоедать вам!</string>
     <string name="enable_notifications">Включить уведомления</string>
     <string name="disable_notifications">Нет, спасибо</string>
     <string name="notifications_disabled">Уведомления отключены</string>
-    <string name="notifications_disabled_text">Вы больше не сможете получать уведомления о выходе новых серий и обновлений ShiraBox. Обещаем, мы не будем надоедать вам &#10084;&#65039;</string>
+    <string name="notifications_disabled_text">Вы больше не сможете получать уведомления о выходе новых серий и обновлений ShiraBox. \nУведомления можно включить перейдя в раздел приложений в настройках вашего устройства.</string>
     <string name="notifications_disabled_confirm">Хорошо</string>
     <string name="clear_notifications">Очистить</string>
     <string name="no_notifications">Уведомлений нет</string>
