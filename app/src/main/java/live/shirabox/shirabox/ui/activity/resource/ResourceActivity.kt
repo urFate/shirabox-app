@@ -161,6 +161,7 @@ fun Resource(
     LaunchedEffect(Unit) {
         model.fetchContent(id)
         model.fetchRelated(id)
+        model.clearNotifications(id)
     }
 
     AnimatedVisibility(

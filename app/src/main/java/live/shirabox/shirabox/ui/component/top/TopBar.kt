@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.NotificationsNone
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,15 +30,32 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
+import live.shirabox.core.util.Util
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.search.SearchActivity
 import live.shirabox.shirabox.ui.component.navigation.NestedNavItems
+import live.shirabox.shirabox.ui.screen.explore.notifications.NotificationsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(navController: NavController?) {
+fun TopBar(
+    navController: NavController,
+    model: NotificationsViewModel = viewModel(factory = Util.viewModelFactory {
+        NotificationsViewModel(context = navController.context.applicationContext)
+    })
+) {
     val context = LocalContext.current
+
+    val notifications = model.allNotificationsFlow().catch {
+        it.printStackTrace()
+        emitAll(emptyFlow())
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Row(
         modifier = Modifier
@@ -71,14 +91,23 @@ fun TopBar(navController: NavController?) {
         }
 
         IconButton(
-            onClick = { navController?.navigate(NestedNavItems.Notifications.route) }
+            modifier = Modifier.requiredSize(48.dp),
+            onClick = { navController.navigate(NestedNavItems.Notifications.route) }
         ) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                imageVector = Icons.Rounded.NotificationsNone,
-                contentDescription = "Notifications",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            BadgedBox(
+                badge = {
+                    if (notifications.value.isNotEmpty()) Badge {
+                        Text(text = Util.formatBadgeNumber(notifications.value.size))
+                }
+            }) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = Icons.Rounded.NotificationsNone,
+                    contentDescription = "Notifications",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
         }
     }
 }

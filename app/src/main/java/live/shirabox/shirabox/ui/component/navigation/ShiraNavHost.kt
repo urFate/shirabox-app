@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import live.shirabox.shirabox.ui.screen.explore.ExploreScreen
-import live.shirabox.shirabox.ui.screen.explore.NotificationsScreen
+import live.shirabox.shirabox.ui.screen.explore.notifications.NotificationsScreen
 import live.shirabox.shirabox.ui.screen.favourites.FavouritesScreen
 import live.shirabox.shirabox.ui.screen.profile.ProfileScreen
 import live.shirabox.shirabox.ui.screen.profile.history.History
@@ -22,6 +22,6 @@ fun ShiraBoxNavHost(navController: NavHostController){
             composable(BottomNavItems.Profile.route) { ProfileScreen(navController) }
         }
         composable(NestedNavItems.History.route) { History(navController) }
-        composable(NestedNavItems.Notifications.route) { NotificationsScreen() }
+        composable(NestedNavItems.Notifications.route) { NotificationsScreen(navController) }
     }
 }

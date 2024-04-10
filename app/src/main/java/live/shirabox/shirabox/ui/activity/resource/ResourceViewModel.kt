@@ -6,16 +6,23 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import live.shirabox.core.datastore.AppDataStore
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
+import live.shirabox.core.util.Util
 import live.shirabox.core.util.Util.Companion.mapContentToEntity
 import live.shirabox.core.util.Util.Companion.mapEntityToContent
 import live.shirabox.data.DataSources
@@ -131,15 +138,45 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
         }
     }
 
-    fun switchSourcePinStatus(id: Int, source: AbstractContentRepository) {
+    fun switchSourcePinStatus(context: Context, id: Int, repository: AbstractContentRepository) {
         viewModelScope.launch(Dispatchers.IO) {
             val content = db?.contentDao()?.getContent(id)
-            content?.let {
-                if (pinnedSources.contains(source.name)) pinnedSources.remove(source.name) else pinnedSources.add(
-                    source.name
+            val subscriptionAllowed =
+                AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
+                    ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
+
+            content?.let { entity ->
+                val contentTopic = Util.encodeTopic(
+                    repository = repository.name,
+                    actingTeam = repository.name,
+                    contentEnName = entity.enName
                 )
 
-                db?.contentDao()?.updateContents(it.copy(pinnedSources = pinnedSources))
+                when (pinnedSources.contains(repository.name)) {
+                    true -> {
+                        pinnedSources.remove(repository.name)
+                        if(subscriptionAllowed) Firebase.messaging.unsubscribeFromTopic(contentTopic)
+                    }
+                    else -> {
+                        pinnedSources.add(repository.name)
+                        if(subscriptionAllowed) Firebase.messaging.subscribeToTopic(contentTopic)
+                    }
+                }
+
+                db?.contentDao()?.updateContents(entity.copy(pinnedSources = pinnedSources))
+            }
+        }
+    }
+
+    fun clearNotifications(shikimoriId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            db?.notificationDao()?.notificationsFromParent(shikimoriId)?.catch {
+                it.printStackTrace()
+                emitAll(emptyFlow())
+            }?.map {
+                it.toTypedArray()
+            }?.collect {
+                db.notificationDao().deleteNotification(*it)
             }
         }
     }

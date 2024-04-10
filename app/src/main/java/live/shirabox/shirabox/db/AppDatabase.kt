@@ -7,17 +7,21 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import live.shirabox.core.entity.ContentEntity
 import live.shirabox.core.entity.EpisodeEntity
+import live.shirabox.core.entity.NotificationEntity
+import live.shirabox.core.util.Values
 import live.shirabox.shirabox.db.dao.ContentDao
 import live.shirabox.shirabox.db.dao.EpisodeDao
+import live.shirabox.shirabox.db.dao.NotificationDao
 
 @Database(
-    entities = [ContentEntity::class, EpisodeEntity::class],
+    entities = [ContentEntity::class, EpisodeEntity::class, NotificationEntity::class],
     version = 1
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun contentDao(): ContentDao
     abstract fun episodeDao(): EpisodeDao
+    abstract fun notificationDao(): NotificationDao
 
     companion object {
         private var INSTANCE: AppDatabase? = null
@@ -28,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     INSTANCE = Room.databaseBuilder(
                         context.applicationContext,
                         AppDatabase::class.java,
-                        "shirabox_db"
+                        Values.DATABASE_NAME
                     ).build()
                 }
             }
