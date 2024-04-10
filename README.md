@@ -32,9 +32,11 @@
 4. [x] Player functionality - ✅
 5. [x] Settings backend - ✅
 6. [x] Opening skips API integration - ✅
-7. [ ] Notifications - 🏗️
-8. [ ] User's watch statistics - ❌
-9. [ ] Ranobe & Manga reading functionality - ❌
+7. [x] Notifications - ✅
+8. [ ] User data sync - ❌
+9. [ ] TV Application - ❌
+10. [ ] User's watch statistics - ❌
+11. [ ] Ranobe & Manga reading functionality - ❌
 
 | Development status | Emoticon  |
 |--------------------|-----------|
