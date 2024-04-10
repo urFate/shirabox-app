@@ -14,8 +14,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import live.shirabox.core.datastore.AppDataStore
+import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
@@ -135,9 +138,13 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
         }
     }
 
-    fun switchSourcePinStatus(id: Int, repository: AbstractContentRepository) {
+    fun switchSourcePinStatus(context: Context, id: Int, repository: AbstractContentRepository) {
         viewModelScope.launch(Dispatchers.IO) {
             val content = db?.contentDao()?.getContent(id)
+            val subscriptionAllowed =
+                AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
+                    ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
+
             content?.let { entity ->
                 val contentTopic = Util.encodeTopic(
                     repository = repository.name,
@@ -148,12 +155,11 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
                 when (pinnedSources.contains(repository.name)) {
                     true -> {
                         pinnedSources.remove(repository.name)
-
-                        Firebase.messaging.unsubscribeFromTopic(contentTopic)
+                        if(subscriptionAllowed) Firebase.messaging.unsubscribeFromTopic(contentTopic)
                     }
                     else -> {
                         pinnedSources.add(repository.name)
-                        Firebase.messaging.subscribeToTopic(contentTopic)
+                        if(subscriptionAllowed) Firebase.messaging.subscribeToTopic(contentTopic)
                     }
                 }
 

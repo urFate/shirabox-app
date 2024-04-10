@@ -209,7 +209,7 @@ fun SourcesSheetScreen(
                                     coverImage = source.icon,
                                     trailingIcon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
                                     onTrailingIconClick = {
-                                        model.switchSourcePinStatus(content.shikimoriID, source)
+                                        model.switchSourcePinStatus(context, content.shikimoriID, source)
                                     }
                                 ) {
                                     currentSheetScreenState.value =
