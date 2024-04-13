@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.settings.Preference
@@ -30,11 +32,15 @@ fun GeneralSettingsScreen() {
     ) {
 
         Preference(
-            title = stringResource(id = R.string.settings_notifications),
-            description = stringResource(
-                id = R.string.notifications_settings_description
-            ),
-            icon = {
+            headlineContent = { Text(stringResource(id = R.string.settings_notifications)) },
+            supportingContent = {
+                Text(
+                    text = stringResource(id = R.string.notifications_settings_description),
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+            },
+            leadingContent = {
                 Icon(
                     imageVector = Icons.Outlined.Notifications,
                     tint = MaterialTheme.colorScheme.primary,
@@ -61,10 +67,21 @@ fun GeneralSettingsScreen() {
         }
 
         SwitchPreference(
-            title = { Text(text = stringResource(id = R.string.notifications_subscription_settings)) },
-            description = stringResource(
-                id = R.string.notifications_subscription_settings_description
-            ),
+            headlineContent = { Text(text = stringResource(id = R.string.notifications_subscription_settings)) },
+            supportingContent = {
+                Text(
+                    text = stringResource(id = R.string.notifications_subscription_settings_description),
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+            },
+            leadingContent = {
+                Icon(
+                    imageVector = Icons.Outlined.Subscriptions,
+                    contentDescription = "subscribe",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
             dsField = DataStoreScheme.FIELD_SUBSCRIPTION
         )
     }

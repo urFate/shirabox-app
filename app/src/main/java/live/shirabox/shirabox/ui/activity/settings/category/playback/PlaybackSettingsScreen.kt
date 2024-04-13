@@ -17,10 +17,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.catch
 import live.shirabox.core.datastore.AppDataStore
 import live.shirabox.core.datastore.DataStoreScheme
@@ -28,6 +30,7 @@ import live.shirabox.core.model.AuthService
 import live.shirabox.data.animeskip.AnimeSkipRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.auth.AuthActivity
+import live.shirabox.shirabox.ui.activity.settings.CombinedSwitchPreference
 import live.shirabox.shirabox.ui.activity.settings.OptionsBlock
 import live.shirabox.shirabox.ui.activity.settings.Preference
 import live.shirabox.shirabox.ui.activity.settings.SwitchPreference
@@ -70,9 +73,15 @@ fun PlaybackSettingsScreen() {
             .fillMaxSize()
     ) {
         Preference(
-            title = stringResource(id = R.string.playback_default_quality),
-            description = stringResource(id = R.string.playback_default_quality_desc),
-            icon = {
+            headlineContent = { Text(stringResource(id = R.string.playback_default_quality)) },
+            supportingContent = {
+                Text(
+                    text = stringResource(id = R.string.playback_default_quality_desc),
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+            },
+            leadingContent = {
                 Icon(
                     imageVector = Icons.Outlined.HighQuality,
                     tint = MaterialTheme.colorScheme.primary,
@@ -84,12 +93,19 @@ fun PlaybackSettingsScreen() {
         }
 
         OptionsBlock(title = stringResource(id = R.string.opening_preferences)) {
+            val isError = animeSkipKeyValidityState.value?.let { !it } ?: false
+
             SwitchPreference(
-                title = { Text(stringResource(id = R.string.opening_skip_preference)) },
-                description = stringResource(id = R.string.opening_skip_preference_desc),
-                icon = {
+                headlineContent = { Text(stringResource(id = R.string.opening_skip_preference)) },
+                supportingContent = {
+                    Text(
+                        text = stringResource(id = R.string.opening_skip_preference_desc),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                },
+                leadingContent = {
                     Icon(
-                        modifier = Modifier.size(24.dp),
                         imageVector = Icons.Outlined.SkipNext,
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "animeskip"
@@ -101,9 +117,15 @@ fun PlaybackSettingsScreen() {
             when(animeSkipClientKeyFlowState.value) {
                 null, "" -> {
                     Preference(
-                        title = stringResource(id = R.string.animeskip_preference),
-                        description = stringResource(id = R.string.animeskip_preference_desc),
-                        icon = {
+                        headlineContent = { Text(stringResource(id = R.string.animeskip_preference)) },
+                        supportingContent = {
+                            Text(
+                                text = stringResource(id = R.string.animeskip_preference_desc),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp
+                            )
+                        },
+                        leadingContent = {
                             Icon(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = R.drawable.animeskip),
@@ -120,9 +142,23 @@ fun PlaybackSettingsScreen() {
                     }
                 }
                 else -> {
-                    SwitchPreference(
-                        title = { Text(stringResource(id = R.string.animeskip_preference)) },
-                        icon = @Composable {
+                    CombinedSwitchPreference(
+                        headlineContent = { Text(stringResource(id = R.string.animeskip_preference)) },
+                        supportingContent = {
+                            Text(
+                                text = when (animeSkipKeyValidityState.value) {
+                                    true, null -> stringResource(id = R.string.animeskip_preference_desc_authorized)
+                                    false -> stringResource(id = R.string.animeskip_invalid_key)
+                                },
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                color = when (isError) {
+                                    true -> MaterialTheme.colorScheme.error
+                                    false -> Color.Unspecified
+                                }
+                            )
+                        },
+                        leadingContent = {
                             Icon(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = R.drawable.animeskip),
@@ -130,21 +166,14 @@ fun PlaybackSettingsScreen() {
                                 contentDescription = "animeskip"
                             )
                         },
-                        combinedClickable = true,
-                        enabled = animeSkipKeyValidityState.value ?: true,
-                        description = when (animeSkipKeyValidityState.value) {
-                            true, null -> stringResource(id = R.string.animeskip_preference_desc_authorized)
-                            false -> stringResource(id = R.string.animeskip_invalid_key)
-                        },
-                        isError = animeSkipKeyValidityState.value?.let { !it } ?: false,
+                        switchEnabled = !isError,
+                        uncheckSwitch = isError,
                         dsField = DataStoreScheme.FIELD_USE_ANIMESKIP
                     ) {
                         animeskipKeyVisibilityState.value = true
                     }
                 }
             }
-
-
         }
     }
 

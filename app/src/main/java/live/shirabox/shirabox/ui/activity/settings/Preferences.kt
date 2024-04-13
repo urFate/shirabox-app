@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,13 +31,56 @@ import live.shirabox.core.datastore.PreferenceField
 @Composable
 fun SwitchPreference(
     modifier: Modifier = Modifier,
-    title: @Composable () -> Unit,
-    description: String,
-    icon: @Composable () -> Unit = {},
+    headlineContent: @Composable () -> Unit,
+    supportingContent: @Composable () -> Unit,
+    leadingContent: @Composable () -> Unit = {},
     enabled: Boolean = true,
+    uncheckSwitch: Boolean = false,
+    dsField: PreferenceField<Boolean>
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val checkedState =
+        AppDataStore.read(context, dsField.key).collectAsState(initial = dsField.defaultValue)
+    val checked = remember(checkedState.value) {
+        checkedState.value ?: dsField.defaultValue
+    }
+
+    Preference(
+        modifier = modifier,
+        headlineContent = headlineContent,
+        supportingContent = supportingContent,
+        leadingContent = leadingContent,
+        trailingContent = {
+            Switch(
+                checked = if(uncheckSwitch) false else checked,
+                enabled = enabled,
+                onCheckedChange = {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        AppDataStore.write(context, dsField.key, !checked)
+                    }
+                }
+            )
+        },
+        enabled = enabled
+    ) {
+        coroutineScope.launch(Dispatchers.IO) {
+            AppDataStore.write(context, dsField.key, !checked)
+        }
+    }
+}
+
+@Composable
+fun CombinedSwitchPreference(
+    modifier: Modifier = Modifier,
+    headlineContent: @Composable () -> Unit,
+    supportingContent: @Composable () -> Unit,
+    leadingContent : @Composable () -> Unit = {},
+    enabled: Boolean = true,
+    switchEnabled: Boolean = true,
+    uncheckSwitch: Boolean = false,
     dsField: PreferenceField<Boolean>,
-    isError: Boolean = false,
-    combinedClickable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -50,43 +92,64 @@ fun SwitchPreference(
         checkedState.value ?: dsField.defaultValue
     }
 
+    Preference(
+        modifier = modifier,
+        headlineContent = headlineContent,
+        supportingContent = supportingContent,
+        leadingContent = leadingContent,
+        trailingContent = {
+            VerticalDivider(
+                modifier = Modifier.heightIn(8.dp, 48.dp)
+            )
+            Switch(
+                checked = if(uncheckSwitch) false else checked,
+                enabled = switchEnabled,
+                onCheckedChange = {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        AppDataStore.write(context, dsField.key, !checked)
+                    }
+                }
+            )
+        },
+        enabled = enabled,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun Preference (
+    modifier: Modifier = Modifier,
+    headlineContent: @Composable () -> Unit,
+    supportingContent: @Composable () -> Unit,
+    leadingContent: @Composable () -> Unit = {},
+    trailingContent: @Composable () -> Unit = {},
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .clickable(
-                enabled = if (combinedClickable) true else enabled,
+                enabled = enabled,
                 onClickLabel = null,
                 role = null,
-                onClick = {
-                    if (!combinedClickable) {
-                        coroutineScope.launch(Dispatchers.IO) {
-                            AppDataStore.write(context, dsField.key, !checked)
-                        }
-                    } else onClick()
-                })
+                onClick = onClick
+            )
             .then(modifier)
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .width(IntrinsicSize.Max)
                 .padding(16.dp, 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            icon()
+            leadingContent()
             Column(
-                modifier = Modifier
-                    .padding(16.dp, 0.dp)
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             ) {
-                title()
-                Text(
-                    text = description,
-                    color = when (isError) {
-                        true -> MaterialTheme.colorScheme.error
-                        false -> Color.Unspecified
-                    },
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
+                headlineContent()
+                supportingContent()
             }
             Row(
                 modifier = Modifier
@@ -95,48 +158,7 @@ fun SwitchPreference(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if(combinedClickable) VerticalDivider(
-                    modifier = Modifier.heightIn(8.dp, 48.dp)
-                )
-                Switch(
-                    checked = if(!enabled && isError) false else checked,
-                    enabled = enabled,
-                    onCheckedChange = {
-                        coroutineScope.launch(Dispatchers.IO) {
-                            AppDataStore.write(context, dsField.key, !checked)
-                        }
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun Preference (
-    title: String,
-    description: String,
-    icon: @Composable () -> Unit,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Row (
-            modifier = Modifier.padding(16.dp, 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            icon()
-            Column {
-                Text(text = title)
-                Text(
-                    text = description,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
+                trailingContent()
             }
         }
     }
