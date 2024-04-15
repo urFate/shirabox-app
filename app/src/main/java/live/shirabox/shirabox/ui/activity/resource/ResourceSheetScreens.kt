@@ -47,6 +47,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -458,7 +459,7 @@ private fun TeamListItem(
         headlineContent = { Text(team.name) },
         supportingContent = {
             Text(
-                "${episodes.size} Серий"
+                pluralStringResource(id = R.plurals.episodes_plurals, count = episodes.size, episodes.size)
             )
         },
         overlineContent = { Text("Обновлено $updatedTimestamp") },

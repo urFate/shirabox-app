@@ -175,4 +175,17 @@
     <string name="invalid_credentials">Неверный Email или пароль</string>
     <string name="no_internet_connection">Отсутствует подключение к сети</string>
     <string name="forgot_password">Восстановить доступ</string>
+
+    <!--
+        Plurals
+    -->
+
+    <plurals name="episodes_plurals">
+        <item quantity="zero">Нет серий</item>
+        <item quantity="one">%d серия</item>
+        <item quantity="two">%d серии</item>
+        <item quantity="few">%d серии</item>
+        <item quantity="many">%d серий</item>
+        <item quantity="other">%d серий</item>
+    </plurals>
 </resources>
