@@ -38,7 +38,7 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MovieCreation
-import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -362,9 +362,9 @@ fun Resource(
 
                     ) {
                         Icon(
-                            Icons.Outlined.PlayArrow,
+                            imageVector = Icons.Rounded.PlayArrow,
                             contentDescription = "Play button icon",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                            modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                         Text(
