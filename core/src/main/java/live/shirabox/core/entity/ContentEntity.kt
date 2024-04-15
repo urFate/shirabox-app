@@ -28,5 +28,5 @@ data class ContentEntity(
     @ColumnInfo(name = "genres") val genres: List<String> = emptyList(),
     @ColumnInfo(name = "favourite") val isFavourite: Boolean,
     @ColumnInfo(name = "last_view") val lastViewTimestamp: Long,
-    @ColumnInfo(name = "pinned_sources") val pinnedSources: List<String>
+    @ColumnInfo(name = "pinned_teams") val pinnedTeams: List<String>
 )

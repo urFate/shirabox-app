@@ -84,12 +84,13 @@ class Util {
         }
 
         fun mapContentToEntity(
+            contentUid: Long? = null,
             content: Content,
             isFavourite: Boolean,
             lastViewTimestamp: Long,
-            pinnedSources: List<String>
+            pinnedTeams: List<String>
         ): ContentEntity {
-            return ContentEntity(
+            val entity = ContentEntity(
                 name = content.name,
                 enName = content.enName,
                 altNames = content.altNames,
@@ -108,8 +109,13 @@ class Util {
                 genres = content.genres,
                 isFavourite = isFavourite,
                 lastViewTimestamp = lastViewTimestamp,
-                pinnedSources = pinnedSources
+                pinnedTeams = pinnedTeams
             )
+
+            return when(contentUid) {
+                null -> entity
+                else -> entity.copy(uid = contentUid)
+            }
         }
 
         @OptIn(ExperimentalEncodingApi::class)

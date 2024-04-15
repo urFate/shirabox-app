@@ -3,6 +3,7 @@ package live.shirabox.core.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
 
@@ -11,6 +12,7 @@ data class EpisodeEntity(
     @PrimaryKey(autoGenerate = true) val uid: Int? = 0,
     @ColumnInfo(name = "content_uid") val contentUid: Long = -1,
     @ColumnInfo(name = "source") val source: String,
+    @ColumnInfo(name = "acting_team") val actingTeam: ActingTeam,
     @ColumnInfo(name = "name") val name: String?,
     @ColumnInfo(name = "episode") val episode: Int,
     @ColumnInfo(name = "upload_timestamp") val uploadTimestamp: Long,

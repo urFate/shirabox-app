@@ -9,20 +9,20 @@ import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import live.shirabox.core.entity.ContentEntity
-import live.shirabox.core.entity.relation.CollectedContent
+import live.shirabox.core.entity.relation.CombinedContent
 
 @Dao
 interface ContentDao {
     @Transaction
     @Query("SELECT * FROM content")
-    fun allCollectedContent(): Flow<List<ContentEntity>>
+    fun allCombinedContent(): Flow<List<ContentEntity>>
 
     @Query("SELECT * FROM content WHERE favourite IS 1")
     fun getFavourites(): Flow<List<ContentEntity>>
 
     @Transaction
     @Query("SELECT * FROM content WHERE shikimori_id IS :shikimoriId")
-    fun collectedContent(shikimoriId: Int): CollectedContent
+    fun combinedContent(shikimoriId: Int): CombinedContent
 
     @Query("SELECT * FROM content WHERE shikimori_id IS :shikimoriId")
     fun getContent(shikimoriId: Int): ContentEntity?

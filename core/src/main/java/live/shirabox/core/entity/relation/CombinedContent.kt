@@ -5,7 +5,7 @@ import androidx.room.Relation
 import live.shirabox.core.entity.ContentEntity
 import live.shirabox.core.entity.EpisodeEntity
 
-data class CollectedContent(
+data class CombinedContent(
     @Embedded val content: ContentEntity,
 
     @Relation(

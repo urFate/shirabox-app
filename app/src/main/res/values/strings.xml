@@ -76,6 +76,7 @@
     <string name="discussion">Обсуждение</string>
     <string name="no_internet_connection_variant">Ой… А где интернет-то?</string>
     <string name="go_back">Вернуться</string>
+    <string name="continue_watching">Продолжить</string>
 
     <!--
         Player Activity

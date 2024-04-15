@@ -10,10 +10,10 @@ abstract class AbstractContentRepository (
     val name: String,
     val url: String,
     val contentType: ContentType,
-    val icon: String? = null,
     ) {
     val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
     abstract suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>>
+    abstract suspend fun searchEpisodesInRange(content: Content, range: IntRange): Flow<List<EpisodeEntity>>
 
 }

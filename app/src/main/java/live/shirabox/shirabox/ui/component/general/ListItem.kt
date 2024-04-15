@@ -21,6 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import live.shirabox.shirabox.R
@@ -87,17 +90,21 @@ fun ListItem(
 
 @Composable
 fun ExtendedListItem(
+    modifier: Modifier = Modifier,
     headlineContent: @Composable () -> Unit,
     overlineContent: @Composable () -> Unit = {},
     supportingContent: @Composable () -> Unit = {},
     coverImage: String? = null,
     trailingIcon: ImageVector?,
     clickable: Boolean = true,
+    headlineText: String,
     onTrailingIconClick: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
     ListItem(
-        modifier = if (clickable) Modifier.clickable(onClick = onClick) else Modifier,
+        modifier = if (clickable) Modifier
+            .clickable(onClick = onClick)
+            .then(modifier) else Modifier.then(modifier),
         overlineContent = overlineContent,
         headlineContent = headlineContent,
         supportingContent = supportingContent,
@@ -114,18 +121,26 @@ fun ExtendedListItem(
         },
         leadingContent = {
             coverImage?.let {
-                AsyncImage(
+                SubcomposeAsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(coverImage)
                         .crossfade(true)
                         .build(),
-                    modifier = Modifier
-                        .height(40.dp)
-                        .width(40.dp)
-                        .clip(RoundedCornerShape(100)),
-                    contentDescription = "Composable Image",
-                    contentScale = ContentScale.Crop
-                )
+                    contentScale = ContentScale.Crop,
+                    contentDescription = headlineText
+                ) {
+                    val state = painter.state
+
+                    when(state) {
+                        is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent(
+                            modifier = Modifier
+                                .height(40.dp)
+                                .width(40.dp)
+                                .clip(RoundedCornerShape(100))
+                        )
+                        else -> Monogram(str = headlineText)
+                    }
+                }
             }
         }
     )

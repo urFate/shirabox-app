@@ -4,6 +4,7 @@ import fuel.httpGet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import live.shirabox.core.entity.EpisodeEntity
+import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
@@ -12,13 +13,29 @@ import java.net.SocketTimeoutException
 
 
 class LibriaRepository : AbstractContentRepository(
-    "AniLibria",
-    "https://api.anilibria.tv",
+    "Libria",
+    "https://anilibria.tv",
     ContentType.ANIME,
-    "https://anilibria.tv/favicons/apple-touch-icon.png"
 ) {
-    override suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>> {
-        return flow { emit(advancedSearch(content)) }
+    companion object {
+        const val API_ENDPOINT = "https://api.anilibria.tv"
+        const val ACTING_TEAM_LOGO_URL = "https://anilibria.tv/favicons/apple-touch-icon.png"
+    }
+
+    override suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>> = flow {
+        emit(advancedSearch(content))
+    }
+
+    override suspend fun searchEpisodesInRange(
+        content: Content,
+        range: IntRange
+    ): Flow<List<EpisodeEntity>> = flow {
+        emit(
+            advancedSearch(content).subList(
+                range.first,
+                range.last.coerceIn(0, advancedSearch(content).size)
+            )
+        )
     }
 
     private suspend fun advancedSearch(content: Content): List<EpisodeEntity> {
@@ -26,7 +43,7 @@ class LibriaRepository : AbstractContentRepository(
         if(libriaKind(content.kind) == null) return emptyList()
 
         try {
-            val response = "$url/v3/title/search/advanced"
+            val response = "$API_ENDPOINT/v3/title/search/advanced"
                 .httpGet(listOf(
                     "query" to "${content.releaseYear?.let { "{season.year} == $it" }} " +
                             "and {type.code} == ${libriaKind(content.kind)} and " +
@@ -57,7 +74,7 @@ class LibriaRepository : AbstractContentRepository(
             name = data.name,
             source = this.name,
             episode = data.episode,
-            uploadTimestamp = data.createdTimestamp.toLong(),
+            uploadTimestamp = data.createdTimestamp.toLong().times(1000L),
             videos = buildMap {
                 put(Quality.SD, hostUrl + data.hls.sd)
                 data.hls.hd?.let { url -> put(Quality.HD, hostUrl + url) }
@@ -66,6 +83,9 @@ class LibriaRepository : AbstractContentRepository(
             videoMarkers = Pair(
                 data.skips.opening.firstOrNull()?.times(1000L) ?: -1L,
                 data.skips.opening.lastOrNull()?.times(1000L) ?: -1L
+            ),
+            actingTeam = ActingTeam(
+                name = "AniLibria", logoUrl = ACTING_TEAM_LOGO_URL
             ),
             type = this.contentType
         )

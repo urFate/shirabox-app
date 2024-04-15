@@ -17,7 +17,7 @@ enum class Quality(val quality: Int) {
     companion object {
         fun valueOfInt(i: Int): Quality {
             return when(i) {
-                480 -> SD
+                480, 360 -> SD
                 720 -> HD
                 1080 -> FHD
                 else -> HD

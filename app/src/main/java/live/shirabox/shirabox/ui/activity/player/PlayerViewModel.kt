@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import live.shirabox.core.datastore.AppDataStore
 import live.shirabox.core.datastore.DataStoreScheme
+import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.PlaylistVideo
 import live.shirabox.data.animeskip.AnimeSkipRepository
 import live.shirabox.shirabox.db.AppDatabase
@@ -26,6 +27,7 @@ class PlayerViewModel(
     val contentUid: Long,
     val contentName: String,
     val contentEnName: String,
+    val actingTeam: ActingTeam,
     val episode: Int,
     val startIndex: Int,
     val playlist: List<PlaylistVideo>
@@ -43,7 +45,7 @@ class PlayerViewModel(
     fun saveEpisodePosition(episode: Int, time: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             val episodeEntity =
-                db?.episodeDao()?.getEpisodeByParentAndEpisode(contentUid, episode)
+                db?.episodeDao()?.getEpisode(contentUid, episode, actingTeam)
 
             episodeEntity?.let { db?.episodeDao()?.updateEpisodes(it.copy(watchingTime = time)) }
         }
@@ -51,7 +53,7 @@ class PlayerViewModel(
 
     fun fetchEpisodePositions() {
         viewModelScope.launch(Dispatchers.IO) {
-            db?.episodeDao()?.getEpisodesByParent(contentUid)?.collect { entityList ->
+            db?.episodeDao()?.getEpisodes(contentUid, actingTeam)?.collect { entityList ->
                 episodesPositions.putAll(entityList.associate {
                     it.episode to it.watchingTime
                 })

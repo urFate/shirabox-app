@@ -11,5 +11,5 @@ class HistoryViewModel(context: Context) : ViewModel() {
     private val db = AppDatabase.getAppDataBase(context)
 
     fun contentsFlow(): Flow<List<ContentEntity>> =
-        db?.contentDao()?.allCollectedContent() ?: emptyFlow()
+        db?.contentDao()?.allCombinedContent() ?: emptyFlow()
 }

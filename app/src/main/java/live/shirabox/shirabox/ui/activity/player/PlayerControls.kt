@@ -89,7 +89,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     var currentPosition by remember { mutableLongStateOf(exoPlayer.currentPosition) }
     var totalDuration by remember { mutableLongStateOf(exoPlayer.duration) }
     var playbackState by remember { mutableIntStateOf(exoPlayer.playbackState) }
-    var hasNextMediaItem by remember { mutableStateOf(exoPlayer.hasNextMediaItem()) }
+    var hasNextMediaItem by remember { mutableStateOf(model.playlist.lastIndex != exoPlayer.currentMediaItemIndex) }
     var hasPreviousMediaItem by remember { mutableStateOf(exoPlayer.hasPreviousMediaItem()) }
     var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex) }
 
@@ -147,11 +147,11 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
             totalDuration = exoPlayer.duration
             currentPosition = exoPlayer.contentPosition
             playbackState = exoPlayer.playbackState
-            hasNextMediaItem = exoPlayer.hasNextMediaItem()
+            hasNextMediaItem = model.playlist.lastIndex != exoPlayer.currentMediaItemIndex
             hasPreviousMediaItem = exoPlayer.hasPreviousMediaItem()
-            currentMediaItemIndex = exoPlayer.currentMediaItemIndex + 1
+            currentMediaItemIndex = exoPlayer.currentMediaItemIndex.inc()
 
-            delay(400)
+            delay(200)
         }
     }
 

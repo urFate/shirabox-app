@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -38,6 +39,9 @@ import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MovieCreation
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -130,7 +134,9 @@ class ResourceActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
 fun Resource(
     id: Int,
@@ -149,6 +155,7 @@ fun Resource(
         }
     }
     val isFavourite = model.isFavourite.value
+    val isRefreshing = model.isRefreshing.value
 
     val isReady = remember(content) {
         content != null
@@ -157,6 +164,13 @@ fun Resource(
     val bottomSheetVisibilityState = remember {
         mutableStateOf(false)
     }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            model.content.value?.let { model.refresh(it) }
+        }
+    )
 
     LaunchedEffect(Unit) {
         model.fetchContent(id)
@@ -205,6 +219,7 @@ fun Resource(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .pullRefresh(pullRefreshState)
                     .verticalScroll(rememberScrollState()),
             ) {
                 Box {
@@ -533,6 +548,16 @@ fun Resource(
                 Spacer(Modifier.height(56.dp))
             }
 
+            Box(
+                modifier = Modifier.padding(64.dp).fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState
+                )
+            }
+
             ResourceBottomSheet(
                 content = content,
                 model = model,
@@ -584,6 +609,7 @@ fun CommentComponent(username: String, avatar: String, timestamp: String, text: 
         supportingContent = { Text(text) },
         coverImage = avatar,
         clickable = false,
+        headlineText = username,
         trailingIcon = null,
     )
 }

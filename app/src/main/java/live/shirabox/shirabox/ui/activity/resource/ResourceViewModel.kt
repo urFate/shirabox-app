@@ -10,8 +10,10 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -20,14 +22,15 @@ import kotlinx.coroutines.launch
 import live.shirabox.core.datastore.AppDataStore
 import live.shirabox.core.datastore.DataStoreScheme
 import live.shirabox.core.entity.EpisodeEntity
+import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
 import live.shirabox.core.util.Util.Companion.mapContentToEntity
 import live.shirabox.core.util.Util.Companion.mapEntityToContent
-import live.shirabox.data.DataSources
 import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import live.shirabox.data.content.AbstractContentRepository
+import live.shirabox.data.content.ContentRepositoryRegistry
 import live.shirabox.shirabox.db.AppDatabase
 
 class ResourceViewModel(context: Context, private val contentType: ContentType) : ViewModel() {
@@ -39,25 +42,27 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
     val internalContentUid = mutableLongStateOf(0)
 
     val isFavourite = mutableStateOf(false)
-    val pinnedSources = mutableStateListOf<String>()
+    val pinnedTeams = mutableStateListOf<String>()
 
     val episodeFetchComplete = mutableStateOf(false)
+    val isRefreshing = mutableStateOf(false)
     val contentObservationException = mutableStateOf<Exception?>(null)
 
-    val repositories = DataSources.contentSources.filter { it.contentType == contentType }
+    val repositories =
+        ContentRepositoryRegistry.REPOSITORIES.filter { it.contentType == contentType }
 
-    fun fetchContent(shikimoriId: Int) {
+    fun fetchContent(shikimoriId: Int, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             db?.let { database ->
-                val pickedData = database.contentDao().getContent(shikimoriId)
+                val cachedData = database.contentDao().getContent(shikimoriId)
 
-                pickedData?.let {
+                cachedData?.let {
                     content.value = mapEntityToContent(it)
                     isFavourite.value = it.isFavourite
                     internalContentUid.longValue = it.uid
-                    pinnedSources.addAll(it.pinnedSources)
+                    pinnedTeams.addAll(it.pinnedTeams)
 
-                    return@launch
+                    if(!forceRefresh) return@launch
                 }
 
                 ShikimoriRepository.fetchContent(shikimoriId, contentType).catch {
@@ -65,25 +70,40 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
                     it.printStackTrace()
                     emitAll(emptyFlow())
                 }.collect {
-                    val newUid = database.contentDao().insertContents(
-                        mapContentToEntity(
-                            content = it,
-                            isFavourite = false,
-                            lastViewTimestamp = System.currentTimeMillis(),
-                            pinnedSources = emptyList()
-                        )
-                    ).first()
+                    when(cachedData){
+                        null -> {
+                            val newUid = database.contentDao().insertContents(
+                                mapContentToEntity(
+                                    content = it,
+                                    isFavourite = false,
+                                    lastViewTimestamp = System.currentTimeMillis(),
+                                    pinnedTeams = emptyList()
+                                )
+                            ).first()
 
-                    internalContentUid.longValue = newUid
-                    content.value = it
+                            internalContentUid.longValue = newUid
+                            content.value = it
+                        }
+                        else -> {
+                            database.contentDao().updateContents(
+                                mapContentToEntity(
+                                    contentUid = cachedData.uid,
+                                    content = it,
+                                    isFavourite = cachedData.isFavourite,
+                                    lastViewTimestamp = cachedData.lastViewTimestamp,
+                                    pinnedTeams = cachedData.pinnedTeams
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 
-    fun fetchRelated(id: Int) {
+    fun fetchRelated(shikimoriID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            ShikimoriRepository.fetchRelated(id, contentType).catch {
+            ShikimoriRepository.fetchRelated(shikimoriID, contentType).catch {
                 it.printStackTrace()
                 emitAll(emptyFlow())
             }.collect { contents ->
@@ -96,34 +116,50 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
             Flow<List<EpisodeEntity>> = db?.episodeDao()?.all() ?: emptyFlow()
 
     fun fetchEpisodes(content: Content) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val finishedDeferred = async {
-                db?.contentDao()?.collectedContent(content.shikimoriID)?.let { collectedContent ->
-                    repositories.forEach { source ->
-                        source.searchEpisodes(content).collect { list ->
-                            list.mapIndexed { index, episodeEntity ->
-                                val matchingEpisode = collectedContent.episodes.getOrNull(index)
+        val finishedDeferred = viewModelScope.async(Dispatchers.IO) {
+            val combinedContent = db?.contentDao()?.combinedContent(content.shikimoriID)
 
-                                /**
-                                 * Keep local data (e.g. watching time and id's)
-                                 */
+            combinedContent?.let {
+                repositories.forEach { repository ->
+                    val cachedEpisodes = combinedContent.episodes
+                    val completeSearchRequired = cachedEpisodes.none { it.source == repository.name }
 
-                                episodeEntity.copy(
-                                    uid = matchingEpisode?.uid,
-                                    contentUid = collectedContent.content.uid,
-                                    watchingTime = matchingEpisode?.watchingTime ?: -1L,
-                                    readingPage = matchingEpisode?.readingPage ?: -1
-                                )
-                            }.toTypedArray().let { entities ->
-                                db.episodeDao().insertEpisodes(*entities)
-                            }
+                    async {
+                        when (completeSearchRequired) {
+                            true -> completeEpisodesSearch(
+                                repository = repository,
+                                content = content,
+                                contentUid = combinedContent.content.uid,
+                                cachedEpisodes = cachedEpisodes
+                            )
+
+                            false -> partialEpisodesSearch(
+                                repository = repository,
+                                content = content,
+                                contentUid = combinedContent.content.uid,
+                                cachedEpisodes = cachedEpisodes,
+                                range = cachedEpisodes.last().episode.inc()..Int.MAX_VALUE
+                            )
                         }
-                    }
+                    }.await()
                 }
-                true
             }
+            true
+        }
 
+        viewModelScope.launch(Dispatchers.IO) {
             episodeFetchComplete.value = finishedDeferred.await()
+        }
+    }
+
+    fun refresh(content: Content) {
+        viewModelScope.launch(Dispatchers.IO) {
+            isRefreshing.value = true
+            fetchContent(content.shikimoriID, true)
+            fetchRelated(content.shikimoriID)
+            fetchEpisodes(content)
+            delay(2000L)
+            isRefreshing.value = false
         }
     }
 
@@ -138,7 +174,12 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
         }
     }
 
-    fun switchSourcePinStatus(context: Context, id: Int, repository: AbstractContentRepository) {
+    fun switchTeamPinStatus(
+        context: Context,
+        id: Int,
+        repository: AbstractContentRepository,
+        team: ActingTeam
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val content = db?.contentDao()?.getContent(id)
             val subscriptionAllowed =
@@ -148,22 +189,25 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
             content?.let { entity ->
                 val contentTopic = Util.encodeTopic(
                     repository = repository.name,
-                    actingTeam = repository.name,
+                    actingTeam = team.name,
                     contentEnName = entity.enName
                 )
 
-                when (pinnedSources.contains(repository.name)) {
+                when (pinnedTeams.contains(team.name)) {
                     true -> {
-                        pinnedSources.remove(repository.name)
-                        if(subscriptionAllowed) Firebase.messaging.unsubscribeFromTopic(contentTopic)
+                        pinnedTeams.remove(team.name)
+                        if (subscriptionAllowed) Firebase.messaging.unsubscribeFromTopic(
+                            contentTopic
+                        )
                     }
+
                     else -> {
-                        pinnedSources.add(repository.name)
-                        if(subscriptionAllowed) Firebase.messaging.subscribeToTopic(contentTopic)
+                        pinnedTeams.add(team.name)
+                        if (subscriptionAllowed) Firebase.messaging.subscribeToTopic(contentTopic)
                     }
                 }
 
-                db?.contentDao()?.updateContents(entity.copy(pinnedSources = pinnedSources))
+                db?.contentDao()?.updateContents(entity.copy(pinnedTeams = pinnedTeams))
             }
         }
     }
@@ -178,6 +222,60 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
             }?.collect {
                 db.notificationDao().deleteNotification(*it)
             }
+        }
+    }
+
+    private suspend fun completeEpisodesSearch(
+        repository: AbstractContentRepository,
+        content: Content,
+        contentUid: Long,
+        cachedEpisodes: List<EpisodeEntity>
+    ) {
+        repository.searchEpisodes(content).catch {
+            it.printStackTrace()
+            emitAll(emptyFlow())
+        }.collectLatest {
+            cacheEpisodes(it, cachedEpisodes, contentUid)
+        }
+    }
+
+    private suspend fun partialEpisodesSearch(
+        repository: AbstractContentRepository,
+        content: Content,
+        contentUid: Long,
+        cachedEpisodes: List<EpisodeEntity>,
+        range: IntRange
+    ) {
+        repository.searchEpisodesInRange(content, range).catch {
+            it.printStackTrace()
+            emitAll(emptyFlow())
+        }.collectLatest {
+            cacheEpisodes(it, cachedEpisodes, contentUid)
+        }
+    }
+
+    private fun cacheEpisodes(episodes: List<EpisodeEntity>, cachedEpisodes: List<EpisodeEntity>, contentUid: Long) {
+        episodes.map { episodeEntity ->
+
+            /**
+             * Keep local data (e.g. watching time and id's)
+             */
+
+            when (
+                val matchingEpisode = cachedEpisodes.firstOrNull { it.episode == episodeEntity.episode }
+            ) {
+                null -> episodeEntity.copy(uid = null, contentUid = contentUid)
+                else -> {
+                    episodeEntity.copy(
+                        uid = matchingEpisode.uid,
+                        contentUid = contentUid,
+                        watchingTime = matchingEpisode.watchingTime,
+                        readingPage = matchingEpisode.readingPage
+                    )
+                }
+            }
+        }.let { entities ->
+            db?.episodeDao()?.insertEpisodes(*entities.toTypedArray())
         }
     }
 }
