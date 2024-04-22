@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -71,6 +72,8 @@ import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
                     color = MaterialTheme.colorScheme.background
                 ) { SearchScreen() }
             }
+
+            enableEdgeToEdge()
         }
     }
 }

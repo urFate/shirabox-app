@@ -86,7 +86,7 @@ object UpdateManager {
     }
 
     private fun uriFromFile(context: Context, applicationId: String, file: File): Uri {
-        return FileProvider.getUriForFile(context, "$applicationId.provider", file);
+        return FileProvider.getUriForFile(context, "$applicationId.provider", file)
     }
 
     fun cancelDownload() {
