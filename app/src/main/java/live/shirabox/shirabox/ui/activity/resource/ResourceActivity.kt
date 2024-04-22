@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MovieCreation
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -46,6 +47,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -54,6 +56,7 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -62,6 +65,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -157,13 +161,10 @@ fun Resource(
     val isFavourite = model.isFavourite.value
     val isRefreshing = model.isRefreshing.value
 
-    val isReady = remember(content) {
-        content != null
-    }
+    val isReady = remember(content) { content != null }
+    val bottomSheetVisibilityState = remember { mutableStateOf(false) }
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
-    val bottomSheetVisibilityState = remember {
-        mutableStateOf(false)
-    }
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -266,9 +267,38 @@ fun Resource(
                         colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
                         actions = {
                             IconButton(
-                                onClick = { /*TODO*/ },
+                                onClick = { dropdownExpanded = true },
                             ) {
                                 Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
+                            }
+
+                            DropdownMenu(
+                                expanded = dropdownExpanded,
+                                onDismissRequest = { dropdownExpanded = false }
+                            ) {
+                                TextButton(
+                                    onClick = {
+                                        shareVia(context, content.shikimoriID)
+                                        dropdownExpanded = false
+                                    }
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(24.dp),
+                                            imageVector = Icons.Rounded.Share,
+                                            contentDescription = "share",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                        Text(
+                                            text = stringResource(id = R.string.share),
+                                            fontSize = 16.sp,
+                                            modifier = Modifier.padding(8.dp)
+                                        )
+                                    }
+                                }
                             }
                         },
                         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -549,7 +579,9 @@ fun Resource(
             }
 
             Box(
-                modifier = Modifier.padding(64.dp).fillMaxSize(),
+                modifier = Modifier
+                    .padding(64.dp)
+                    .fillMaxSize(),
                 contentAlignment = Alignment.TopCenter
             ) {
                 PullRefreshIndicator(
@@ -585,6 +617,17 @@ fun ResourceDataLabel(icon: ImageVector, text: String){
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+private fun shareVia(context: Context, shikimoriId: Int) {
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, "https://shikimori.one/animes/$shikimoriId")
+        type = "text/plain"
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    context.startActivity(shareIntent)
 }
 
 @Composable
