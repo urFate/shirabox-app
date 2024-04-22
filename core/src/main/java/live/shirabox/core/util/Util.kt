@@ -1,12 +1,15 @@
 package live.shirabox.core.util
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.text.Html
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -147,6 +150,14 @@ class Util {
 
         fun formatBadgeNumber(number: Int): String {
             return if (number < 9) number.toString() else "9+"
+        }
+
+        fun openUri(context: Context, uri: Uri) {
+            ContextCompat.startActivity(
+                context,
+                Intent(Intent.ACTION_VIEW).setData(uri),
+                null
+            )
         }
 
         inline fun <VM : ViewModel> viewModelFactory(crossinline f: () -> VM) =

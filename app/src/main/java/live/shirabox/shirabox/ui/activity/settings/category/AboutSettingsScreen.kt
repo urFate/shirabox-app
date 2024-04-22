@@ -3,7 +3,6 @@ package live.shirabox.shirabox.ui.activity.settings.category
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -29,8 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import live.shirabox.core.util.Util
+import live.shirabox.core.util.Util.Companion.openUri
 import live.shirabox.shirabox.BuildConfig
 import live.shirabox.shirabox.R
 
@@ -129,12 +128,4 @@ fun AboutSettingsScreen() {
             }
         }
     }
-}
-
-private fun openUri(context: Context, uri: Uri) {
-    startActivity(
-        context,
-        Intent(Intent.ACTION_VIEW).setData(uri),
-        null
-    )
 }

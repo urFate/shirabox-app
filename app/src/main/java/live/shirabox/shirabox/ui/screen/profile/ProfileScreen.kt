@@ -1,6 +1,8 @@
 package live.shirabox.shirabox.ui.screen.profile
 
 import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.automirrored.outlined.Login
+import androidx.compose.material.icons.automirrored.rounded.Login
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
@@ -31,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import live.shirabox.core.util.Util.Companion.openUri
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.settings.SettingsActivity
 import live.shirabox.shirabox.ui.activity.update.AppUpdateActivity
@@ -40,6 +43,11 @@ import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 @Composable
 fun ProfileScreen(navController: NavController){
     val context = LocalContext.current
+    val site = "https://www.shirabox.live"
+
+    val donationUri = Uri.parse("$site/donate")
+    val helpUri = Uri.parse("$site/faq")
+
 
     ShiraBoxTheme {
         Column(
@@ -48,16 +56,19 @@ fun ProfileScreen(navController: NavController){
             OutlinedCard(
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
-                    .fillMaxWidth(1f) // Set the desired width percentage
+                    .fillMaxWidth(1f)
                     .padding(16.dp)
                     .height(72.dp)
+                    .clickable {
+                        Toast.makeText(context, "В разработке...", Toast.LENGTH_SHORT).show()
+                    }
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.Login,
+                        imageVector = Icons.AutoMirrored.Rounded.Login,
                         contentDescription = "Login Icon",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -94,7 +105,9 @@ fun ProfileScreen(navController: NavController){
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.donate) ) },
-                    modifier = Modifier.clickable {  },
+                    modifier = Modifier.clickable {
+                        openUri(context, donationUri)
+                    },
                     leadingContent = {
                         Icon(
                             Icons.Outlined.Savings,
@@ -135,7 +148,9 @@ fun ProfileScreen(navController: NavController){
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.help)) },
-                    modifier = Modifier.clickable {  },
+                    modifier = Modifier.clickable {
+                        openUri(context, helpUri)
+                    },
                     leadingContent = {
                         Icon(
                             Icons.AutoMirrored.Outlined.HelpOutline,
