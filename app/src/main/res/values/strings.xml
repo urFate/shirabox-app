@@ -29,6 +29,7 @@
     <string name="popular">Популярно</string>
     <string name="notifications">Уведомления</string>
     <string name="today">Сегодня</string>
+    <string name="update_available">Доступно обновление приложения!</string>
 
 
     <!--
@@ -175,6 +176,20 @@
     <string name="invalid_credentials">Неверный Email или пароль</string>
     <string name="no_internet_connection">Отсутствует подключение к сети</string>
     <string name="forgot_password">Восстановить доступ</string>
+
+
+    <!--
+        Application Update Activity
+    -->
+    <string name="title_activity_app_update">AppUpdateActivity</string>
+    <string name="update">Доступна новая версия!</string>
+    <string name="update_install">Скачать обновление</string>
+    <string name="update_build_date">Сборка от %s</string>
+    <string name="no_update_required">У вас последняя версия!</string>
+    <string name="file_downloading">Скачивание файла…</string>
+    <string name="update_dialog_title">Обновление</string>
+    <string name="cancel_installation">Отменить загрузку</string>
+    <string name="download_error">Произшла ошибка. Повторите попытку позже.</string>
 
     <!--
         Plurals

@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.settings.SettingsActivity
+import live.shirabox.shirabox.ui.activity.update.AppUpdateActivity
 import live.shirabox.shirabox.ui.component.navigation.NestedNavItems
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 
@@ -105,12 +106,7 @@ fun ProfileScreen(navController: NavController){
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.settings)) },
                     modifier = Modifier.clickable {
-                        context.startActivity(
-                            Intent(
-                                context,
-                                SettingsActivity::class.java
-                            )
-                        )
+                        context.startActivity(Intent(context, SettingsActivity::class.java))
                     },
                     leadingContent = {
                         Icon(
@@ -126,7 +122,9 @@ fun ProfileScreen(navController: NavController){
                 )
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.updates_check) ) },
-                    modifier = Modifier.clickable {  },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, AppUpdateActivity::class.java))
+                    },
                     leadingContent = {
                         Icon(
                             Icons.Outlined.SystemUpdate,

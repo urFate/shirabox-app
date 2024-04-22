@@ -83,6 +83,8 @@ dependencies {
     debugImplementation ("androidx.compose.ui:ui-test-manifest:$composeVersion")
 
     // Compose UI
+    val richtextVersion = "1.0.0-alpha01"
+
     implementation ("de.mr-pine.utils:zoomables:1.4.0")
     implementation ("androidx.compose.material3:material3:1.2.1")
     implementation ("androidx.compose.material:material:1.6.5")
@@ -90,6 +92,10 @@ dependencies {
     implementation ("androidx.navigation:navigation-compose:2.7.7")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation ("com.google.accompanist:accompanist-placeholder-material3:0.30.1")
+    implementation("com.halilibo.compose-richtext:richtext-ui-material3:$richtextVersion")
+    implementation("com.halilibo.compose-richtext:richtext-markdown:$richtextVersion")
+    implementation("com.halilibo.compose-richtext:richtext-commonmark:$richtextVersion")
+
 
     // Kotlin Serialization
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
@@ -118,6 +124,7 @@ dependencies {
 
     // Network
     implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation("com.github.kittinunf.fuel:fuel:3.0.0-alpha1")
     implementation("io.coil-kt:coil-svg:2.6.0")
 
     // Datastore
