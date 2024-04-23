@@ -2,10 +2,13 @@
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.window.OnBackInvokedDispatcher
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -62,7 +65,7 @@ import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
 import live.shirabox.shirabox.ui.component.general.ListItem
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 
-    class SearchActivity : ComponentActivity() {
+class SearchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -75,6 +78,23 @@ import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
             }
 
             enableEdgeToEdge()
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) registerOnBackInvokedCallback()
+    }
+
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
+    override fun onBackPressed() {
+        super.onBackPressed()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            this@SearchActivity.finish()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun registerOnBackInvokedCallback() {
+        onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_OVERLAY) {
+            this@SearchActivity.finish()
         }
     }
 }
