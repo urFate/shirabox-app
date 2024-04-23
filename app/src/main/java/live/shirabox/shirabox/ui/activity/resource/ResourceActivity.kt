@@ -73,6 +73,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -185,7 +186,11 @@ fun Resource(
     ) {
         Box(
             contentAlignment = Alignment.Center
-        ) { CircularProgressIndicator() }
+        ) {
+            CircularProgressIndicator(
+                strokeCap = StrokeCap.Round
+            )
+        }
     }
 
     AnimatedVisibility(

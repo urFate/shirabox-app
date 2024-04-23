@@ -43,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -166,7 +167,8 @@ fun SourcesSheetScreen(
                 exit = fadeOut()
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier.padding(64.dp)
+                    modifier = Modifier.padding(64.dp),
+                    strokeCap = StrokeCap.Round
                 )
             }
 
@@ -290,7 +292,8 @@ fun EpisodesSheetScreen(
                 exit = fadeOut()
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier.padding(64.dp)
+                    modifier = Modifier.padding(64.dp),
+                    strokeCap = StrokeCap.Round
                 )
             }
 

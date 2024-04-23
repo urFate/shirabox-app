@@ -243,7 +243,9 @@ fun LoadingScreen() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(
+            strokeCap = StrokeCap.Round
+        )
     }
 }
 

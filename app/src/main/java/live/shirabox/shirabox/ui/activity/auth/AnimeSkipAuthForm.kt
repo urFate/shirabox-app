@@ -11,6 +11,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -79,7 +80,9 @@ fun AnimeSkipAuthForm(authService: AbstractAuthService = AnimeSkipAuthService) {
             SubcomposeAsyncImage(
                 modifier = Modifier.width(92.dp),
                 loading = {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        strokeCap = StrokeCap.Round
+                    )
                 },
                 imageLoader = ImageLoader.Builder(context)
                     .components { add(SvgDecoder.Factory()) }
