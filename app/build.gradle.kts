@@ -72,6 +72,7 @@ dependencies {
     implementation (platform("androidx.compose:compose-bom:2024.04.01"))
     implementation (platform("org.jetbrains.kotlin:kotlin-bom:1.9.23"))
     implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     testImplementation ("junit:junit:4.13.2")
     androidTestImplementation ("androidx.test.ext:junit:1.1.5")
