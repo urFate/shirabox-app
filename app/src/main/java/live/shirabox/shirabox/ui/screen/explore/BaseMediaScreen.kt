@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,7 +18,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -147,21 +145,8 @@ fun BaseMediaScreen(
             )
 
             PopularsGrid(
-                isReady = isReady,
                 contents = popularsStateFlow.value ?: emptyList()
             )
-        }
-
-        AnimatedVisibility(visible = isReady) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(16.dp)
-                )
-            }
         }
 
         LaunchedEffect(lazyListState.canScrollForward) {
@@ -216,7 +201,7 @@ private fun OngoingsRow(
 }
 
 @Composable
-private fun PopularsGrid(isReady: Boolean, contents: List<Content>) {
+private fun PopularsGrid(contents: List<Content>) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
 
@@ -227,7 +212,7 @@ private fun PopularsGrid(isReady: Boolean, contents: List<Content>) {
     val gridHeight by remember(contents) {
         derivedStateOf {
             Util.calcGridHeight(
-                itemsCount = if (contents.isEmpty()) 6 else contents.size,
+                itemsCount = contents.size.plus(2),
                 itemHeight = cardHeight,
                 columns = columns
             ).dp
@@ -241,10 +226,6 @@ private fun PopularsGrid(isReady: Boolean, contents: List<Content>) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         userScrollEnabled = false
     ) {
-        if (!isReady) items(6) {
-            ContentCardPlaceholder(modifier = Modifier.size(cardWidth.dp, cardHeight.dp))
-        }
-
         items(contents) {
             BaseCard(
                 modifier = Modifier
@@ -261,6 +242,10 @@ private fun PopularsGrid(isReady: Boolean, contents: List<Content>) {
                     }
                 )
             }
+        }
+
+        items(2) {
+            ContentCardPlaceholder(modifier = Modifier.size(cardWidth.dp, cardHeight.dp))
         }
     }
 }
