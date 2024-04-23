@@ -73,6 +73,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -285,7 +286,8 @@ fun Resource(
                                     onClick = {
                                         shareVia(context, content.shikimoriID)
                                         dropdownExpanded = false
-                                    }
+                                    },
+                                    shape = RectangleShape
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -583,24 +585,24 @@ fun Resource(
                 Spacer(Modifier.height(56.dp))
             }
 
-            Box(
-                modifier = Modifier
-                    .padding(64.dp)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                PullRefreshIndicator(
-                    refreshing = isRefreshing,
-                    state = pullRefreshState
-                )
-            }
-
             ResourceBottomSheet(
                 content = content,
                 model = model,
                 visibilityState = bottomSheetVisibilityState
             )
         }
+    }
+
+    Box(
+        modifier = Modifier
+            .padding(64.dp)
+            .fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState
+        )
     }
 }
 
