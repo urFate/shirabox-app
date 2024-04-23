@@ -21,16 +21,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.outlined.Pause
-import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SkipNext
-import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.FullscreenExit
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -60,11 +60,13 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -185,7 +187,10 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                 PlayerBottomBar(
                     currentPosition = currentPosition,
                     duration = totalDuration,
-                    model = model
+                    model = model,
+                    onSliderValueChange = {
+                        model.controlsVisibilityState = true
+                    }
                 ) {
                     exoPlayer.seekTo(it)
                 }
@@ -243,15 +248,24 @@ fun PlayerTopBar(title: String, episode: Int, onSettingsClick: () -> Unit) {
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         title = {
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(0.dp, 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
                     text = title,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1
                 )
                 Text(
                     text = stringResource(id = R.string.episode_string, episode),
+                    color = Color.White.copy(0.7f),
                     fontSize = 14.sp
                 )
             }
@@ -259,7 +273,7 @@ fun PlayerTopBar(title: String, episode: Int, onSettingsClick: () -> Unit) {
         navigationIcon = {
             IconButton(onClick = { activity.finish() }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = null
                 )
             }
@@ -304,7 +318,9 @@ fun PlaybackControls(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(
+                strokeCap = StrokeCap.Round
+            )
         }
 
         AnimatedVisibility(
@@ -316,17 +332,17 @@ fun PlaybackControls(
                 horizontalArrangement = Arrangement.spacedBy(48.dp)
             ) {
                 PlaybackIconButton(
-                    imageVector = Icons.Outlined.SkipPrevious,
+                    imageVector = Icons.Rounded.SkipPrevious,
                     isActive = hasPreviousMediaItem,
                     onClick = onSkipPrevious
                 )
                 PlaybackIconButton(
                     imageVector = if (isPlaying)
-                        Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                        Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     onClick = onPlayToggle
                 )
                 PlaybackIconButton(
-                    imageVector = Icons.Outlined.SkipNext,
+                    imageVector = Icons.Rounded.SkipNext,
                     isActive = hasNextMediaItem,
                     onClick = onSkipNext
                 )
@@ -463,13 +479,13 @@ fun PlayerBottomBar(
     currentPosition: Long,
     duration: Long,
     model: PlayerViewModel,
-    onSliderValueChange: (Long) -> Unit,
+    onSliderValueChange: () -> Unit,
+    onSliderValueChangeFinish: (Long) -> Unit,
 ) {
-    var isValueChanging by remember {
-        mutableStateOf(false)
-    }
-    var currentValue by remember {
-        mutableFloatStateOf(0F)
+    var isValueChanging by remember { mutableStateOf(false) }
+    var currentValue by remember { mutableFloatStateOf(0F) }
+    var mutablePosition by remember {
+        mutableLongStateOf(currentPosition)
     }
 
     Box(
@@ -482,7 +498,9 @@ fun PlayerBottomBar(
         ) {
             Row {
                 Text(
-                    text = Util.formatMilliseconds(currentPosition),
+                    text = Util.formatMilliseconds(
+                        if(isValueChanging) mutablePosition else currentPosition
+                    ),
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 )
@@ -504,14 +522,17 @@ fun PlayerBottomBar(
                     value = if (isValueChanging) currentValue else (currentPosition.toFloat() / duration.toFloat()),
                     enabled = duration != C.TIME_UNSET, // Prevent seeking while content is loading
                     onValueChange = { value ->
+                        mutablePosition = value.times(duration).toLong()
                         currentValue = value
                         isValueChanging = true
+                        onSliderValueChange()
                     },
                     onValueChangeFinished = {
-                        onSliderValueChange((currentValue * duration).toLong())
+                        onSliderValueChangeFinish((currentValue * duration).toLong())
                         isValueChanging = false
                     },
                     colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.onPrimary,
                         inactiveTrackColor = Color.Gray.copy(0.6F),
                         disabledInactiveTrackColor = Color.Gray.copy(0.6F)
                     )
@@ -552,7 +573,7 @@ fun PlaybackIconButton(isActive: Boolean = true, imageVector: ImageVector, onCli
             imageVector = imageVector,
             contentDescription = null,
             tint = if(isActive) MaterialTheme.colorScheme.inverseOnSurface
-                else MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
         )
     }
 }
@@ -574,12 +595,8 @@ fun SeekZoneBox(
             .fillMaxHeight()
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onDoubleTap = {
-                        onDoubleClick(it)
-                    },
-                    onTap = {
-                        onClick()
-                    }
+                    onDoubleTap = onDoubleClick,
+                    onTap = { onClick() },
                 )
             }
             .then(modifier),
