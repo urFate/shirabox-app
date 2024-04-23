@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -184,10 +185,12 @@ fun AppUpdateScreen(
                 )
             }
             Text(
+                modifier = Modifier.fillMaxWidth(),
                 text = when (appUpdateState.updateAvailable) {
                     true -> stringResource(id = R.string.update)
                     false -> stringResource(id = R.string.no_update_required)
                 },
+                textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium,
                 fontSize = 28.sp
             )
