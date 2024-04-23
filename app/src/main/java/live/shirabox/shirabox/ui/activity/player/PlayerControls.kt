@@ -430,14 +430,15 @@ fun InstantSeekZones(
     ) {
         val deviceWidth = LocalConfiguration.current.screenWidthDp.dp
 
-        var showRewindUi by remember {
-            mutableStateOf(false)
-        }
-        var showForwardUi by remember {
-            mutableStateOf(false)
-        }
+        var showRewindUi by remember { mutableStateOf(false) }
+        var showForwardUi by remember { mutableStateOf(false) }
 
-        val coroutineScope = rememberCoroutineScope()
+        LaunchedEffect(showRewindUi) {
+            if(showRewindUi) delay(1000L).let { showRewindUi = false }
+        }
+        LaunchedEffect(showForwardUi) {
+            if(showForwardUi) delay(1000L).let { showForwardUi = false }
+        }
 
         // Rewind seek zone
         SeekZoneBox(
@@ -449,9 +450,6 @@ fun InstantSeekZones(
             onDoubleClick = {
                 onFastRewind(it)
                 showRewindUi = true
-                coroutineScope.launch {
-                    delay(1000L).let { showRewindUi = false }
-                }
             },
             onClick = onClick
         )
@@ -465,9 +463,6 @@ fun InstantSeekZones(
             onDoubleClick = {
                 onFastForward(it)
                 showForwardUi = true
-                coroutineScope.launch {
-                    delay(1000L).let { showForwardUi = false }
-                }
             },
             onClick = onClick
         )
