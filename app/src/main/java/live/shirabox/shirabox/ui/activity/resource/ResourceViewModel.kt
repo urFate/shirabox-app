@@ -262,7 +262,8 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
              */
 
             when (
-                val matchingEpisode = cachedEpisodes.firstOrNull { it.episode == episodeEntity.episode }
+                val matchingEpisode =
+                    cachedEpisodes.firstOrNull { it.episode == episodeEntity.episode && it.actingTeam == episodeEntity.actingTeam }
             ) {
                 null -> episodeEntity.copy(uid = null, contentUid = contentUid)
                 else -> {
