@@ -170,6 +170,7 @@ fun AppUpdateScreen(
                         true -> stringResource(id = R.string.update)
                         false -> stringResource(id = R.string.no_update_required)
                     },
+                    lineHeight = 32.sp,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Medium,
                     fontSize = 28.sp
