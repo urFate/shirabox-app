@@ -45,8 +45,6 @@ data class EpisodeObject(
 data class Player(
     @SerialName("player")
     val player: String,
-    @SerialName("subtitles")
-    val subtitles: List<Subtitle>,
     @SerialName("team")
     val team: Team,
     @SerialName("translation_type")
