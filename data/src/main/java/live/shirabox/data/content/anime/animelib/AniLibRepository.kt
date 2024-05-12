@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.serialization.SerializationException
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
@@ -26,9 +27,9 @@ class AniLibRepository : AbstractContentRepository(
     companion object {
         private const val API_ENDPOINT = "https://api.lib.social/api"
         private const val VIDEO_HOST_ENDPOINT = "https://video1.anilib.me/.%D0%B0s/"
-        private const val REQUEST_DELAY_MS = 250L
-        private const val UNLIMITED_REQUESTS_THRESHOLD = 48
-        private const val ON_RATE_LIMIT_WAIT_DELAY = 1000L
+        private const val REQUEST_DELAY_MS = 150L
+        private const val UNLIMITED_REQUESTS_THRESHOLD = 99
+        private const val ON_RATE_LIMIT_WAIT_DELAY = 60000L
     }
 
     override suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>> =
@@ -54,14 +55,15 @@ class AniLibRepository : AbstractContentRepository(
             episodesHeaders!!.forEach { headers ->
 
                 /**
-                 * Retry request with 1 sec delay when NullPointerException caught.
+                 * Retry request with 2 sec delay when NullPointerException caught.
                  * Usually throws when server's rate limit is reached
                  */
 
                 val episode = fetchEpisode(headers.id)
                     .retryWhen { cause, _ ->
+                        cause.printStackTrace()
                         when (cause) {
-                            is RuntimeException -> {
+                            is SerializationException -> {
                                 delay(ON_RATE_LIMIT_WAIT_DELAY)
                                 true
                             }
