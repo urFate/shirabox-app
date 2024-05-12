@@ -1,7 +1,5 @@
 # ![Logo](./images/logo.png) ShiraBox
 
-**🏗️ Project still in early development and not suits for daily usage 🧑‍💻**
-
 <p align="center">
   <img alt="build" src="https://img.shields.io/github/actions/workflow/status/urFate/shirabox-app/build-unsigned.yml?branch=master&style=flat&logo=gradle&style=flat-square">
   <img alt="issues" src="https://img.shields.io/github/issues/urFate/shirabox-app">
@@ -46,8 +44,8 @@
 
 ## Installation
 
-Currently no official release binaries provided.
-Debug APK builds currently available on our [Github Actions](https://github.com/urFate/shirabox-app/actions).
+Downloads available on our [GitHub Releases](https://github.com/urFate/shirabox-app/releases/latest) page or on [official website](https://www.shirabox.live/).
+Nightly APK builds currently available on our [Github Actions](https://github.com/urFate/shirabox-app/actions).
 
 > [!IMPORTANT]
 > Debug builds usually runs much slower than release builds and destined for development or preview purposes only.
