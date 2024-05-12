@@ -40,6 +40,7 @@ class PlayerViewModel(
     var orientationState by mutableIntStateOf(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
     var currentQuality by mutableStateOf(live.shirabox.core.model.Quality.HD)
     var playbackSpeed by mutableFloatStateOf(1F)
+    var coldStartSeekApplied by mutableStateOf(false)
     val animeSkipTimestamps = mutableStateMapOf<Int, Pair<Long, Long>>()
 
     fun saveEpisodePosition(episode: Int, time: Long) {

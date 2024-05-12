@@ -202,12 +202,18 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                     isLoaded = playbackState == Player.STATE_READY,
                     hasNextMediaItem = hasNextMediaItem,
                     hasPreviousMediaItem = hasPreviousMediaItem,
-                    onSkipPrevious = { exoPlayer.seekToPrevious() },
+                    onSkipPrevious = {
+                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition)
+                        exoPlayer.seekToPrevious()
+                    },
                     onPlayToggle = {
                         exoPlayer.playWhenReady = !exoPlayer.isPlaying
                         coroutineScope.launch { hideControls(exoPlayer, model) }
                     },
-                    onSkipNext = { exoPlayer.seekToNext() }
+                    onSkipNext = {
+                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition)
+                        exoPlayer.seekToNext()
+                    }
                 )
             },
             containerColor = Color(0x80000000)

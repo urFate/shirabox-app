@@ -11,8 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -34,14 +32,6 @@ fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
     val coroutineScope = rememberCoroutineScope()
 
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply { prepare() }
-    }
-
-    val startPosition by remember {
-        derivedStateOf { model.episodesPositions[model.episode] }
-    }
-
     val defaultQualityState = model.defaultQualityPreferenceFlow(context)
         .collectAsState(initial = DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue)
     val defaultQuality = remember(defaultQualityState) {
@@ -53,8 +43,11 @@ fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         model.fetchEpisodePositions()
     }
 
-    LaunchedEffect(startPosition) {
-        startPosition?.let {
+    LaunchedEffect(model.episodesPositions[model.episode]) {
+        val startPosition = model.episodesPositions[model.episode]
+
+        if(!model.coldStartSeekApplied) startPosition?.let {
+
             exoPlayer.apply {
                 setMediaItems(model.playlist.map { video ->
                     // Choose stream quality using default value, otherwise use highest available
@@ -66,9 +59,11 @@ fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
                     return@map MediaItem.fromUri(stream.value)
                 })
-                seekTo(model.startIndex, it)
+                exoPlayer.seekTo(model.startIndex, it)
                 playWhenReady = true
             }
+
+            model.coldStartSeekApplied = true
         }
     }
 
@@ -109,16 +104,12 @@ fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                 }
         ) {
             DisposableEffect(key1 = Unit) {
-                exoPlayer.addListener(
-                    PlayerLoadingStateListener(coroutineScope, model)
-                )
-                onDispose {
+                exoPlayer.addListener(PlayerLoadingStateListener(coroutineScope, model))
 
+                onDispose {
                     // Save watching progress
-                    model.saveEpisodePosition(
-                        exoPlayer.currentMediaItemIndex.inc(),
-                        exoPlayer.currentPosition
-                    )
+                    val currentEpisode = model.playlist[exoPlayer.currentMediaItemIndex].episode
+                    model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition)
 
                     exoPlayer.release()
                 }
@@ -133,6 +124,7 @@ fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
                             )
+                        keepScreenOn = true
                         useController = false
                     }
                 }
