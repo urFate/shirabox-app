@@ -8,16 +8,20 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.exoplayer.ExoPlayer
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.serialization.json.Json
 import live.shirabox.core.util.Util
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 
 class PlayerActivity : ComponentActivity() {
+
+    private var player: ExoPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +47,11 @@ class PlayerActivity : ComponentActivity() {
                         Util.hideSystemUi(this)
                     }
 
+                    val exoPlayer = remember {
+                        ExoPlayer.Builder(context).build().apply { prepare() }
+                    }
+                    player = exoPlayer
+
                     lateinit var model: PlayerViewModel
 
                     try {
@@ -64,9 +73,21 @@ class PlayerActivity : ComponentActivity() {
                         Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
                     }
 
-                    ShiraPlayer(model = viewModel(factory = Util.viewModelFactory { model }))
+                    ShiraPlayer(
+                        exoPlayer = exoPlayer,
+                        model = viewModel(factory = Util.viewModelFactory { model })
+                    )
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        player?.pause()
+    }
+    override fun onStop() {
+        super.onStop()
+        player?.pause()
     }
 }

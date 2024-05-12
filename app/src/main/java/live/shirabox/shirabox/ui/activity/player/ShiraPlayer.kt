@@ -28,7 +28,7 @@ import live.shirabox.core.model.Quality
 
 
 @Composable
-fun ShiraPlayer(model: PlayerViewModel) {
+fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     val context = LocalContext.current
     val playerView = PlayerView(context)
 
