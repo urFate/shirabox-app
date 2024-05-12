@@ -32,7 +32,7 @@ class LibriaRepository : AbstractContentRepository(
     ): Flow<List<EpisodeEntity>> = flow {
         emit(
             advancedSearch(content).subList(
-                range.first,
+                range.first.coerceIn(0, range.first.dec()),
                 range.last.coerceIn(0, advancedSearch(content).size)
             )
         )
