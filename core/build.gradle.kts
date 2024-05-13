@@ -35,7 +35,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.0")
+    implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -44,5 +44,5 @@ dependencies {
     implementation("androidx.room:room-common:2.6.1")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation ("androidx.media3:media3-common:1.3.1")
-    implementation ("androidx.datastore:datastore-preferences:1.1.0")
+    implementation ("androidx.datastore:datastore-preferences:1.1.1")
 }
