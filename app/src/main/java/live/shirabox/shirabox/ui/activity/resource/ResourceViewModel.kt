@@ -138,7 +138,7 @@ class ResourceViewModel(context: Context, private val contentType: ContentType) 
                                 content = content,
                                 contentUid = combinedContent.content.uid,
                                 cachedEpisodes = cachedEpisodes,
-                                range = cachedEpisodes.last().episode.inc()..Int.MAX_VALUE
+                                range = cachedEpisodes.last().episode.dec()..Int.MAX_VALUE
                             )
                         }
                     }.await()
