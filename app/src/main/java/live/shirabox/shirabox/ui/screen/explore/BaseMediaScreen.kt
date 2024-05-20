@@ -3,11 +3,13 @@ package live.shirabox.shirabox.ui.screen.explore
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,14 +21,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,13 +40,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.emptyFlow
 import live.shirabox.core.model.Content
-import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
-import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.BaseCard
@@ -57,49 +52,59 @@ import java.io.IOException
 
 @Composable
 fun BaseMediaScreen(
+    model: ExploreViewModel,
     lazyListState: LazyListState
 ) {
-    val popularsPage = remember { mutableIntStateOf(1) }
     val ongoingsListState = rememberLazyListState()
 
-    val contentObservationException = remember<MutableState<Exception?>> {
-        mutableStateOf(null)
+    val ongoingsStateFlow = model.ongoings.collectAsStateWithLifecycle(initialValue = emptyList())
+    val popularsStateFlow = model.populars.collectAsStateWithLifecycle(initialValue = emptyList())
+    val observationStatus = model.contentObservationStatus
+
+    val isReady = remember(popularsStateFlow.value, ongoingsStateFlow.value, observationStatus.value) {
+        (popularsStateFlow.value.isNotEmpty() && ongoingsStateFlow.value.isNotEmpty()) && observationStatus.value.status == ExploreViewModel.Status.Success
     }
 
-    val popularsStateFlow =
-        ShikimoriRepository.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
-            .catch {
-                it.printStackTrace()
-                contentObservationException.value = it as Exception
-                emitAll(emptyFlow())
-            }
-            .collectAsStateWithLifecycle(initialValue = null)
-    val ongoingsStateFlow =
-        ShikimoriRepository.fetchOngoings(1, ContentType.ANIME)
-            .catch {
-                it.printStackTrace()
-                contentObservationException.value = it as Exception
-                emitAll(emptyFlow())
-            }
-            .collectAsStateWithLifecycle(initialValue = null)
-
-    val isReady = remember(popularsStateFlow.value, ongoingsStateFlow.value) {
-        (popularsStateFlow.value != null && ongoingsStateFlow.value != null)
+    LaunchedEffect(null) {
+        if(observationStatus.value.status == ExploreViewModel.Status.Success) {
+            model.populars.emit(model.populars.value.subList(0, 16))
+        }
+        if(observationStatus.value.status != ExploreViewModel.Status.Success) {
+            model.fetchOngoings()
+            model.fetchPopulars()
+        }
+    }
+    LaunchedEffect(model.popularsPage.intValue) {
+        if(isReady) model.fetchPopulars()
     }
 
-    AnimatedVisibility(visible = contentObservationException.value != null, enter = fadeIn()) {
+    AnimatedVisibility(
+        visible = observationStatus.value.status == ExploreViewModel.Status.Failure,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            when (contentObservationException.value) {
-                is IOException -> DespondencyEmoticon(text = stringResource(id = R.string.no_internet_connection_variant))
-                else -> ScaredEmoticon(text = stringResource(id = R.string.no_contents))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                when (observationStatus.value.exception) {
+                    is IOException -> DespondencyEmoticon(text = stringResource(id = R.string.no_internet_connection_variant))
+                    else -> ScaredEmoticon(text = stringResource(id = R.string.no_contents))
+                }
+
+                OutlinedButton(onClick = { model.refresh() }) {
+                    Text(stringResource(id = R.string.refresh))
+                }
             }
         }
     }
 
-    if(contentObservationException.value != null) return
+    if(observationStatus.value.status == ExploreViewModel.Status.Failure) return
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -120,7 +125,7 @@ fun BaseMediaScreen(
 
             OngoingsRow(
                 isReady = isReady,
-                contents = ongoingsStateFlow.value ?: emptyList(),
+                contents = ongoingsStateFlow.value,
                 ongoingsListState = ongoingsListState
             )
         }
@@ -144,13 +149,11 @@ fun BaseMediaScreen(
                 fontWeight = FontWeight(500)
             )
 
-            PopularsGrid(
-                contents = popularsStateFlow.value ?: emptyList()
-            )
+            PopularsGrid(contents = popularsStateFlow.value)
         }
 
         LaunchedEffect(lazyListState.canScrollForward) {
-            if(!lazyListState.canScrollForward && isReady) popularsPage.intValue += 1
+            if(!lazyListState.canScrollForward && isReady) model.popularsPage.intValue += 1
         }
     }
 }
