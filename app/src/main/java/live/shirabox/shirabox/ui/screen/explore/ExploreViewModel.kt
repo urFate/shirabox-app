@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,11 +26,14 @@ class ExploreViewModel : ViewModel() {
     val popularsPage = mutableIntStateOf(1)
     val refreshing = mutableStateOf(false)
 
+    private val crashlytics = FirebaseCrashlytics.getInstance()
+
     fun fetchOngoings() {
         viewModelScope.launch(Dispatchers.IO) {
             ShikimoriRepository.fetchOngoings(1, ContentType.ANIME)
                 .catch {
                     it.printStackTrace()
+                    crashlytics.recordException(it)
                     contentObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
                 }.collectLatest {
@@ -44,6 +48,7 @@ class ExploreViewModel : ViewModel() {
             ShikimoriRepository.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
                 .catch {
                     it.printStackTrace()
+                    crashlytics.recordException(it)
                     contentObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
                 }.onCompletion {
