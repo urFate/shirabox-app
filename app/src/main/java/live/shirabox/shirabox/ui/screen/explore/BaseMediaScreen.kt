@@ -66,7 +66,7 @@ fun BaseMediaScreen(
     }
 
     LaunchedEffect(null) {
-        if(observationStatus.value.status == ExploreViewModel.Status.Success) {
+        if(observationStatus.value.status == ExploreViewModel.Status.Success && model.populars.value.size > 16) {
             model.populars.emit(model.populars.value.subList(0, 16))
         }
         if(observationStatus.value.status != ExploreViewModel.Status.Success) {
