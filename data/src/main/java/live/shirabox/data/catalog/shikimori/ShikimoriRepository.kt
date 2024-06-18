@@ -15,7 +15,7 @@ import java.util.Date
 import java.util.Locale
 
 
-object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shikimori.me") {
+object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shikimori.one") {
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true; encodeDefaults = true }
 
