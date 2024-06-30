@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Content
+import live.shirabox.core.model.ContentKind
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
 import live.shirabox.data.content.AbstractContentRepository
@@ -41,7 +42,7 @@ class LibriaRepository : AbstractContentRepository(
 
     private suspend fun advancedSearch(content: Content): List<EpisodeEntity> {
         val altNamesListQuery = "(${content.altNames.joinToString { "\"${it}\"" }})"
-        if(libriaKind(content.kind) == null) return emptyList()
+        if (libriaKind(content.kind) == null) return emptyList()
 
         try {
             val response = "$API_ENDPOINT/v3/title/search/advanced"
@@ -91,14 +92,12 @@ class LibriaRepository : AbstractContentRepository(
         )
     }
 
-    private fun libriaKind(kind: String): Int? {
-        return when(kind) {
-            "Фильм" -> 0
-            "Сериал" -> 1
-            "OVA" -> 2
-            "ONA" -> 3
-            "Спешл" -> 4
-            else -> null
-        }
+    private fun libriaKind(kind: ContentKind) : Int? = when(kind) {
+        ContentKind.MOVIE -> 0
+        ContentKind.TV -> 1
+        ContentKind.OVA -> 2
+        ContentKind.ONA -> 3
+        ContentKind.SPECIAL -> 4
+        else -> null
     }
 }

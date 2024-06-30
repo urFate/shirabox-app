@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import live.shirabox.core.model.ContentType
 import live.shirabox.shirabox.R
+import live.shirabox.shirabox.ValuesHelper
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
 import live.shirabox.shirabox.ui.component.general.ListItem
@@ -100,7 +101,7 @@ fun History(
                             )
                         },
                         supportingString = "${contentEntity.production?.let { "$it\n" }}" +
-                                "${contentEntity.releaseYear}, ${contentEntity.kind}",
+                                "${contentEntity.releaseYear}, ${ValuesHelper.decodeKind(contentEntity.kind, context)}",
                         coverImage = contentEntity.image
                     ) {
                         context.startActivity(

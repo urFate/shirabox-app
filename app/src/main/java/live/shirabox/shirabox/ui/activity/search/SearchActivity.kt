@@ -60,6 +60,7 @@ import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import live.shirabox.shirabox.R
+import live.shirabox.shirabox.ValuesHelper
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
 import live.shirabox.shirabox.ui.component.general.ListItem
@@ -226,7 +227,7 @@ fun SearchScreen() {
                             Text(
                                 text = it.name, fontWeight = FontWeight.Bold
                             )
-                        }, supportingString = "${it.releaseYear}, ${it.kind}", coverImage = it.image
+                        }, supportingString = "${it.releaseYear}, ${ValuesHelper.decodeKind(it.kind, context)}", coverImage = it.image
                     ) {
                         context.startActivity(Intent(
                             context, ResourceActivity::class.java

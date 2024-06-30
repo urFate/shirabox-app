@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import live.shirabox.core.model.Content
+import live.shirabox.core.model.ContentKind
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Rating
 import live.shirabox.core.model.ReleaseStatus
@@ -197,7 +198,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
             val response = myClient.newCall(request).execute().body.string()
             val data = json.decodeFromString<List<RelatedItem>>(response)
 
-            val contents =  data.filter { it.relation != "Other" }.map {
+            val contents = data.filter { it.relation != "Other" }.mapNotNull {
                 when {
                     it.anime != null -> Content(
                         name = it.anime.russian,
@@ -205,7 +206,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         image = "$url/${it.anime.image.original}",
                         releaseYear = it.anime.releasedOn,
                         type = ContentType.ANIME,
-                        kind = it.anime.kind.toString(),
+                        kind = decodeKind(it.anime.kind.toString()),
                         status = decodeStatus(it.anime.status),
                         episodes = it.anime.episodes,
                         episodesAired = it.anime.episodesAired,
@@ -219,7 +220,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         image = "$url/${it.manga.image.original}",
                         releaseYear = it.manga.releasedOn ?: "",
                         type = ContentType.MANGA,
-                        kind = it.manga.kind.toString(),
+                        kind = decodeKind(it.manga.kind.toString()),
                         status = decodeStatus(it.manga.status),
                         episodes = it.manga.chapters,
                         rating = Rating(average = it.manga.score.toDouble(), scores = mapOf()),
@@ -228,7 +229,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
 
                     else -> null
                 }
-            }.filterNotNull()
+            }
 
             emit(contents)
         } catch (ex: Exception) { throw ex}
@@ -300,31 +301,22 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
         }
     }
 
-    private fun decodeKind(str: String?): String {
-        return when(str) {
-            "tv" -> "Сериал"
-            "movie" -> "Фильм"
-            "special", "tv_special" -> "Спешл"
-            "manga" -> "Манга"
-            "manhua" -> "Маньхуа"
-            "light_novel" -> "Ранобэ"
-            "novel" -> "Новелла"
-            "one_shot" -> "Ван-шот"
-            "doujin" -> "Додзинси"
-            null, "null" -> "Неизвестно"
-            else -> str.uppercase()
-        }
+    private fun decodeKind(str: String?): ContentKind = when(str) {
+        "tv" -> ContentKind.TV
+        "movie" -> ContentKind.MOVIE
+        "special", "tv_special" -> ContentKind.SPECIAL
+        "ova" -> ContentKind.OVA
+        "ona" -> ContentKind.ONA
+        else -> ContentKind.OTHER
     }
 
-    private fun decodeStatus(str: String): ReleaseStatus {
-        return when(str) {
-            "anons" -> ReleaseStatus.ANNOUNCED
-            "ongoing" -> ReleaseStatus.RELEASING
-            "released" -> ReleaseStatus.FINISHED
-            "paused" -> ReleaseStatus.PAUSED
-            "discontinued" -> ReleaseStatus.DISCOUNTED
-            else -> ReleaseStatus.UNKNOWN
-        }
+    private fun decodeStatus(str: String): ReleaseStatus = when(str) {
+        "anons" -> ReleaseStatus.ANNOUNCED
+        "ongoing" -> ReleaseStatus.RELEASING
+        "released" -> ReleaseStatus.FINISHED
+        "paused" -> ReleaseStatus.PAUSED
+        "discontinued" -> ReleaseStatus.DISCOUNTED
+        else -> ReleaseStatus.UNKNOWN
     }
 
     private fun currentSeason(): String {

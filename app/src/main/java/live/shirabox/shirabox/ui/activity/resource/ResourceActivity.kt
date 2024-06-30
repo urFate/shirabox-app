@@ -90,9 +90,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
 import live.shirabox.core.model.ContentType
-import live.shirabox.core.model.ReleaseStatus
 import live.shirabox.core.util.round
 import live.shirabox.shirabox.R
+import live.shirabox.shirabox.ValuesHelper
 import live.shirabox.shirabox.ui.component.general.ContentCard
 import live.shirabox.shirabox.ui.component.general.ExpandableBox
 import live.shirabox.shirabox.ui.component.general.ExtendedListItem
@@ -438,7 +438,11 @@ fun Resource(
                         )
                         ResourceDataLabel(
                             icon = Icons.Outlined.EventAvailable,
-                            text = "${content.kind}, ${decodeStatus(content.status, context)}"
+                            text = "${
+                                ValuesHelper.decodeKind(content.kind, context)
+                            }, ${
+                                ValuesHelper.decodeStatus(content.status, context)
+                            }"
                         )
                         if (type == ContentType.ANIME) {
                             ResourceDataLabel(
@@ -634,17 +638,6 @@ private fun shareVia(context: Context, shikimoriId: Int) {
 
     val shareIntent = Intent.createChooser(sendIntent, null)
     context.startActivity(shareIntent)
-}
-
-private fun decodeStatus(releaseStatus: ReleaseStatus, context: Context): String {
-    return when(releaseStatus) {
-        ReleaseStatus.FINISHED -> context.getString(R.string.release_status_finished)
-        ReleaseStatus.RELEASING -> context.getString(R.string.release_status_releasing)
-        ReleaseStatus.ANNOUNCED -> context.getString(R.string.release_status_announced)
-        ReleaseStatus.PAUSED -> context.getString(R.string.release_status_paused)
-        ReleaseStatus.DISCOUNTED -> context.getString(R.string.release_status_discounted)
-        ReleaseStatus.UNKNOWN -> context.getString(R.string.release_status_unknown)
-    }
 }
 
 @Composable

@@ -6,6 +6,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.serialization.json.Json
 import live.shirabox.core.model.ActingTeam
+import live.shirabox.core.model.ContentKind
 import live.shirabox.core.model.ReleaseStatus
 
 object Migrations {
@@ -43,16 +44,18 @@ object Migrations {
                 } while (episodesCursor.moveToNext())
             }
 
-            // Map content cyrillic status to enum values
+            // Map content cyrillic values to enum classes
             if(contentCursor.moveToFirst()) {
                 do {
                     val uidIndex = contentCursor.getColumnIndex("uid")
                     val statusIndex = contentCursor.getColumnIndex("status")
+                    val kindIndex = contentCursor.getColumnIndex("kind")
 
                     if (uidIndex < 0) continue
 
                     val contentUid = contentCursor.getLong(uidIndex)
                     val oldStatus = contentCursor.getString(statusIndex)
+                    val oldKind = contentCursor.getString(kindIndex)
 
                     val releaseStatus = when (oldStatus) {
                         "Анонс" -> ReleaseStatus.ANNOUNCED
@@ -63,8 +66,18 @@ object Migrations {
                         else -> ReleaseStatus.UNKNOWN
                     }
 
+                    val contentKind = when(oldKind) {
+                        "Сериал" -> ContentKind.TV
+                        "Фильм" -> ContentKind.MOVIE
+                        "Спешл" -> ContentKind.SPECIAL
+                        "OVA" -> ContentKind.OVA
+                        "ONA" -> ContentKind.ONA
+                        else -> ContentKind.OTHER
+                    }
+
                     val values = ContentValues().apply {
                         put("status", releaseStatus.toString())
+                        put("kind", contentKind.toString())
                     }
 
                     db.update(

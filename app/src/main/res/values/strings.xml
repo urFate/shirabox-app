@@ -86,6 +86,12 @@
     <string name="release_status_paused">Выпуск приостановлен</string>
     <string name="release_status_discounted">Выпуск прекращён</string>
     <string name="release_status_unknown">Статус неизвестен</string>
+    <string name="kind_tv">Сериал</string>
+    <string name="kind_movie">Фильм</string>
+    <string name="kind_ova">OVA</string>
+    <string name="kind_ona">ONA</string>
+    <string name="kind_special">Спецвыпуск</string>
+    <string name="kind_other">Другое</string>
 
     <!--
         Player Activity
