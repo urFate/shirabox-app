@@ -85,9 +85,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import dagger.hilt.android.AndroidEntryPoint
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
 import live.shirabox.core.util.round
@@ -100,6 +101,7 @@ import live.shirabox.shirabox.ui.component.general.ScaredEmoticon
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 import java.io.IOException
 
+@AndroidEntryPoint
 class ResourceActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,9 +150,7 @@ fun Resource(
     id: Int,
     type: ContentType,
     context: Context,
-    model: ResourceViewModel = viewModel(factory = Util.viewModelFactory {
-        ResourceViewModel(context, type)
-    }),
+    model: ResourceViewModel = hiltViewModel(),
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
     val activity = LocalContext.current as Activity?
@@ -587,7 +587,6 @@ fun Resource(
 
             ResourceBottomSheet(
                 content = content,
-                model = model,
                 visibilityState = bottomSheetVisibilityState
             )
         }

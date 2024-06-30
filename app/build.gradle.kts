@@ -1,10 +1,11 @@
 plugins {
-    id ("com.android.application")
     kotlin("android")
-    id("com.google.devtools.ksp")
+    kotlin("plugin.serialization") version "1.9.20"
+    id ("com.android.application")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-    kotlin("plugin.serialization") version "1.9.20"
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -100,6 +101,11 @@ dependencies {
     implementation("com.halilibo.compose-richtext:richtext-ui-material3:$richtextVersion")
     implementation("com.halilibo.compose-richtext:richtext-markdown:$richtextVersion")
     implementation("com.halilibo.compose-richtext:richtext-commonmark:$richtextVersion")
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    ksp("com.google.dagger:hilt-android-compiler:2.51.1")
 
 
     // Kotlin Serialization

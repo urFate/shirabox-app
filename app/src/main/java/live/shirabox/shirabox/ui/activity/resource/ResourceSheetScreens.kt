@@ -55,6 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -71,8 +72,8 @@ import live.shirabox.shirabox.ui.component.general.ExtendedListItem
 @Composable
 fun ResourceBottomSheet(
     content: Content,
-    model: ResourceViewModel,
-    visibilityState: MutableState<Boolean>
+    visibilityState: MutableState<Boolean>,
+    model: ResourceViewModel = hiltViewModel()
 ) {
     val currentSheetScreenState = remember {
         mutableStateOf<ResourceSheetScreen>(ResourceSheetScreen.Sources(model))
@@ -108,7 +109,6 @@ fun ResourceBottomSheet(
         when (currentSheetScreenState.value) {
             is ResourceSheetScreen.Sources -> SourcesSheetScreen(
                 content = content,
-                model = model,
                 episodes = sortedEpisodesMap,
                 currentSheetScreenState = currentSheetScreenState,
                 visibilityState = visibilityState
@@ -121,7 +121,6 @@ fun ResourceBottomSheet(
                     content = (currentSheetScreenState.value as ResourceSheetScreen.Episodes).content,
                     episodes = sortedEpisodesMap[instance.repository]?.get(instance.team)
                         ?: emptyList(),
-                    model = model,
                     team = instance.team,
                     currentSheetScreenState = currentSheetScreenState,
                     visibilityState = visibilityState
@@ -139,6 +138,7 @@ fun SourcesSheetScreen(
     episodes: Map<AbstractContentRepository?, Map<ActingTeam, List<EpisodeEntity>>>,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
     visibilityState: MutableState<Boolean>,
+    model: ResourceViewModel = hiltViewModel()
 ) {
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
@@ -232,7 +232,6 @@ fun SourcesSheetScreen(
                             actingTeams.forEach { (team, entities) ->
                                 item {
                                     TeamListItem(
-                                        model = model,
                                         repository = repository,
                                         content = content,
                                         episodes = entities,
@@ -259,8 +258,9 @@ fun EpisodesSheetScreen(
     team: ActingTeam,
     model: ResourceViewModel,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
-    visibilityState: MutableState<Boolean>
-) {
+    visibilityState: MutableState<Boolean>,
+    model: ResourceViewModel = hiltViewModel()
+    ) {
     val context = LocalContext.current
 
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
@@ -439,11 +439,11 @@ fun EpisodesSheetScreen(
 
 @Composable
 private fun TeamListItem(
-    model: ResourceViewModel,
     repository: AbstractContentRepository,
     content: Content,
     episodes: List<EpisodeEntity>,
     team: ActingTeam,
+    model: ResourceViewModel = hiltViewModel(),
     onClick: () -> Unit
 ) {
     val context = LocalContext.current

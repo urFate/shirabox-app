@@ -35,7 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
@@ -52,30 +52,30 @@ import java.io.IOException
 
 @Composable
 fun BaseMediaScreen(
-    model: ExploreViewModel,
+    model: ExploreViewModel = hiltViewModel(),
     lazyListState: LazyListState
 ) {
     val ongoingsListState = rememberLazyListState()
 
     val ongoingsStateFlow = model.ongoings.collectAsStateWithLifecycle(initialValue = emptyList())
     val popularsStateFlow = model.populars.collectAsStateWithLifecycle(initialValue = emptyList())
+    val trendingFeedStateFlow = model.trendingFeedList.collectAsStateWithLifecycle(initialValue = emptyList())
+    val popularsFeedStateFlow = model.popularsFeedList.collectAsStateWithLifecycle(initialValue = emptyList())
     val observationStatus = model.contentObservationStatus
 
-    val isReady = remember(popularsStateFlow.value, ongoingsStateFlow.value, observationStatus.value) {
-        (popularsStateFlow.value.isNotEmpty() && ongoingsStateFlow.value.isNotEmpty()) && observationStatus.value.status == ExploreViewModel.Status.Success
+    val isReady = remember(popularsFeedStateFlow.value, trendingFeedStateFlow.value, observationStatus.value) {
+        model.isReady()
     }
 
     LaunchedEffect(null) {
-        if(observationStatus.value.status == ExploreViewModel.Status.Success && model.populars.value.size > 16) {
-            model.populars.emit(model.populars.value.subList(0, 16))
+        if(isReady && model.popularsFeedList.value.size > 16) {
+            model.popularsFeedList.emit(model.popularsFeedList.value.subList(0, 16))
         }
-        if(observationStatus.value.status != ExploreViewModel.Status.Success) {
-            model.fetchOngoings()
-            model.fetchPopulars()
-        }
+
+        model.refresh(true)
     }
     LaunchedEffect(model.popularsPage.intValue) {
-        if(isReady) model.fetchPopulars()
+        if(isReady) model.fetchPopularsFeed()
     }
 
     AnimatedVisibility(
@@ -97,7 +97,7 @@ fun BaseMediaScreen(
                     else -> ScaredEmoticon(text = stringResource(id = R.string.no_contents))
                 }
 
-                OutlinedButton(onClick = { model.refresh() }) {
+                OutlinedButton(onClick = { model.refresh(false) }) {
                     Text(stringResource(id = R.string.refresh))
                 }
             }
@@ -107,148 +107,17 @@ fun BaseMediaScreen(
     if(observationStatus.value.status == ExploreViewModel.Status.Failure) return
 
     Column(
+        modifier = Modifier.animateContentSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                modifier = Modifier
-                    .padding(16.dp, 0.dp)
-                    .placeholder(
-                        visible = !isReady, highlight = PlaceholderHighlight.fade()
-                    ),
-                text = stringResource(id = R.string.actual),
-                fontSize = 22.sp,
-                fontWeight = FontWeight(500)
-            )
-
-            OngoingsRow(
-                isReady = isReady,
-                contents = ongoingsStateFlow.value,
-                ongoingsListState = ongoingsListState
-            )
-        }
-
-        HorizontalDivider(
-            modifier = Modifier.padding(32.dp, 12.dp)
-        )
-
-        Column(
-            modifier = Modifier.padding(16.dp, 0.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                modifier = Modifier
-                    .placeholder(
-                        visible = !isReady,
-                        highlight = PlaceholderHighlight.fade()
-                    ),
-                text = stringResource(R.string.popular),
-                fontSize = 22.sp,
-                fontWeight = FontWeight(500)
-            )
+        TrendingFeed(isReady = isReady, contents = trendingFeedStateFlow.value)
 
             PopularsGrid(contents = popularsStateFlow.value)
         }
+        PopularsFeed(isReady = isReady, contents = popularsFeedStateFlow.value)
 
         LaunchedEffect(lazyListState.canScrollForward) {
             if(!lazyListState.canScrollForward && isReady) model.popularsPage.intValue += 1
-        }
-    }
-}
-
-@Composable
-private fun OngoingsRow(
-    isReady: Boolean,
-    contents: List<Content>,
-    ongoingsListState: LazyListState
-) {
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
-
-    val cardWidth = 160
-    val placeholdersAmount = remember {
-        Util.maxElementsInRow(itemWidth = cardWidth, configuration = configuration)
-    }
-
-    LazyRow(
-        state = ongoingsListState,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        if(!isReady) items(placeholdersAmount) {
-            ContentCardPlaceholder(
-                modifier = Modifier
-                    .size(cardWidth.dp, 220.dp)
-            )
-        }
-
-        items(contents) {
-            BaseCard(
-                modifier = Modifier.size(cardWidth.dp, 220.dp),
-                title = it.name, image = it.image, type = it.type
-            ) {
-                context.startActivity(
-                    Intent(
-                        context,
-                        ResourceActivity::class.java
-                    ).apply {
-                        putExtra("id", it.shikimoriID)
-                        putExtra("type", it.type.toString())
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PopularsGrid(contents: List<Content>) {
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
-
-    val cardWidth = 180
-    val cardHeight = 240
-    val columns = remember { configuration.screenWidthDp.floorDiv(cardWidth) }
-
-    val gridHeight by remember(contents) {
-        derivedStateOf {
-            Util.calcGridHeight(
-                itemsCount = contents.size.plus(2),
-                itemHeight = cardHeight,
-                columns = columns
-            ).dp
-        }
-    }
-
-    LazyVerticalGrid(
-        modifier = Modifier.height(gridHeight),
-        columns = GridCells.Adaptive(cardWidth.minus(32).dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        userScrollEnabled = false
-    ) {
-        items(contents) {
-            BaseCard(
-                modifier = Modifier
-                    .size(cardWidth.dp, cardHeight.dp),
-                title = it.name, image = it.image, type = it.type
-            ) {
-                context.startActivity(
-                    Intent(
-                        context,
-                        ResourceActivity::class.java
-                    ).apply {
-                        putExtra("id", it.shikimoriID)
-                        putExtra("type", it.type.toString())
-                    }
-                )
-            }
-        }
-
-        items(2) {
-            ContentCardPlaceholder(modifier = Modifier.size(cardWidth.dp, cardHeight.dp))
         }
     }
 }

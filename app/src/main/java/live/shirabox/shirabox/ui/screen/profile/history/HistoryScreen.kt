@@ -15,7 +15,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -24,10 +23,9 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import live.shirabox.core.model.ContentType
-import live.shirabox.core.util.Util
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.DespondencyEmoticon
@@ -39,16 +37,12 @@ import java.util.Date
 @Composable
 fun History(
     navController: NavController,
-    model: HistoryViewModel = viewModel(factory = Util.viewModelFactory {
-        HistoryViewModel(context = navController.context.applicationContext)
-    })
+    model: HistoryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val contents by model.contentsFlow().collectAsState(initial = emptyList())
 
-    var currentType by remember {
-        mutableStateOf(ContentType.ANIME)
-    }
+    val currentType by remember { mutableStateOf(ContentType.ANIME) }
 
     val filteredContentsByTypeAndDate by remember(currentType) {
         derivedStateOf {

@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import live.shirabox.core.util.Util
 import live.shirabox.shirabox.ui.component.top.TopBar
@@ -30,13 +30,10 @@ import live.shirabox.shirabox.ui.component.top.TopBar
 @Composable
 fun ExploreScreen(
     navController: NavController,
-    model: ExploreViewModel = viewModel(factory = Util.viewModelFactory {
-        ExploreViewModel()
-    })
+    model: ExploreViewModel = hiltViewModel()
 ) {
-
     val lazyListState = rememberLazyListState()
-    val pullRefreshState = rememberPullRefreshState(model.refreshing.value, { model.refresh() })
+    val pullRefreshState = rememberPullRefreshState(model.refreshing.value, { model.refresh(false) })
 
     Scaffold(
         modifier = Modifier.pullRefresh(pullRefreshState),
@@ -57,7 +54,7 @@ fun ExploreScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item { TopBar(navController) }
-                item { BaseMediaScreen(model = model, lazyListState = lazyListState) }
+                item { BaseMediaScreen(lazyListState = lazyListState) }
             }
 
             PullRefreshIndicator(
@@ -69,6 +66,5 @@ fun ExploreScreen(
             )
         }
     }
-
 }
 

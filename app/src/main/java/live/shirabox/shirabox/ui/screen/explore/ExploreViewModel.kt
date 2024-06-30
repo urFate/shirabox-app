@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,10 +19,17 @@ import kotlinx.coroutines.launch
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.data.catalog.shikimori.ShikimoriRepository
+import javax.inject.Inject
 
 class ExploreViewModel : ViewModel() {
     val populars = MutableStateFlow(emptyList<Content>())
     val ongoings = MutableStateFlow(emptyList<Content>())
+@HiltViewModel
+class ExploreViewModel @Inject constructor(@ApplicationContext context: Context) : ViewModel() {
+    private val db = AppDatabase.getAppDataBase(context)!!
+
+    val popularsFeedList = MutableStateFlow(emptyList<Content>())
+    val trendingFeedList = MutableStateFlow(emptyList<Content>())
 
     val contentObservationStatus = mutableStateOf(ObservationStatus(Status.Loading))
     val popularsPage = mutableIntStateOf(1)
@@ -28,7 +37,7 @@ class ExploreViewModel : ViewModel() {
 
     private val crashlytics = FirebaseCrashlytics.getInstance()
 
-    fun fetchOngoings() {
+    private fun fetchTrendingFeed() {
         viewModelScope.launch(Dispatchers.IO) {
             ShikimoriRepository.fetchOngoings(1, ContentType.ANIME)
                 .catch {
@@ -37,13 +46,13 @@ class ExploreViewModel : ViewModel() {
                     contentObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
                 }.collectLatest {
-                    ongoings.emit(it)
+                    trendingFeedList.emit(it)
                     contentObservationStatus.value = ObservationStatus(Status.Success)
                 }
         }
     }
 
-    fun fetchPopulars() {
+    fun fetchPopularsFeed() {
         viewModelScope.launch(Dispatchers.IO) {
             ShikimoriRepository.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
                 .catch {
@@ -56,7 +65,7 @@ class ExploreViewModel : ViewModel() {
                     refreshing.value = false
                 }
                 .collectLatest {
-                    populars.emit(it)
+                    popularsFeedList.emit(it)
                     contentObservationStatus.value = ObservationStatus(Status.Success)
                 }
         }
@@ -67,10 +76,38 @@ class ExploreViewModel : ViewModel() {
             popularsPage.intValue = 1
             contentObservationStatus.value = ObservationStatus(Status.Loading)
             refreshing.value = true
+    fun refresh(coldStartCheck: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            /**
+             * Cold start check is required for first activity start to avoid updating the
+             * data every time user returns to the tab
+             */
+
+            when(coldStartCheck) {
+                true -> {
+                    if(contentObservationStatus.value.status != Status.Success) {
+                        fetchTrendingFeed()
+                        fetchPopularsFeed()
+                    }
+                }
+                false -> {
+                    popularsPage.intValue = 1
+                    contentObservationStatus.value = ObservationStatus(Status.Loading)
+                    refreshing.value = true
 
             fetchOngoings()
             fetchPopulars()
         }
+                    fetchTrendingFeed()
+                    fetchPopularsFeed()
+                }
+            }
+        }
+    }
+
+    fun isReady() : Boolean {
+        return popularsFeedList.value.isNotEmpty() && trendingFeedList.value.isNotEmpty()
+                && contentObservationStatus.value.status == Status.Success
     }
 
     data class ObservationStatus(

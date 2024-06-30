@@ -11,8 +11,6 @@ import android.os.Build
 import android.text.Html
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.C
 import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.Dispatchers
@@ -159,11 +157,6 @@ class Util {
                 null
             )
         }
-
-        inline fun <VM : ViewModel> viewModelFactory(crossinline f: () -> VM) =
-            object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = f() as T
-            }
 
         fun getAppVersion(
             context: Context,

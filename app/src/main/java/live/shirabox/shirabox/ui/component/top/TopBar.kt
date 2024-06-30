@@ -30,8 +30,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
@@ -46,9 +46,7 @@ import live.shirabox.shirabox.ui.screen.explore.notifications.NotificationsViewM
 @Composable
 fun TopBar(
     navController: NavController,
-    model: NotificationsViewModel = viewModel(factory = Util.viewModelFactory {
-        NotificationsViewModel(context = navController.context.applicationContext)
-    })
+    model: NotificationsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 

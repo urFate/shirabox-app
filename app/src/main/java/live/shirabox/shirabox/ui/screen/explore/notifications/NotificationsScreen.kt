@@ -31,13 +31,12 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
-import live.shirabox.core.util.Util
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import live.shirabox.shirabox.ui.component.general.ListItem
@@ -49,9 +48,7 @@ import java.util.Date
 @Composable
 fun NotificationsScreen(
     navController: NavController,
-    model: NotificationsViewModel = viewModel(factory = Util.viewModelFactory {
-        NotificationsViewModel(context = navController.context.applicationContext)
-    })
+    model: NotificationsViewModel = hiltViewModel()
 ){
     Column(
         modifier = Modifier

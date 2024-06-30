@@ -27,7 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
@@ -40,9 +40,7 @@ import live.shirabox.shirabox.ui.component.top.TopBar
 @Composable
 fun FavouritesScreen(
     navController: NavController,
-    model: FavouritesViewModel = viewModel(factory = Util.viewModelFactory {
-        FavouritesViewModel(context = navController.context.applicationContext)
-    })
+    model: FavouritesViewModel = hiltViewModel()
 ) {
     val favourites by model.fetchFavouriteContents().collectAsState(initial = emptyList())
     val currentType by remember {

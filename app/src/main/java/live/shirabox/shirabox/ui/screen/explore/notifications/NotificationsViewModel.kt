@@ -3,15 +3,19 @@ package live.shirabox.shirabox.ui.screen.explore.notifications
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
+import live.shirabox.core.db.AppDatabase
 import live.shirabox.core.entity.NotificationEntity
 import live.shirabox.core.entity.relation.NotificationAndContent
-import live.shirabox.shirabox.db.AppDatabase
+import javax.inject.Inject
 
-class NotificationsViewModel(context: Context): ViewModel() {
+@HiltViewModel
+class NotificationsViewModel @Inject constructor(@ApplicationContext context: Context) : ViewModel() {
     private val db = AppDatabase.getAppDataBase(context)
 
     fun allNotificationsFlow(): Flow<List<NotificationEntity>> =
