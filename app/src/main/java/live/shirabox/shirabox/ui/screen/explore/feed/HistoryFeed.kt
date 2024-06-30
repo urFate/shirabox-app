@@ -84,6 +84,7 @@ internal fun HistoryFeed(
                             title = combinedContent.content.name,
                             team = entity.actingTeamName,
                             episode = entity.episode,
+                            kind = combinedContent.content.kind,
                             imagePath = combinedContent.content.image,
                             watchingTime = entity.watchingTime,
                             streamLength = entity.videoLength ?: 1200000

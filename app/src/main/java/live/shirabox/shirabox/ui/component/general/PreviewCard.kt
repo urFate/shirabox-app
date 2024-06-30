@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import live.shirabox.core.model.ContentKind
 import live.shirabox.shirabox.R
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -47,6 +48,7 @@ fun PreviewCard(
     title: String,
     team: String,
     episode: Int,
+    kind: ContentKind,
     imagePath: String,
     watchingTime: Long,
     streamLength: Long,
@@ -125,7 +127,10 @@ fun PreviewCard(
                         ) {
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(id = R.string.episode_string, episode),
+                                text = when (kind) {
+                                    ContentKind.MOVIE -> stringResource(id = R.string.kind_movie)
+                                    else -> stringResource(id = R.string.episode_string, episode)
+                                },
                                 color = Color.White,
                                 textAlign = TextAlign.End
                             )
