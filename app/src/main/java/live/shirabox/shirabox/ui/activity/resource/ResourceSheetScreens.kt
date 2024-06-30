@@ -60,6 +60,7 @@ import kotlinx.coroutines.launch
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
+import live.shirabox.core.model.ContentKind
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.IntentExtras
 import live.shirabox.data.content.AbstractContentRepository
@@ -389,6 +390,12 @@ fun EpisodesSheetScreen(
                                 LocalContext.current,
                                 episodeEntity.uploadTimestamp
                             )
+                        val headlineText = if (episodeEntity.name.isNullOrEmpty()) {
+                            if (content.kind == ContentKind.MOVIE) {
+                                stringResource(id = R.string.kind_movie)
+                            } else stringResource(R.string.anime_episode, episodeEntity.episode)
+                        } else episodeEntity.name.toString()
+
                         val isViewed = episodeEntity.watchingTime > 0
                         val textColor = if (isViewed)
                             Color.Gray else Color.Unspecified
@@ -402,11 +409,7 @@ fun EpisodesSheetScreen(
                             },
                             headlineContent = {
                                 Text(
-                                    text = if (episodeEntity.name.isNullOrEmpty())
-                                        stringResource(
-                                            R.string.anime_episode,
-                                            episodeEntity.episode
-                                        ) else episodeEntity.name.toString(),
+                                    text = headlineText,
                                     color = textColor
                                 )
                             },
@@ -457,9 +460,11 @@ private fun TeamListItem(
     ExtendedListItem(
         headlineContent = { Text(team.name) },
         supportingContent = {
-            Text(
-                pluralStringResource(id = R.plurals.episodes_plurals, count = episodes.size, episodes.size)
-            )
+            if (content.kind != ContentKind.MOVIE) {
+                Text(
+                    pluralStringResource(id = R.plurals.episodes_plurals, count = episodes.size, episodes.size)
+                )
+            }
         },
         overlineContent = { Text("Обновлено $updatedTimestamp") },
         coverImage = team.logoUrl,
