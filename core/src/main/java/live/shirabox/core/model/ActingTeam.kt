@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class ActingTeam(
     val name: String,
     @SerialName("logo_url")
-    val logoUrl: String
+    val logoUrl: String?
 )

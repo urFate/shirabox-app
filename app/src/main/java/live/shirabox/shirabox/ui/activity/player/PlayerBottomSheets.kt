@@ -34,12 +34,13 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.Quality
 import live.shirabox.core.util.Util
 import live.shirabox.shirabox.R
 
 @Composable
-fun SettingsBottomSheet(exoPlayer: ExoPlayer, model: PlayerViewModel) {
+fun SettingsBottomSheet(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: PlayerViewModel) {
     val currentSheetScreen = remember {
         mutableStateOf(SettingsSheetScreen.OVERVIEW)
     }
@@ -48,14 +49,15 @@ fun SettingsBottomSheet(exoPlayer: ExoPlayer, model: PlayerViewModel) {
         when (currentSheetScreen.value) {
             SettingsSheetScreen.OVERVIEW -> SettingsOptions(currentSheetScreen, model)
             SettingsSheetScreen.VIDEO_QUALITY -> QualityBottomSheet(
-                currentSheetScreen,
-                exoPlayer,
-                model
+                currentSheetScreen = currentSheetScreen,
+                exoPlayer = exoPlayer,
+                playlist = playlist,
+                model = model
             )
 
             SettingsSheetScreen.PLAYBACK_SPEED -> PlaybackSpeedBottomSheet(
-                currentSheetScreen,
-                model
+                currentSheetScreen = currentSheetScreen,
+                model = model
             )
 
             SettingsSheetScreen.CLOSED_CAPTIONS -> ClosedCationsBottomSheet(currentSheetScreen)
@@ -98,8 +100,8 @@ private fun SettingsOptions(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
         ) {
             /*
-         * Video Quality
-         */
+             * Video Quality
+             */
 
             ListItem(
                 modifier = Modifier.clickable {
@@ -186,6 +188,7 @@ private fun SettingsOptions(
 fun QualityBottomSheet(
     currentSheetScreen: MutableState<SettingsSheetScreen>,
     exoPlayer: ExoPlayer,
+    playlist: List<EpisodeEntity>,
     model: PlayerViewModel
 ) {
     val state = rememberModalBottomSheetState(
@@ -202,7 +205,7 @@ fun QualityBottomSheet(
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
         ) {
-            model.playlist[exoPlayer.currentMediaItemIndex].streamUrls.keys.reversed().forEach {
+            playlist[exoPlayer.currentMediaItemIndex].videos.keys.reversed().forEach {
                 ListItem(
                     modifier = Modifier.clickable {
                         model.currentQuality = it

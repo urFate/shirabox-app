@@ -77,12 +77,13 @@ import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import live.shirabox.core.datastore.DataStoreScheme
+import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.util.Util
 import live.shirabox.core.util.Values
 import live.shirabox.shirabox.R
 
 @Composable
-fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
+fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: PlayerViewModel) {
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -91,16 +92,16 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     var currentPosition by remember { mutableLongStateOf(exoPlayer.currentPosition) }
     var totalDuration by remember { mutableLongStateOf(exoPlayer.duration) }
     var playbackState by remember { mutableIntStateOf(exoPlayer.playbackState) }
-    var hasNextMediaItem by remember { mutableStateOf(model.playlist.lastIndex != exoPlayer.currentMediaItemIndex) }
+    var hasNextMediaItem by remember { mutableStateOf(exoPlayer.hasNextMediaItem()) }
     var hasPreviousMediaItem by remember { mutableStateOf(exoPlayer.hasPreviousMediaItem()) }
     var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex) }
 
     val currentEpisode = remember(currentMediaItemIndex) {
-        model.playlist[exoPlayer.currentMediaItemIndex].episode
+        playlist.getOrNull(exoPlayer.currentMediaItemIndex)?.episode ?: 1
     }
 
     val providedIntroMarkers = remember(currentMediaItemIndex) {
-        model.playlist[exoPlayer.currentMediaItemIndex].openingMarkers
+        playlist[exoPlayer.currentMediaItemIndex].videoMarkers
     }
     val animeSkipIntroMarkers = remember(currentMediaItemIndex) {
         model.animeSkipTimestamps[currentEpisode]
@@ -149,7 +150,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
             totalDuration = exoPlayer.duration
             currentPosition = exoPlayer.contentPosition
             playbackState = exoPlayer.playbackState
-            hasNextMediaItem = model.playlist.lastIndex != exoPlayer.currentMediaItemIndex
+            hasNextMediaItem = exoPlayer.hasNextMediaItem()
             hasPreviousMediaItem = exoPlayer.hasPreviousMediaItem()
             currentMediaItemIndex = exoPlayer.currentMediaItemIndex.inc()
 
@@ -179,7 +180,11 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
     ) {
         Scaffold(
             topBar = {
-                PlayerTopBar(model.contentName, currentEpisode) {
+                PlayerTopBar(
+                    title = model.contentName,
+                    episode = currentEpisode,
+                    onBackClick = { activity.finish() },
+                ) {
                     model.bottomSheetVisibilityState = true
                 }
             },
@@ -196,14 +201,16 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                 }
             },
             content = {
+                val isLoaded = (playbackState == Player.STATE_READY) || (playbackState == Player.STATE_ENDED)
+
                 PlaybackControls(
                     modifier = Modifier.padding(it),
                     isPlaying = isPlaying,
-                    isLoaded = playbackState == Player.STATE_READY,
+                    isLoaded = isLoaded,
                     hasNextMediaItem = hasNextMediaItem,
                     hasPreviousMediaItem = hasPreviousMediaItem,
                     onSkipPrevious = {
-                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition)
+                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition, exoPlayer.duration)
                         exoPlayer.seekToPrevious()
                     },
                     onPlayToggle = {
@@ -211,7 +218,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                         coroutineScope.launch { hideControls(exoPlayer, model) }
                     },
                     onSkipNext = {
-                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition)
+                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition, exoPlayer.duration)
                         exoPlayer.seekToNext()
                     }
                 )
@@ -248,9 +255,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayerTopBar(title: String, episode: Int, onSettingsClick: () -> Unit) {
-    val activity = LocalContext.current as Activity
-
+fun PlayerTopBar(title: String, episode: Int, onBackClick: () -> Unit, onSettingsClick: () -> Unit) {
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         title = {
@@ -277,7 +282,7 @@ fun PlayerTopBar(title: String, episode: Int, onSettingsClick: () -> Unit) {
             }
         },
         navigationIcon = {
-            IconButton(onClick = { activity.finish() }) {
+            IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = null

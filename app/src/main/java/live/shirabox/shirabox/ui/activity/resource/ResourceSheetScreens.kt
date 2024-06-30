@@ -57,13 +57,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
-import live.shirabox.core.model.PlaylistVideo
+import live.shirabox.core.util.IntentExtras
 import live.shirabox.data.content.AbstractContentRepository
 import live.shirabox.shirabox.R
 import live.shirabox.shirabox.ui.activity.player.PlayerActivity
@@ -88,7 +86,7 @@ fun ResourceBottomSheet(
         }
     }
 
-    val sortedEpisodesMap: Map<AbstractContentRepository?, Map<ActingTeam, List<EpisodeEntity>>> = remember(episodes) {
+    val sortedEpisodesMap: Map<AbstractContentRepository?, Map<String, List<EpisodeEntity>>> = remember(episodes) {
         episodes.groupBy { it.source }
             .mapKeys { map ->
                 model.repositories.find { it.name == map.key }
@@ -96,7 +94,7 @@ fun ResourceBottomSheet(
             .mapValues { entry ->
                 entry.value.sortedByDescending { it.episode }
             }.map { entry ->
-                entry.key to entry.value.groupBy { it.actingTeam }
+                entry.key to entry.value.groupBy { it.actingTeamName }
             }.toMap()
     }
 
@@ -119,7 +117,7 @@ fun ResourceBottomSheet(
 
                 EpisodesSheetScreen(
                     content = (currentSheetScreenState.value as ResourceSheetScreen.Episodes).content,
-                    episodes = sortedEpisodesMap[instance.repository]?.get(instance.team)
+                    episodes = sortedEpisodesMap[instance.repository]?.get(instance.team.name)
                         ?: emptyList(),
                     team = instance.team,
                     currentSheetScreenState = currentSheetScreenState,
@@ -134,8 +132,7 @@ fun ResourceBottomSheet(
 @Composable
 fun SourcesSheetScreen(
     content: Content,
-    model: ResourceViewModel,
-    episodes: Map<AbstractContentRepository?, Map<ActingTeam, List<EpisodeEntity>>>,
+    episodes: Map<AbstractContentRepository?, Map<String, List<EpisodeEntity>>>,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
     visibilityState: MutableState<Boolean>,
     model: ResourceViewModel = hiltViewModel()
@@ -204,7 +201,7 @@ fun SourcesSheetScreen(
                     episodes.forEach { data ->
                         val repository = data.key
                         val actingTeams = data.value.entries.sortedByDescending {
-                            model.pinnedTeams.contains(it.key.name)
+                            model.pinnedTeams.contains(it.key)
                         }
 
                         repository?.let {
@@ -231,14 +228,16 @@ fun SourcesSheetScreen(
 
                             actingTeams.forEach { (team, entities) ->
                                 item {
+                                    val actingTeam = ActingTeam(team, entities.first().actingTeamIcon)
+
                                     TeamListItem(
                                         repository = repository,
                                         content = content,
                                         episodes = entities,
-                                        team = team
+                                        team = actingTeam
                                     ) {
                                         currentSheetScreenState.value =
-                                            ResourceSheetScreen.Episodes(content, repository, team)
+                                            ResourceSheetScreen.Episodes(content, repository, actingTeam)
                                     }
                                 }
                             }
@@ -256,7 +255,6 @@ fun EpisodesSheetScreen(
     content: Content,
     episodes: List<EpisodeEntity>,
     team: ActingTeam,
-    model: ResourceViewModel,
     currentSheetScreenState: MutableState<ResourceSheetScreen>,
     visibilityState: MutableState<Boolean>,
     model: ResourceViewModel = hiltViewModel()
@@ -365,7 +363,6 @@ fun EpisodesSheetScreen(
                                         context = context,
                                         content = content,
                                         episodeEntity = lastViewedEpisode,
-                                        episodes = episodes,
                                         team = team
                                     )
                                 }
@@ -422,7 +419,6 @@ fun EpisodesSheetScreen(
                                         context = context,
                                         content = content,
                                         episodeEntity = episodeEntity,
-                                        episodes = episodes,
                                         team = team
                                     )
 
@@ -476,28 +472,19 @@ private fun TeamListItem(
     )
 }
 
-private fun startPlayerActivity(context: Context, content: Content, episodeEntity: EpisodeEntity, episodes: List<EpisodeEntity>, team: ActingTeam) {
-    context.startActivity(
-        Intent(
-            context,
-            PlayerActivity::class.java
-        ).apply {
-            val playlist = episodes.map {
-                PlaylistVideo(
-                    episode = it.episode,
-                    streamUrls = it.videos,
-                    openingMarkers = it.videoMarkers
-                )
-            }.reversed()
-
-            putExtra("content_uid", episodeEntity.contentUid)
-            putExtra("name", content.name)
-            putExtra("en_name", content.enName)
-            putExtra("acting_team", Json.encodeToString(team))
-            putExtra("episode", episodeEntity.episode)
-            putExtra("start_index", playlist.indexOfFirst { it.episode == episodeEntity.episode})
-            putExtra("playlist", Json.encodeToString(playlist))
-        })
+private fun startPlayerActivity(
+    context: Context,
+    content: Content,
+    episodeEntity: EpisodeEntity,
+    team: ActingTeam
+) {
+    context.startActivity(Intent(context, PlayerActivity::class.java).apply {
+        putExtras(IntentExtras.playerIntentExtras(
+            content = content,
+            episodeEntity = episodeEntity,
+            team = team.name
+        ))
+    })
 }
 
 sealed class ResourceSheetScreen {

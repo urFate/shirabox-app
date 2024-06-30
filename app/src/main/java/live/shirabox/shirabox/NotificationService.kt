@@ -18,10 +18,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import live.shirabox.core.db.AppDatabase
 import live.shirabox.core.entity.NotificationEntity
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.util.Util
-import live.shirabox.shirabox.db.AppDatabase
 import live.shirabox.shirabox.ui.activity.resource.ResourceActivity
 import java.net.URL
 

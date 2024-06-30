@@ -1,9 +1,8 @@
-package live.shirabox.shirabox.db
+package live.shirabox.core.db
 
 import androidx.room.TypeConverter
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
 
@@ -69,15 +68,4 @@ class Converters {
     fun decodeVideoMarkers(videoMarkers: String): Pair<Long, Long> {
         return Json.decodeFromString(videoMarkers)
     }
-
-    @TypeConverter
-    fun encodeActingTeam(actingTeam: ActingTeam): String {
-        return Json.encodeToString(actingTeam)
-    }
-
-    @TypeConverter
-    fun decodeActingTeam(actingTeam: String): ActingTeam {
-        return Json.decodeFromString<ActingTeam>(actingTeam)
-    }
-
 }

@@ -10,7 +10,7 @@ data class Content(
     val releaseYear: String?,
     val type: ContentType,
     val kind: String,
-    val status: String,
+    val status: ReleaseStatus,
     val episodes: Int,
     val episodesAired: Int? = null,
     val episodeDuration: Int? = null,

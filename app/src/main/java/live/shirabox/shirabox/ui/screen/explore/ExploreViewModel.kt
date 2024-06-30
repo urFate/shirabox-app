@@ -1,5 +1,6 @@
 package live.shirabox.shirabox.ui.screen.explore
 
+import android.content.Context
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -14,22 +15,24 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
+import live.shirabox.core.db.AppDatabase
+import live.shirabox.core.entity.EpisodeEntity
+import live.shirabox.core.entity.relation.CombinedContent
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import javax.inject.Inject
 
-class ExploreViewModel : ViewModel() {
-    val populars = MutableStateFlow(emptyList<Content>())
-    val ongoings = MutableStateFlow(emptyList<Content>())
 @HiltViewModel
 class ExploreViewModel @Inject constructor(@ApplicationContext context: Context) : ViewModel() {
     private val db = AppDatabase.getAppDataBase(context)!!
 
     val popularsFeedList = MutableStateFlow(emptyList<Content>())
     val trendingFeedList = MutableStateFlow(emptyList<Content>())
+    val historyFeedMap = MutableStateFlow(emptyMap<CombinedContent, EpisodeEntity>())
 
     val contentObservationStatus = mutableStateOf(ObservationStatus(Status.Loading))
     val popularsPage = mutableIntStateOf(1)
@@ -71,11 +74,30 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
         }
     }
 
-    fun refresh() {
+    private fun fetchHistoryFeed() {
         viewModelScope.launch(Dispatchers.IO) {
-            popularsPage.intValue = 1
-            contentObservationStatus.value = ObservationStatus(Status.Loading)
-            refreshing.value = true
+            db.contentDao().getAllCombinedContent().map { list ->
+                list.sortedByDescending { it.content.lastViewTimestamp }
+            }.collectLatest { contents ->
+                val episodesMap = mutableMapOf<CombinedContent, EpisodeEntity>()
+                contents.forEach { combinedContent ->
+                    val candidate = combinedContent.episodes.filter {
+                        (it.videoLength != null && it.viewTimestamp != null)
+                    }.maxByOrNull { it.viewTimestamp ?: 0L }
+
+                    // Put episode if it's aren't finished
+                    candidate?.let { entity ->
+                        if (entity.watchingTime < entity.videoLength!!) episodesMap[combinedContent] = entity
+                    }
+                }
+
+                episodesMap.toSortedMap(compareByDescending { it.content.lastViewTimestamp }).let {
+                    historyFeedMap.emit(it)
+                }
+            }
+        }
+    }
+
     fun refresh(coldStartCheck: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             /**
@@ -95,13 +117,12 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                     contentObservationStatus.value = ObservationStatus(Status.Loading)
                     refreshing.value = true
 
-            fetchOngoings()
-            fetchPopulars()
-        }
                     fetchTrendingFeed()
                     fetchPopularsFeed()
                 }
             }
+
+            fetchHistoryFeed()
         }
     }
 

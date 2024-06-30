@@ -59,9 +59,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
 }
 
 dependencies {
@@ -78,7 +75,8 @@ dependencies {
     implementation (platform("androidx.compose:compose-bom:2024.05.00"))
     implementation (platform("org.jetbrains.kotlin:kotlin-bom:1.9.23"))
     implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation ("androidx.core:core-splashscreen:1.0.1")
+    implementation ("androidx.graphics:graphics-core:1.0.0-rc01")
 
     testImplementation ("junit:junit:4.13.2")
     androidTestImplementation ("androidx.test.ext:junit:1.1.5")
@@ -119,24 +117,18 @@ dependencies {
     implementation ("androidx.media3:media3-ui:$media3Version")
     implementation ("androidx.media3:media3-exoplayer-hls:$media3Version")
 
-    // Room
-    val roomVersion = "2.6.1"
-
-    implementation ("androidx.room:room-common:$roomVersion")
-    implementation ("androidx.room:room-runtime:$roomVersion")
-    ksp ("androidx.room:room-compiler:$roomVersion")
-    implementation ("androidx.room:room-ktx:$roomVersion")
-
     // Firebase
     implementation (platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation ("com.google.firebase:firebase-crashlytics-ktx")
     implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-messaging-ktx")
 
-    // Network
+    // Image processing
     implementation ("io.coil-kt:coil-compose:2.5.0")
-    implementation("com.github.kittinunf.fuel:fuel:3.0.0-alpha1")
     implementation("io.coil-kt:coil-svg:2.6.0")
+
+    // Network
+    implementation("com.github.kittinunf.fuel:fuel:3.0.0-alpha1")
 
     // Datastore
     implementation ("androidx.datastore:datastore-preferences:1.1.1")

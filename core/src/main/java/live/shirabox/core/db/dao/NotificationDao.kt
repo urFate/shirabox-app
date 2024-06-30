@@ -1,4 +1,4 @@
-package live.shirabox.shirabox.db.dao
+package live.shirabox.core.db.dao
 
 import androidx.room.Dao
 import androidx.room.Delete

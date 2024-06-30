@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     kotlin("plugin.serialization") version "1.9.20"
+    id("com.google.devtools.ksp")
     id("kotlin-parcelize")
 }
 
@@ -32,6 +33,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
 }
 
 dependencies {
@@ -45,4 +49,12 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation ("androidx.media3:media3-common:1.3.1")
     implementation ("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Room
+    val roomVersion = "2.6.1"
+
+    implementation ("androidx.room:room-common:$roomVersion")
+    api ("androidx.room:room-runtime:$roomVersion")
+    ksp ("androidx.room:room-compiler:$roomVersion")
+    implementation ("androidx.room:room-ktx:$roomVersion")
 }

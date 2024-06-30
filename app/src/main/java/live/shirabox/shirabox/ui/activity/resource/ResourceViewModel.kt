@@ -15,7 +15,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -23,23 +22,24 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import live.shirabox.core.datastore.AppDataStore
 import live.shirabox.core.datastore.DataStoreScheme
+import live.shirabox.core.db.AppDatabase
 import live.shirabox.core.entity.EpisodeEntity
 import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
-import live.shirabox.core.model.ContentType
+import live.shirabox.core.model.ContentType.ANIME
 import live.shirabox.core.util.Util
 import live.shirabox.core.util.Util.Companion.mapContentToEntity
 import live.shirabox.core.util.Util.Companion.mapEntityToContent
+import live.shirabox.data.EpisodesHelper
 import live.shirabox.data.catalog.shikimori.ShikimoriRepository
 import live.shirabox.data.content.AbstractContentRepository
 import live.shirabox.data.content.ContentRepositoryRegistry
 import javax.inject.Inject
 
-class ResourceViewModel(context: Context, private val contentType: ContentType) : ViewModel() {
-    private val db = AppDatabase.getAppDataBase(context)
 @HiltViewModel
 class ResourceViewModel @Inject constructor(@ApplicationContext context: Context) : ViewModel() {
     private val db = AppDatabase.getAppDataBase(context)!!
+    private val episodesHelper = EpisodesHelper(db)
 
     val content = mutableStateOf<Content?>(null)
     val relatedContents = mutableStateListOf<Content>()
@@ -54,7 +54,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val contentObservationException = mutableStateOf<Exception?>(null)
 
     val repositories =
-        ContentRepositoryRegistry.REPOSITORIES.filter { it.contentType == contentType }
+        ContentRepositoryRegistry.REPOSITORIES.filter { it.contentType == ANIME }
 
     fun fetchContent(shikimoriId: Int, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -70,7 +70,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     if(!forceRefresh) return@launch
                 }
 
-                ShikimoriRepository.fetchContent(shikimoriId, contentType).catch {
+                ShikimoriRepository.fetchContent(shikimoriId, ANIME).catch {
                     contentObservationException.value = it as Exception
                     it.printStackTrace()
                     emitAll(emptyFlow())
@@ -109,7 +109,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
 
     fun fetchRelated(shikimoriID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            ShikimoriRepository.fetchRelated(shikimoriID, contentType).catch {
+            ShikimoriRepository.fetchRelated(shikimoriID, ANIME).catch {
                 it.printStackTrace()
                 emitAll(emptyFlow())
             }.collect { contents ->
@@ -132,14 +132,14 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
 
                     async {
                         when (completeSearchRequired) {
-                            true -> completeEpisodesSearch(
+                            true -> episodesHelper.completeEpisodesSearch(
                                 repository = repository,
                                 content = content,
                                 contentUid = combinedContent.content.uid,
                                 cachedEpisodes = cachedEpisodes
                             )
 
-                            false -> partialEpisodesSearch(
+                            false -> episodesHelper.partialEpisodesSearch(
                                 repository = repository,
                                 content = content,
                                 contentUid = combinedContent.content.uid,
@@ -231,58 +231,5 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         }
     }
 
-    private suspend fun completeEpisodesSearch(
-        repository: AbstractContentRepository,
-        content: Content,
-        contentUid: Long,
-        cachedEpisodes: List<EpisodeEntity>
-    ) {
-        repository.searchEpisodes(content).catch {
-            it.printStackTrace()
-            emitAll(emptyFlow())
-        }.collectLatest {
-            cacheEpisodes(it, cachedEpisodes, contentUid)
-        }
-    }
 
-    private suspend fun partialEpisodesSearch(
-        repository: AbstractContentRepository,
-        content: Content,
-        contentUid: Long,
-        cachedEpisodes: List<EpisodeEntity>,
-        range: IntRange
-    ) {
-        repository.searchEpisodesInRange(content, range).catch {
-            it.printStackTrace()
-            emitAll(emptyFlow())
-        }.collectLatest {
-            cacheEpisodes(it, cachedEpisodes, contentUid)
-        }
-    }
-
-    private fun cacheEpisodes(episodes: List<EpisodeEntity>, cachedEpisodes: List<EpisodeEntity>, contentUid: Long) {
-        episodes.map { episodeEntity ->
-
-            /**
-             * Keep local data (e.g. watching time and id's)
-             */
-
-            when (
-                val matchingEpisode =
-                    cachedEpisodes.firstOrNull { it.episode == episodeEntity.episode && it.actingTeam == episodeEntity.actingTeam }
-            ) {
-                null -> episodeEntity.copy(uid = null, contentUid = contentUid)
-                else -> {
-                    episodeEntity.copy(
-                        uid = matchingEpisode.uid,
-                        contentUid = contentUid,
-                        watchingTime = matchingEpisode.watchingTime,
-                        readingPage = matchingEpisode.readingPage
-                    )
-                }
-            }
-        }.let { entities ->
-            db?.episodeDao()?.insertEpisodes(*entities.toTypedArray())
-        }
-    }
 }

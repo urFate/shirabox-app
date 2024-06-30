@@ -1,4 +1,4 @@
-package live.shirabox.shirabox.db.dao
+package live.shirabox.core.db.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -15,17 +15,24 @@ import live.shirabox.core.entity.relation.CombinedContent
 interface ContentDao {
     @Transaction
     @Query("SELECT * FROM content")
-    fun allCombinedContent(): Flow<List<ContentEntity>>
+    fun allContent(): Flow<List<ContentEntity>>
 
     @Query("SELECT * FROM content WHERE favourite IS 1")
     fun getFavourites(): Flow<List<ContentEntity>>
 
     @Transaction
     @Query("SELECT * FROM content WHERE shikimori_id IS :shikimoriId")
-    fun combinedContent(shikimoriId: Int): CombinedContent
+    fun getCombinedContent(shikimoriId: Int): CombinedContent
+
+    @Transaction
+    @Query("SELECT * FROM content")
+    fun getAllCombinedContent(): Flow<List<CombinedContent>>
 
     @Query("SELECT * FROM content WHERE shikimori_id IS :shikimoriId")
     fun getContent(shikimoriId: Int): ContentEntity?
+
+    @Query("SELECT * FROM content WHERE uid IS :uid")
+    fun getContentByUid(uid: Long): ContentEntity
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertContents(vararg contents: ContentEntity): List<Long>

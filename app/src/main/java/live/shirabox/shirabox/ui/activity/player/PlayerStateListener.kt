@@ -6,7 +6,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import live.shirabox.core.util.Values
 
-class PlayerLoadingStateListener(
+
+class PlayerStateListener(
     private val coroutineScope: CoroutineScope,
     private val model: PlayerViewModel
 ) : Player.Listener {

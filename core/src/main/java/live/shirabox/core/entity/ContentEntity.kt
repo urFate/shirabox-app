@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Rating
+import live.shirabox.core.model.ReleaseStatus
 
 @Entity(tableName = "content")
 data class ContentEntity(
@@ -19,7 +20,7 @@ data class ContentEntity(
     @ColumnInfo(name = "release_year") val releaseYear: String?,
     @ColumnInfo(name = "type") val type: ContentType,
     @ColumnInfo(name = "kind") val kind: String,
-    @ColumnInfo(name = "status") val status: String,
+    @ColumnInfo(name = "status") val status: ReleaseStatus,
     @ColumnInfo(name = "episodes") val episodes: Int,
     @ColumnInfo(name = "episodes_aired") val episodesAired: Int?,
     @ColumnInfo(name = "episode_duration") val episodeDuration: Int?,

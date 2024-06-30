@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.imageLoader
-import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
@@ -75,12 +74,7 @@ fun BaseCard(
         .listener { _, _ ->
             isLoaded = true
         }
-        .memoryCacheKey(image)
-        .diskCacheKey(image)
-        .diskCachePolicy(CachePolicy.ENABLED)
-        .memoryCachePolicy(CachePolicy.ENABLED)
         .build()
-
 
     Surface(
         modifier = modifier,

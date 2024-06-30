@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.serialization.SerializationException
 import live.shirabox.core.entity.EpisodeEntity
-import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
@@ -97,10 +96,8 @@ class AniLibRepository : AbstractContentRepository(
 
                     EpisodeEntity(
                         source = this@AniLibRepository.name,
-                        actingTeam = ActingTeam(
-                            name = player.team.name,
-                            logoUrl = logoUrl
-                        ),
+                        actingTeamName = player.team.name,
+                        actingTeamIcon = logoUrl,
                         name = name,
                         episode = number,
                         uploadTimestamp = createdAt,

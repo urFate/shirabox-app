@@ -80,6 +80,12 @@
     <string name="no_internet_connection_variant">Ой… А где интернет-то?</string>
     <string name="go_back">Вернуться</string>
     <string name="continue_watching">Продолжить</string>
+    <string name="release_status_announced">Анонсировано</string>
+    <string name="release_status_finished">Выпуск завершён</string>
+    <string name="release_status_releasing">Выпускается</string>
+    <string name="release_status_paused">Выпуск приостановлен</string>
+    <string name="release_status_discounted">Выпуск прекращён</string>
+    <string name="release_status_unknown">Статус неизвестен</string>
 
     <!--
         Player Activity
@@ -192,6 +198,8 @@
     <string name="update_dialog_title">Обновление</string>
     <string name="cancel_installation">Отменить загрузку</string>
     <string name="download_error">Произшла ошибка. Повторите попытку позже.</string>
+    <string name="continue_watching_feed">Продолжить просмотр</string>
+    <string name="remaining">Осталось %s</string>
 
     <!--
         Plurals

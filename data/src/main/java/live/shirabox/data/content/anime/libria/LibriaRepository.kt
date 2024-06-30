@@ -4,7 +4,6 @@ import fuel.httpGet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import live.shirabox.core.entity.EpisodeEntity
-import live.shirabox.core.model.ActingTeam
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Quality
@@ -86,9 +85,8 @@ class LibriaRepository : AbstractContentRepository(
                 data.skips.opening.firstOrNull()?.times(1000L) ?: -1L,
                 data.skips.opening.lastOrNull()?.times(1000L) ?: -1L
             ),
-            actingTeam = ActingTeam(
-                name = "AniLibria", logoUrl = ACTING_TEAM_LOGO_URL
-            ),
+            actingTeamName = "AniLibria",
+            actingTeamIcon = ACTING_TEAM_LOGO_URL,
             type = this.contentType
         )
     }

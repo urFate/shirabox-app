@@ -1,10 +1,9 @@
 package live.shirabox.shirabox.ui.activity.player
 
-import android.app.Activity
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -12,17 +11,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.serialization.json.Json
+import dagger.hilt.android.AndroidEntryPoint
 import live.shirabox.core.util.Util
+import live.shirabox.core.util.Values
 import live.shirabox.shirabox.ui.theme.ShiraBoxTheme
 
+@AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
 
     private var player: ExoPlayer? = null
 
+    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -37,7 +43,6 @@ class PlayerActivity : ComponentActivity() {
                 ) {
                     val arguments = intent.extras
                     val context = LocalContext.current
-                    val activity = context as? Activity
 
                     rememberSystemUiController().apply {
                         setStatusBarColor(
@@ -47,36 +52,32 @@ class PlayerActivity : ComponentActivity() {
                         Util.hideSystemUi(this)
                     }
 
+                    val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+                        .setAllowCrossProtocolRedirects(true).setUserAgent(Values.USER_AGENT)
+
+                    val dataSourceFactory = DataSource.Factory { httpDataSourceFactory.createDataSource() }
+
                     val exoPlayer = remember {
-                        ExoPlayer.Builder(context).build().apply { prepare() }
+                        ExoPlayer.Builder(context).setMediaSourceFactory(
+                            DefaultMediaSourceFactory(context).setDataSourceFactory(
+                                dataSourceFactory
+                            )
+                        ).build().apply { prepare() }
                     }
                     player = exoPlayer
 
-                    lateinit var model: PlayerViewModel
-
-                    try {
-                        model = PlayerViewModel(
-                            context = context,
+                    val model = hiltViewModel<PlayerViewModel, PlayerViewModel.PlayerViewModelFactory> {
+                        it.create(
                             contentUid = arguments!!.getLong("content_uid"),
                             contentName = arguments.getString("name").toString(),
                             contentEnName = arguments.getString("en_name").toString(),
-                            actingTeam = Json.decodeFromString(arguments.getString("acting_team") ?: ""),
-                            episode = arguments.getInt("episode"),
-                            startIndex = arguments.getInt("start_index"),
-                            playlist = Json.decodeFromString(
-                                arguments.getString("playlist") ?: ""
-                            )
+                            team = arguments.getString("acting_team").toString(),
+                            repository = arguments.getString("repository").toString(),
+                            initialEpisode = arguments.getInt("episode"),
                         )
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        activity?.finish()
-                        Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
                     }
 
-                    ShiraPlayer(
-                        exoPlayer = exoPlayer,
-                        model = viewModel(factory = Util.viewModelFactory { model })
-                    )
+                    ShiraPlayer(exoPlayer = exoPlayer, model = model)
                 }
             }
         }

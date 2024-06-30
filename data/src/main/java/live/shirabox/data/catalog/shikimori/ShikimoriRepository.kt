@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 import live.shirabox.core.model.Content
 import live.shirabox.core.model.ContentType
 import live.shirabox.core.model.Rating
+import live.shirabox.core.model.ReleaseStatus
 import live.shirabox.core.util.Util
 import okhttp3.Request
 import java.net.SocketTimeoutException
@@ -205,7 +206,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         releaseYear = it.anime.releasedOn,
                         type = ContentType.ANIME,
                         kind = it.anime.kind.toString(),
-                        status = it.anime.status,
+                        status = decodeStatus(it.anime.status),
                         episodes = it.anime.episodes,
                         episodesAired = it.anime.episodesAired,
                         rating = Rating(average = it.anime.score.toDouble(), scores = mapOf()),
@@ -219,7 +220,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         releaseYear = it.manga.releasedOn ?: "",
                         type = ContentType.MANGA,
                         kind = it.manga.kind.toString(),
-                        status = it.manga.status,
+                        status = decodeStatus(it.manga.status),
                         episodes = it.manga.chapters,
                         rating = Rating(average = it.manga.score.toDouble(), scores = mapOf()),
                         shikimoriID = it.manga.id
@@ -315,14 +316,14 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
         }
     }
 
-    private fun decodeStatus(str: String): String {
+    private fun decodeStatus(str: String): ReleaseStatus {
         return when(str) {
-            "anons" -> "Анонс"
-            "ongoing" -> "Выпускается"
-            "released" -> "Завершён"
-            "paused" -> "Выпуск приостановлен"
-            "discontinued" -> "Выпуск прекращён"
-            else -> str
+            "anons" -> ReleaseStatus.ANNOUNCED
+            "ongoing" -> ReleaseStatus.RELEASING
+            "released" -> ReleaseStatus.FINISHED
+            "paused" -> ReleaseStatus.PAUSED
+            "discontinued" -> ReleaseStatus.DISCOUNTED
+            else -> ReleaseStatus.UNKNOWN
         }
     }
 

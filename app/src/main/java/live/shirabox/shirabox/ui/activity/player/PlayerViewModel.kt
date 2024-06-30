@@ -10,51 +10,110 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import live.shirabox.core.datastore.AppDataStore
 import live.shirabox.core.datastore.DataStoreScheme
-import live.shirabox.core.model.ActingTeam
-import live.shirabox.core.model.PlaylistVideo
+import live.shirabox.core.db.AppDatabase
+import live.shirabox.core.entity.EpisodeEntity
+import live.shirabox.core.model.ContentType
+import live.shirabox.core.model.Quality
+import live.shirabox.core.util.Util
+import live.shirabox.data.EpisodesHelper
 import live.shirabox.data.animeskip.AnimeSkipRepository
-import live.shirabox.shirabox.db.AppDatabase
+import live.shirabox.data.content.ContentRepositoryRegistry
 
-class PlayerViewModel(
-    context: Context,
-    val contentUid: Long,
-    val contentName: String,
-    val contentEnName: String,
-    val actingTeam: ActingTeam,
-    val episode: Int,
-    val startIndex: Int,
-    val playlist: List<PlaylistVideo>
+@HiltViewModel(assistedFactory = PlayerViewModel.PlayerViewModelFactory::class)
+class PlayerViewModel @AssistedInject constructor(
+    @Assisted val contentUid: Long,
+    @Assisted("contentName") val contentName: String,
+    @Assisted("contentEnName") val contentEnName: String,
+    @Assisted("team") val team: String,
+    @Assisted("repository") val repository: String,
+    @Assisted val initialEpisode: Int,
+    @ApplicationContext context: Context
 ) : ViewModel() {
-    private val db = AppDatabase.getAppDataBase(context)
+
+    private val db = AppDatabase.getAppDataBase(context)!!
+    private val episodesHelper = EpisodesHelper(db)
+    private val repositories =
+        ContentRepositoryRegistry.REPOSITORIES.filter { it.contentType == ContentType.ANIME }
 
     val episodesPositions = mutableStateMapOf<Int, Long>()
     var controlsVisibilityState by mutableStateOf(true)
     var bottomSheetVisibilityState by mutableStateOf(false)
     var orientationState by mutableIntStateOf(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-    var currentQuality by mutableStateOf(live.shirabox.core.model.Quality.HD)
+    var currentQuality by mutableStateOf(Quality.HD)
     var playbackSpeed by mutableFloatStateOf(1F)
     var coldStartSeekApplied by mutableStateOf(false)
     val animeSkipTimestamps = mutableStateMapOf<Int, Pair<Long, Long>>()
 
-    fun saveEpisodePosition(episode: Int, time: Long) {
+    @AssistedFactory
+    interface PlayerViewModelFactory {
+        fun create(
+            contentUid: Long,
+            @Assisted("contentName") contentName: String,
+            @Assisted("contentEnName") contentEnName: String,
+            @Assisted("team") team: String,
+            @Assisted("repository") repository: String,
+            initialEpisode: Int
+        ): PlayerViewModel
+    }
+
+    fun playlistFlow() = db.episodeDao().getEpisodes(contentUid, team, repository).map { list ->
+        list.sortedBy { it.episode }
+    }
+
+    fun seekNewEpisodes(cachedEpisodes: List<EpisodeEntity>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val content = db.contentDao().getContentByUid(contentUid)
+            repositories.forEach {
+                episodesHelper.partialEpisodesSearch(
+                    repository = it,
+                    content = Util.mapEntityToContent(content),
+                    contentUid = content.uid,
+                    cachedEpisodes = cachedEpisodes,
+                    range = cachedEpisodes.last().episode.inc()..Int.MAX_VALUE
+                )
+            }
+        }
+    }
+
+    fun saveEpisodePosition(episode: Int, time: Long, length: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             val episodeEntity =
-                db?.episodeDao()?.getEpisode(contentUid, episode, actingTeam)
+                db.episodeDao().getEpisode(contentUid, episode, team, repository)
+            val contentEntity = db.contentDao().getContentByUid(contentUid)
 
-            episodeEntity?.let { db?.episodeDao()?.updateEpisodes(it.copy(watchingTime = time)) }
+            episodeEntity.let {
+                db.episodeDao().updateEpisodes(
+                    it.copy(
+                        watchingTime = time,
+                        videoLength = length,
+                        viewTimestamp = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            contentEntity.let {
+                db.contentDao()
+                    .updateContents(contentEntity.copy(lastViewTimestamp = System.currentTimeMillis()))
+            }
         }
     }
 
     fun fetchEpisodePositions() {
         viewModelScope.launch(Dispatchers.IO) {
-            db?.episodeDao()?.getEpisodes(contentUid, actingTeam)?.collect { entityList ->
+            db.episodeDao().getEpisodes(contentUid, team, repository).collect { entityList ->
                 episodesPositions.putAll(entityList.associate {
                     it.episode to it.watchingTime
                 })
