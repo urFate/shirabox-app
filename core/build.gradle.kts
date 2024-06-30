@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "live.shirabox.core"
+    namespace = "org.shirabox.core"
     compileSdk = 34
 
     defaultConfig {

@@ -44,7 +44,7 @@
 
 ## Installation
 
-Downloads available on our [GitHub Releases](https://github.com/urFate/shirabox-app/releases/latest) page or on [official website](https://www.shirabox.live/).
+Downloads available on our [GitHub Releases](https://github.com/urFate/shirabox-app/releases/latest) page or on [official website](https://www.shirabox.org/).
 Nightly APK builds currently available on our [Github Actions](https://github.com/urFate/shirabox-app/actions).
 
 > [!IMPORTANT]

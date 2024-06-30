@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "live.shirabox.shirabox"
+    namespace = "org.shirabox.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "live.shirabox.shirabox"
+        applicationId = "org.shirabox.app"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

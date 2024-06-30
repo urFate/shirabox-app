@@ -22,7 +22,7 @@
 
 -dontobfuscate
 
--keep,allowoptimization class live.shirabox.**
+-keep,allowoptimization class org.shirabox.**
 
 
 # Keep `Companion` object fields of serializable classes.
