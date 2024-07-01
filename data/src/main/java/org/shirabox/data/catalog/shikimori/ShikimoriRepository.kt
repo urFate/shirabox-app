@@ -330,8 +330,8 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
 
         return when (month) {
             in 0 until 4 -> "winter_$year"
-            in 4 until 7 -> "spring_$year"
-            in 7 until 9 -> "summer_$year"
+            in 4 until 8 -> "spring_$year"
+            in 8 until 9 -> "summer_$year"
             else -> "fall_$year"
         }
     }
