@@ -1,6 +1,7 @@
 package org.shirabox.app
 
 import android.content.Context
+import org.shirabox.app.ui.screen.favourites.SortType
 import org.shirabox.core.model.ContentKind
 import org.shirabox.core.model.ReleaseStatus
 
@@ -24,4 +25,11 @@ object ValuesHelper {
             ReleaseStatus.UNKNOWN -> context.getString(R.string.release_status_unknown)
         }
 
+    fun decodeSortingType(sortType: SortType, context: Context) = when (sortType) {
+        SortType.DEFAULT -> context.getString(R.string.default_order)
+        SortType.ALPHABETICAL -> context.getString(R.string.alphabetical_order)
+        SortType.RATING -> context.getString(R.string.rating_order)
+        SortType.RECENT -> context.getString(R.string.recent_order)
+        SortType.STATUS -> context.getString(R.string.status_order)
+    }
 }

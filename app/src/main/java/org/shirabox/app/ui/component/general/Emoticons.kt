@@ -21,7 +21,7 @@ fun DespondencyEmoticon(
 ) {
     Column(
         modifier = Modifier
-            .padding(64.dp)
+            .padding(48.dp)
             .then(modifier),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -30,13 +30,14 @@ fun DespondencyEmoticon(
             text = emoticon,
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.outline
         )
         Text(
             text = text,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.outline
         )
     }
 }
@@ -58,13 +59,14 @@ fun ScaredEmoticon(
             text = emoticon,
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.outline
         )
         Text(
             text = text,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.outline
         )
     }
 }

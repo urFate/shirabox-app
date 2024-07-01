@@ -37,6 +37,17 @@
         Favourites Screen
     -->
     <string name="empty_library">Библиотека пуста</string>
+    <string name="empty_library_filter">Библиотека пуста.\nВозможно следует сбросить фильтры сортировки</string>
+    <string name="sorting">Сортировать</string>
+    <string name="sort_by">Расположить по</string>
+    <string name="default_order">Умолчанию</string>
+    <string name="alphabetical_order">Алфавиту</string>
+    <string name="rating_order">Рейтингу</string>
+    <string name="recent_order">Времени просмотра</string>
+    <string name="status_order">Статусу выпуска</string>
+    <string name="kind">Формат выпуска</string>
+    <string name="reset">Сбросить</string>
+    <string name="apply">Применить</string>
 
     <!-- 
         Profile Screen Options
