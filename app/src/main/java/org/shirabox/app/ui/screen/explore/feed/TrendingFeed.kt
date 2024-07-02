@@ -73,7 +73,7 @@ internal fun TrendingFeed(
             items(contents) {
                 BaseCard(
                     modifier = Modifier.size(cardWidth.dp, 220.dp),
-                    title = it.name, image = it.image, type = it.type
+                    title = it.name.ifBlank { it.enName }, image = it.image, type = it.type
                 ) {
                     context.startActivity(
                         Intent(

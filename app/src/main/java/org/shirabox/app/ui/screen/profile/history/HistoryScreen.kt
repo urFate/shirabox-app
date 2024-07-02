@@ -94,7 +94,7 @@ fun History(
                     ListItem(
                         headlineContent = {
                             Text(
-                                text = contentEntity.name,
+                                text = contentEntity.name.ifBlank { contentEntity.enName },
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis

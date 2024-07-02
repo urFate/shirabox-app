@@ -171,13 +171,17 @@ fun SearchScreen() {
             if (text.isEmpty()) {
                 items(searchHistory) {
                     if (it.isNotEmpty()) {
-                        androidx.compose.material3.ListItem(modifier = Modifier.clickable {
+                        androidx.compose.material3.ListItem(
+                            modifier = Modifier.clickable {
                                 text = it
-                            }, headlineContent = {
-                            Text(it)
-                        }, leadingContent = {
-                            Icon(imageVector = Icons.Default.History, contentDescription = null)
-                        })
+                            },
+                            headlineContent = {
+                                Text(it)
+                            },
+                            leadingContent = {
+                                Icon(imageVector = Icons.Default.History, contentDescription = null)
+                            },
+                        )
                     }
                 }
                 return@LazyColumn
@@ -225,9 +229,16 @@ fun SearchScreen() {
                     ListItem(
                         headlineContent = {
                             Text(
-                                text = it.name, fontWeight = FontWeight.Bold
+                                text = it.name.ifBlank { it.enName }, fontWeight = FontWeight.Bold
                             )
-                        }, supportingString = "${it.releaseYear}, ${ValuesHelper.decodeKind(it.kind, context)}", coverImage = it.image
+                        },
+                        supportingString = "${it.releaseYear}, ${
+                            ValuesHelper.decodeKind(
+                                it.kind,
+                                context
+                            )
+                        }",
+                        coverImage = it.image
                     ) {
                         context.startActivity(Intent(
                             context, ResourceActivity::class.java

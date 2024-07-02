@@ -331,7 +331,7 @@ fun Resource(
 
                 Text(
                     modifier = Modifier.padding(16.dp, 0.dp),
-                    text = content.name,
+                    text = content.name.ifBlank { content.enName },
                     fontSize = 22.sp,
                     fontWeight = FontWeight.W800
                 )
@@ -578,7 +578,7 @@ fun Resource(
                             contentPadding = PaddingValues(16.dp)
                         ) {
                             items(relations) {
-                                ContentCard(
+                                BaseCard(
                                     modifier = Modifier.size(150.dp, 210.dp),
                                     title = it.name.ifBlank { it.enName },
                                     image = it.image,
