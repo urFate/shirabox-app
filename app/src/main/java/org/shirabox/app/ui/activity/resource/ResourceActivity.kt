@@ -99,6 +99,7 @@ import org.shirabox.app.ui.component.general.RatingView
 import org.shirabox.app.ui.component.general.ScaredEmoticon
 import org.shirabox.app.ui.theme.ShiraBoxTheme
 import org.shirabox.core.model.ContentType
+import org.shirabox.core.model.ReleaseStatus
 import org.shirabox.core.util.round
 import java.io.IOException
 
@@ -434,9 +435,12 @@ fun Resource(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        val production = content.production?.uppercase()
+                            ?: stringResource(id = R.string.unknown_production)
+
                         ResourceDataLabel(
                             icon = Icons.Outlined.MovieCreation,
-                            text = "${(content.production?.uppercase() ?: stringResource(id = R.string.unknown_production))}, ${content.releaseYear}"
+                            text = "$production, ${content.releaseYear}"
                         )
                         ResourceDataLabel(
                             icon = Icons.Outlined.EventAvailable,
@@ -446,15 +450,21 @@ fun Resource(
                                 ValuesHelper.decodeStatus(content.status, context)
                             }"
                         )
-                        if (type == ContentType.ANIME) {
+
+                        if(content.status != ReleaseStatus.ANNOUNCED) {
+                            val episodesAired =
+                                content.episodesAired?.takeIf { it != 0 || content.status != ReleaseStatus.FINISHED }
+                                    ?: content.episodes.takeIf { it > 0 } ?: 12
+                            val episodesCount = content.episodes.takeIf { it > 0 } ?: episodesAired
+                            val episodeDuration = content.episodeDuration ?: 20
+
                             ResourceDataLabel(
-                                icon = Icons.Outlined.LiveTv, text =
-                                stringResource(
+                                icon = Icons.Outlined.LiveTv,
+                                text = stringResource(
                                     id = R.string.resource_status,
-                                    content.episodesAired ?: 0,
-                                    if (content.episodes == 0) (content.episodesAired
-                                        ?: 0) else content.episodes,
-                                    content.episodeDuration ?: 20
+                                    episodesAired,
+                                    episodesCount,
+                                    episodeDuration
                                 )
                             )
                         }
