@@ -56,7 +56,7 @@ import kotlinx.coroutines.launch
 import org.shirabox.app.R
 import org.shirabox.app.ValuesHelper
 import org.shirabox.app.ui.activity.resource.ResourceActivity
-import org.shirabox.app.ui.component.general.ContentCard
+import org.shirabox.app.ui.component.general.BaseCard
 import org.shirabox.app.ui.component.general.DespondencyEmoticon
 import org.shirabox.app.ui.component.top.TopBar
 import org.shirabox.core.model.Content
@@ -159,7 +159,12 @@ fun FavouritesGrid(contents: List<Content>) {
         userScrollEnabled = false
     ) {
         items(contents) {
-            ContentCard(modifier = Modifier.size(180.dp, 240.dp), item = it) {
+            BaseCard(
+                modifier = Modifier.size(180.dp, 240.dp),
+                title = it.name.ifBlank { it.enName },
+                image = it.image,
+                type = it.type
+            ) {
                 context.startActivity(
                     Intent(
                         context,

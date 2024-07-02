@@ -91,7 +91,7 @@ import coil.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
 import org.shirabox.app.R
 import org.shirabox.app.ValuesHelper
-import org.shirabox.app.ui.component.general.ContentCard
+import org.shirabox.app.ui.component.general.BaseCard
 import org.shirabox.app.ui.component.general.ExpandableBox
 import org.shirabox.app.ui.component.general.ExtendedListItem
 import org.shirabox.app.ui.component.general.RatingView
@@ -568,8 +568,9 @@ fun Resource(
                             items(relations) {
                                 ContentCard(
                                     modifier = Modifier.size(150.dp, 210.dp),
-                                    typeBadge = false,
-                                    item = it
+                                    title = it.name.ifBlank { it.enName },
+                                    image = it.image,
+                                    type = it.type
                                 ) {
                                     context.startActivity(
                                         Intent(

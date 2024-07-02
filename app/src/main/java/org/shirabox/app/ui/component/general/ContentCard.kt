@@ -34,24 +34,7 @@ import org.shirabox.app.R
 import org.shirabox.app.ui.theme.light_primary
 import org.shirabox.app.ui.theme.mangaPrimary
 import org.shirabox.app.ui.theme.ranobePrimary
-import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType
-
-@Composable
-fun ContentCard(
-    modifier: Modifier = Modifier,
-    item: Content,
-    typeBadge: Boolean = false,
-    onClick: () -> Unit
-) {
-    BaseCard(
-        modifier = modifier,
-        title = item.name,
-        image = item.image,
-        type = item.type,
-        typeBadge = typeBadge
-    ) { onClick() }
-}
 
 @Composable
 fun BaseCard(
