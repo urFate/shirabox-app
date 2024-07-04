@@ -67,7 +67,7 @@
     <!--
         Login Card
     -->
-    <string name="unauthorized">Вход не выполнен</string>
+    <string name="guest">Гость</string>
     <string name="unauthorized_suggestion">Войти в аккаунт ShiraBox</string>
     <string name="title_activity_resource">ResourceActivity</string>
 
