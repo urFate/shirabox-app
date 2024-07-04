@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -32,12 +33,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.EventAvailable
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MovieCreation
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -49,9 +50,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -348,53 +351,22 @@ fun Resource(
                  */
 
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
+                        .padding(16.dp, 24.dp)
                 )
                 {
-                    /**
-                     * Favourites button
-                     */
-
-                    Button(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth()
-                            .height(55.dp)
-                            .weight(weight = 1f, fill = false),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4141)),
-                        onClick = {
-                            model.switchFavouriteStatus(content.shikimoriID)
-                        },
-                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-
-                    ) {
-                        Icon(
-                            imageVector = if (!isFavourite) Icons.Outlined.FavoriteBorder else Icons.Filled.Favorite,
-                            contentDescription = "Localized description",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(
-                            if (!isFavourite) stringResource(id = R.string.add_favourite) else stringResource(
-                                id = R.string.remove_favourite
-                            )
-                        )
-                    }
-
                     /**
                      * Play button
                      */
 
                     Button(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .height(54.dp)
                             .fillMaxWidth()
-                            .height(55.dp)
                             .weight(weight = 1f, fill = false),
-                        colors = ButtonDefaults.buttonColors(containerColor = colorScheme.surfaceTint),
                         onClick = {
                             bottomSheetVisibilityState.value = true
                         },
@@ -414,6 +386,25 @@ fun Resource(
                                     else -> R.string.read
                                 }
                             )
+                        )
+                    }
+
+                    /**
+                     * Favourites button
+                     */
+
+                    FilledIconButton(
+                        modifier = Modifier
+                            .requiredSize(54.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                        onClick = {
+                            model.switchFavouriteStatus(content.shikimoriID)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (isFavourite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                            contentDescription = "Localized description",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
                         )
                     }
                 }
