@@ -323,7 +323,7 @@ fun Resource(
                             .align(Alignment.Center)
                             .width(215.dp)
                             .height(300.dp)
-                            .clip(RoundedCornerShape(32.dp)),
+                            .clip(RoundedCornerShape(24.dp)),
                         contentDescription = "blank",
                         contentScale = ContentScale.Crop
                     )
