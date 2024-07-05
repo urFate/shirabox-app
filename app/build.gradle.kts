@@ -63,26 +63,26 @@ android {
 
 dependencies {
     // Core dependencies
-    val composeVersion = "1.6.7"
+    val composeVersion = "1.6.8"
 
     implementation ("androidx.core:core-ktx:1.13.1")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     implementation ("androidx.activity:activity-compose:1.9.0")
     implementation ("androidx.compose.ui:ui:$composeVersion")
     implementation ("androidx.compose.ui:ui-graphics:$composeVersion")
     implementation ("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation (platform("androidx.compose:compose-bom:2024.05.00"))
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
+    implementation (platform("androidx.compose:compose-bom:2024.06.00"))
     implementation (platform("org.jetbrains.kotlin:kotlin-bom:1.9.23"))
-    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
     implementation ("androidx.core:core-splashscreen:1.0.1")
-    implementation ("androidx.graphics:graphics-core:1.0.0-rc01")
+    implementation ("androidx.graphics:graphics-core:1.0.0")
 
     testImplementation ("junit:junit:4.13.2")
-    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation ("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation ("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation ("androidx.compose.ui:ui-test-junit4:$composeVersion")
-    androidTestImplementation (platform("androidx.compose:compose-bom:2024.05.00"))
+    androidTestImplementation (platform("androidx.compose:compose-bom:2024.06.00"))
     debugImplementation ("androidx.compose.ui:ui-tooling:$composeVersion")
     debugImplementation ("androidx.compose.ui:ui-test-manifest:$composeVersion")
 
@@ -118,7 +118,7 @@ dependencies {
     implementation ("androidx.media3:media3-exoplayer-hls:$media3Version")
 
     // Firebase
-    implementation (platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation (platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation ("com.google.firebase:firebase-crashlytics-ktx")
     implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-messaging-ktx")
