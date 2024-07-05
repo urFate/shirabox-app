@@ -56,7 +56,9 @@ class EpisodesHelper(private val db: AppDatabase) {
                         uid = matchingEpisode.uid,
                         contentUid = contentUid,
                         watchingTime = matchingEpisode.watchingTime,
-                        readingPage = matchingEpisode.readingPage
+                        readingPage = matchingEpisode.readingPage,
+                        videoLength = matchingEpisode.videoLength,
+                        viewTimestamp = matchingEpisode.viewTimestamp
                     )
                 }
             }

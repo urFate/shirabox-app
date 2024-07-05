@@ -44,7 +44,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val content = mutableStateOf<Content?>(null)
     val relatedContents = mutableStateListOf<Content>()
 
-    val internalContentUid = mutableLongStateOf(0)
+    val internalContentUid = mutableLongStateOf(-1)
 
     val isFavourite = mutableStateOf(false)
     val pinnedTeams = mutableStateListOf<String>()
@@ -169,13 +169,13 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         }
     }
 
-    fun switchFavouriteStatus(id: Int) {
+    fun switchFavouriteStatus() {
         viewModelScope.launch(Dispatchers.IO) {
             isFavourite.value = !isFavourite.value
 
-            val content = db.contentDao().getContent(id)
-            content?.let {
-                db.contentDao().updateContents(it.copy(isFavourite = isFavourite.value))
+            if(internalContentUid.longValue > -1) {
+                val content = db.contentDao().getContentByUid(internalContentUid.value)
+                db.contentDao().updateContents(content.copy(isFavourite = isFavourite.value))
             }
         }
     }
@@ -230,6 +230,4 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
             }
         }
     }
-
-
 }

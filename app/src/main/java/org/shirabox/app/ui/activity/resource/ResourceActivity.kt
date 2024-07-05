@@ -398,11 +398,8 @@ fun Resource(
                     FilledIconButton(
                         modifier = Modifier
                             .requiredSize(54.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        onClick = {
-                            model.switchFavouriteStatus(content.shikimoriID)
-                        }
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = errorContainerLight),
+                        onClick = model::switchFavouriteStatus
                     ) {
                         Icon(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
