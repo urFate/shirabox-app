@@ -31,8 +31,8 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
 import org.shirabox.app.R
-import org.shirabox.app.ui.theme.light_primary
 import org.shirabox.app.ui.theme.mangaPrimary
+import org.shirabox.app.ui.theme.primaryLight
 import org.shirabox.app.ui.theme.ranobePrimary
 import org.shirabox.core.model.ContentType
 
@@ -136,7 +136,7 @@ fun ContentCardPlaceholder(modifier: Modifier) {
 @Composable
 fun contentTypeData(type: ContentType): Pair<String, Color> {
     return when (type) {
-        ContentType.ANIME -> stringResource(id = R.string.anime) to light_primary
+        ContentType.ANIME -> stringResource(id = R.string.anime) to primaryLight
         ContentType.MANGA -> stringResource(id = R.string.manga) to mangaPrimary
         ContentType.RANOBE -> stringResource(id = R.string.ranobe) to ranobePrimary
     }

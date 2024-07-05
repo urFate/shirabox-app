@@ -101,6 +101,8 @@ import org.shirabox.app.ui.component.general.ExtendedListItem
 import org.shirabox.app.ui.component.general.RatingView
 import org.shirabox.app.ui.component.general.ScaredEmoticon
 import org.shirabox.app.ui.theme.ShiraBoxTheme
+import org.shirabox.app.ui.theme.errorContainerLight
+import org.shirabox.app.ui.theme.onErrorContainerLight
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.ReleaseStatus
 import org.shirabox.core.util.round
@@ -400,11 +402,13 @@ fun Resource(
                         onClick = {
                             model.switchFavouriteStatus(content.shikimoriID)
                         }
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = errorContainerLight),
                     ) {
                         Icon(
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
                             imageVector = if (isFavourite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                             contentDescription = "Localized description",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                            tint = onErrorContainerLight
                         )
                     }
                 }
