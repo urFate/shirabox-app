@@ -16,9 +16,9 @@
 <div align="center">
     <img alt="screenshot-1" src="./images/explore.png" width="200" style="border-radius: 15px;
         padding: 5px">
-    <img alt="screenshot-2" src="./images/source_choose.png" width="200" style="border-radius: 15px;
+    <img alt="screenshot-2" src="images/resource_activity.png" width="200" style="border-radius: 15px;
         padding: 5px">
-    <img alt="screenshot-3" src="./images/about.png" width="200" style="border-radius: 15px;
+    <img alt="screenshot-3" src="./images/favourites.png" width="200" style="border-radius: 15px;
         padding: 5px">
 </div>
 
@@ -44,7 +44,7 @@
 
 ## Installation
 
-Downloads available on our [GitHub Releases](https://github.com/urFate/shirabox-app/releases/latest) page or on [official website](https://www.shirabox.org/).
+Downloads available on our [GitHub Releases](https://github.com/urFate/shirabox-app/releases/latest) page or on [official website](https://shirabox.org/).
 Nightly APK builds currently available on our [Github Actions](https://github.com/urFate/shirabox-app/actions).
 
 > [!IMPORTANT]
