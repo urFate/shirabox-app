@@ -3,7 +3,9 @@ package org.shirabox.app.ui.activity.player
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -12,6 +14,7 @@ import androidx.compose.material.icons.outlined.Hd
 import androidx.compose.material.icons.outlined.HighQuality
 import androidx.compose.material.icons.outlined.Sd
 import androidx.compose.material.icons.outlined.SlowMotionVideo
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -94,7 +97,8 @@ private fun SettingsOptions(
                 state.hide()
                 model.bottomSheetVisibilityState = false
             }
-        }
+        },
+        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
     ) {
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
@@ -200,7 +204,8 @@ fun QualityBottomSheet(
         sheetState = state,
         onDismissRequest = {
             hideBottomSheet(coroutineScope, state, currentSheetScreen)
-        }
+        },
+        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
     ) {
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
@@ -252,7 +257,8 @@ fun PlaybackSpeedBottomSheet(
         sheetState = state,
         onDismissRequest = {
             hideBottomSheet(coroutineScope, state, currentSheetScreen)
-        }
+        },
+        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
     ) {
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
@@ -315,7 +321,8 @@ fun ClosedCationsBottomSheet(currentSheetScreen: MutableState<SettingsSheetScree
                 state.hide()
                 currentSheetScreen.value = SettingsSheetScreen.OVERVIEW
             }
-        }
+        },
+        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
