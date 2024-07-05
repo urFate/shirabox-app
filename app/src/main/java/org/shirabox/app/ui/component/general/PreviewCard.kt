@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -70,7 +71,7 @@ fun PreviewCard(
             modifier = Modifier.clickable { onClick() }
         ) {
             AsyncImage(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().blur(3.dp),
                 model = imagePath,
                 contentDescription = title,
                 contentScale = ContentScale.Crop,
