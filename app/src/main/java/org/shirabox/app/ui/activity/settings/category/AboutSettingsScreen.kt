@@ -8,12 +8,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.HorizontalDivider
@@ -47,84 +47,97 @@ fun AboutSettingsScreen() {
     val telegramUri = Uri.parse("$site/telegram")
     val versionString = "${Util.getAppVersion(context)} (${BuildConfig.BUILD_TYPE})"
 
-    Column(
+    LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp, 32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(painter = painterResource(id = R.drawable.shirabox), contentDescription = "Logo")
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(0.dp, 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(painter = painterResource(id = R.drawable.shirabox), contentDescription = "Logo")
+            }
         }
-        HorizontalDivider(Modifier.padding(24.dp))
 
-        ListItem(
-            modifier = Modifier.clickable {
-                clipboard.setPrimaryClip(ClipData.newPlainText("ShiraBox Version", versionString))
-            },
-            headlineContent = {
-                Text(
-                    modifier = Modifier.padding(16.dp, 0.dp),
-                    text = stringResource(id = R.string.version)
-                )
-            },
-            supportingContent = {
-                Text(
-                    modifier = Modifier.padding(16.dp, 0.dp),
-                    text = versionString
-                )
-            }
-        )
+        item {
+            HorizontalDivider(Modifier.padding(24.dp))
+        }
 
-        ListItem(
-            modifier = Modifier.clickable { openUri(context, licenceUri) },
-            headlineContent = {
-                Text(
-                    modifier = Modifier.padding(16.dp, 0.dp),
-                    text = stringResource(id = R.string.license)
-                )
-            }
-        )
+        item {
+            ListItem(
+                modifier = Modifier.clickable {
+                    clipboard.setPrimaryClip(ClipData.newPlainText("ShiraBox Version", versionString))
+                },
+                headlineContent = {
+                    Text(
+                        modifier = Modifier.padding(16.dp, 0.dp),
+                        text = stringResource(id = R.string.version)
+                    )
+                },
+                supportingContent = {
+                    Text(
+                        modifier = Modifier.padding(16.dp, 0.dp),
+                        text = versionString
+                    )
+                }
+            )
+        }
 
-        ListItem(
-            modifier = Modifier.clickable { openUri(context, privacyPolicyUri) },
-            headlineContent = {
-                Text(
-                    modifier = Modifier.padding(16.dp, 0.dp),
-                    text = stringResource(id = R.string.privacy_policy)
-                )
-            },
-        )
+        item {
+            ListItem(
+                modifier = Modifier.clickable { openUri(context, licenceUri) },
+                headlineContent = {
+                    Text(
+                        modifier = Modifier.padding(16.dp, 0.dp),
+                        text = stringResource(id = R.string.license)
+                    )
+                }
+            )
+        }
 
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            IconButton(onClick = { openUri(context, siteUri) }) {
-                Icon(
-                    modifier = Modifier.size(26.dp),
-                    imageVector = Icons.Outlined.Public,
-                    contentDescription = "website"
-                )
-            }
-            IconButton(onClick = { openUri(context, githubUri) }) {
-                Icon(
-                    modifier = Modifier.size(26.dp),
-                    painter = painterResource(id = R.drawable.github),
-                    contentDescription = "github"
-                )
-            }
-            IconButton(onClick = { openUri(context, telegramUri) }) {
-                Icon(
-                    modifier = Modifier.size(26.dp),
-                    painter = painterResource(id = R.drawable.telegram),
-                    contentDescription = "website"
-                )
+        item {
+            ListItem(
+                modifier = Modifier.clickable { openUri(context, privacyPolicyUri) },
+                headlineContent = {
+                    Text(
+                        modifier = Modifier.padding(16.dp, 0.dp),
+                        text = stringResource(id = R.string.privacy_policy)
+                    )
+                },
+            )
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IconButton(onClick = { openUri(context, siteUri) }) {
+                    Icon(
+                        modifier = Modifier.size(26.dp),
+                        imageVector = Icons.Outlined.Public,
+                        contentDescription = "website"
+                    )
+                }
+                IconButton(onClick = { openUri(context, githubUri) }) {
+                    Icon(
+                        modifier = Modifier.size(26.dp),
+                        painter = painterResource(id = R.drawable.github),
+                        contentDescription = "github"
+                    )
+                }
+                IconButton(onClick = { openUri(context, telegramUri) }) {
+                    Icon(
+                        modifier = Modifier.size(26.dp),
+                        painter = painterResource(id = R.drawable.telegram),
+                        contentDescription = "website"
+                    )
+                }
             }
         }
     }

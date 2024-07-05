@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.Hd
@@ -260,13 +262,13 @@ fun PlaybackSpeedBottomSheet(
         },
         windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
     ) {
-        Column(
-            modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
-
-        ) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(0.dp, 0.dp, 0.dp, 16.dp)
+            ) {
             val speeds = listOf(0.5F, 1F, 1.5F, 2F, 3F)
 
-            speeds.forEach {
+            items(speeds) {
                 ListItem(
                     modifier = Modifier.clickable {
                         model.playbackSpeed = it

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
@@ -45,51 +46,55 @@ import org.shirabox.core.util.Util.Companion.openUri
 @Composable
 fun ProfileScreen(navController: NavController){
     val context = LocalContext.current
-    val site = "https://www.shirabox.org"
+    val site = "https://shirabox.org"
 
     val donationUri = Uri.parse("$site/donate")
     val helpUri = Uri.parse("$site/faq")
 
     ShiraBoxTheme {
-        Column(
+        LazyColumn(
             modifier = Modifier.fillMaxSize(),
         ) {
-
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(0.dp, 4.dp).clickable {
-                    Toast.makeText(context, "В разработке...", Toast.LENGTH_SHORT).show()
-                }
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(0.dp, 4.dp).clickable {
+                        Toast.makeText(context, "В разработке...", Toast.LENGTH_SHORT).show()
+                    }
                 ) {
-                    Image(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(RoundedCornerShape(100)),
-                        painter = painterResource(id = R.drawable.ic_profile_guest),
-                        contentDescription = "Login Icon"
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = stringResource(id = R.string.guest),
-                            style = MaterialTheme.typography.titleMedium,
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(100)),
+                            painter = painterResource(id = R.drawable.ic_profile_guest),
+                            contentDescription = "Login Icon"
                         )
-                        Text(
-                            text = stringResource(id = R.string.unauthorized_suggestion),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = stringResource(id = R.string.guest),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                text = stringResource(id = R.string.unauthorized_suggestion),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
 
-            Column {
+            item {
                 HorizontalDivider(
                     modifier = Modifier
                         .padding(horizontal = 48.dp, vertical = 8.dp), thickness = 1.dp
                 )
+            }
+
+            item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.history)) },
                     modifier = Modifier.clickable(onClick = {
@@ -103,6 +108,9 @@ fun ProfileScreen(navController: NavController){
                         )
                     }
                 )
+            }
+
+            item {
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.donate) ) },
                     modifier = Modifier.clickable {
@@ -116,6 +124,9 @@ fun ProfileScreen(navController: NavController){
                         )
                     }
                 )
+            }
+
+            item {
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.settings)) },
                     modifier = Modifier.clickable {
@@ -129,10 +140,16 @@ fun ProfileScreen(navController: NavController){
                         )
                     }
                 )
+            }
+
+            item {
                 HorizontalDivider(
                     modifier = Modifier
                         .padding(horizontal = 48.dp, vertical = 8.dp), thickness = 1.dp
                 )
+            }
+
+            item {
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.updates_check) ) },
                     modifier = Modifier.clickable {
@@ -146,6 +163,9 @@ fun ProfileScreen(navController: NavController){
                         )
                     }
                 )
+            }
+
+            item {
                 ListItem(
                     headlineContent = { Text(stringResource(id = R.string.help)) },
                     modifier = Modifier.clickable {
