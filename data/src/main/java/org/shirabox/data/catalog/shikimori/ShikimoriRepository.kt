@@ -12,9 +12,7 @@ import org.shirabox.core.model.Rating
 import org.shirabox.core.model.ReleaseStatus
 import org.shirabox.core.util.Util
 import java.net.SocketTimeoutException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.Calendar
 
 
 object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shikimori.one") {
@@ -320,18 +318,15 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
     }
 
     private fun currentSeason(): String {
-        val date = Date()
+        val calendar = Calendar.getInstance()
 
-        val monthFormat = SimpleDateFormat("MM", Locale.getDefault())
-        val yearFormat = SimpleDateFormat("YYYY", Locale.getDefault())
+        val dayOfYear = calendar.get(Calendar.DAY_OF_YEAR)
+        val year = calendar.get(Calendar.YEAR)
 
-        val month = monthFormat.format(date).toInt()
-        val year = yearFormat.format(date)
-
-        return when (month) {
-            in 0 until 4 -> "winter_$year"
-            in 4 until 8 -> "spring_$year"
-            in 8 until 9 -> "summer_$year"
+        return when (dayOfYear) {
+            in 1 until 65 -> "winter_$year"
+            in 65 until 186 -> "spring_$year"
+            in 186 until 249 -> "summer_$year"
             else -> "fall_$year"
         }
     }
