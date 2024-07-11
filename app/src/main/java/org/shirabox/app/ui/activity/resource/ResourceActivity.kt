@@ -535,7 +535,7 @@ fun Resource(
                     val avgRating = remember {
                         rating.scores.entries.sumOf {
                             (it.key * it.value).toDouble()
-                        }.div(votes).round(2)
+                        }.div(votes).round()
                     }
 
                     RatingView(

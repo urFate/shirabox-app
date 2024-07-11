@@ -1,8 +1,8 @@
 package org.shirabox.core.util
 
-import java.math.BigDecimal
 import java.math.RoundingMode
 import java.security.MessageDigest
+import java.text.DecimalFormat
 
 @OptIn(ExperimentalStdlibApi::class)
 fun String.md5(): String {
@@ -10,6 +10,10 @@ fun String.md5(): String {
     val digest = md.digest(this.toByteArray())
     return digest.toHexString()
 }
-fun Double.round(decimals: Int = 2): Double {
-    return BigDecimal(this).setScale(decimals, RoundingMode.HALF_UP).toDouble()
+
+fun Double.round(): Double {
+    return DecimalFormat("#.##")
+        .apply { roundingMode = RoundingMode.HALF_UP }
+        .format(this)
+        .toDouble()
 }
