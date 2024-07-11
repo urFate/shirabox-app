@@ -15,11 +15,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import org.shirabox.app.ui.component.top.TopBar
 
@@ -31,8 +33,10 @@ fun ExploreScreen(
     navController: NavController,
     model: ExploreViewModel = hiltViewModel()
 ) {
+    val isRefreshing by model.refreshing.collectAsStateWithLifecycle()
+
     val lazyListState = rememberLazyListState()
-    val pullRefreshState = rememberPullRefreshState(model.refreshing.value, { model.refresh(false) })
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, { model.refresh(false) })
 
     Scaffold(
         modifier = Modifier.pullRefresh(pullRefreshState),

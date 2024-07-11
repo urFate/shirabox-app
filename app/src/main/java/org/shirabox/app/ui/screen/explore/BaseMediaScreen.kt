@@ -14,6 +14,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,14 +35,13 @@ fun BaseMediaScreen(
     model: ExploreViewModel = hiltViewModel(),
     lazyListState: LazyListState
 ) {
-    val trendingFeedStateFlow = model.trendingFeedList.collectAsStateWithLifecycle(initialValue = emptyList())
-    val popularsFeedStateFlow = model.popularsFeedList.collectAsStateWithLifecycle(initialValue = emptyList())
-    val historyFeedStateFlow = model.historyFeedMap.collectAsStateWithLifecycle(initialValue = emptyMap())
-    val observationStatus = model.contentObservationStatus
+    val trendingFeedList by model.trendingFeedList.collectAsStateWithLifecycle(initialValue = emptyList())
+    val popularsFeedList by model.popularsFeedList.collectAsStateWithLifecycle(initialValue = emptyList())
+    val historyFeedList by model.historyFeedMap.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val observationStatus by model.contentObservationStatus.collectAsStateWithLifecycle()
+    val popularsPage by model.popularsPage.collectAsStateWithLifecycle()
 
-    val isReady = remember(popularsFeedStateFlow.value, trendingFeedStateFlow.value, observationStatus.value) {
-        model.isReady()
-    }
+    val isReady = remember(popularsFeedList, trendingFeedList, observationStatus) { model.isReady() }
 
     LaunchedEffect(null) {
         if(isReady && model.popularsFeedList.value.size > 16) {
@@ -50,12 +50,12 @@ fun BaseMediaScreen(
 
         model.refresh(true)
     }
-    LaunchedEffect(model.popularsPage.intValue) {
+    LaunchedEffect(popularsPage) {
         if(isReady) model.fetchPopularsFeed()
     }
 
     AnimatedVisibility(
-        visible = observationStatus.value.status == ExploreViewModel.Status.Failure,
+        visible = observationStatus.status == ExploreViewModel.Status.Failure,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
@@ -68,7 +68,7 @@ fun BaseMediaScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                when (observationStatus.value.exception) {
+                when (observationStatus.exception) {
                     is IOException -> DespondencyEmoticon(text = stringResource(id = R.string.no_internet_connection_variant))
                     else -> ScaredEmoticon(text = stringResource(id = R.string.no_contents))
                 }
@@ -80,20 +80,20 @@ fun BaseMediaScreen(
         }
     }
 
-    if(observationStatus.value.status == ExploreViewModel.Status.Failure) return
+    if(observationStatus.status == ExploreViewModel.Status.Failure) return
 
     Column(
         modifier = Modifier.animateContentSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TrendingFeed(isReady = isReady, contents = trendingFeedStateFlow.value)
+        TrendingFeed(isReady = isReady, contents = trendingFeedList)
 
-        HistoryFeed(isReady = isReady, contents = historyFeedStateFlow.value)
+        HistoryFeed(isReady = isReady, contents = historyFeedList)
 
-        PopularsFeed(isReady = isReady, contents = popularsFeedStateFlow.value)
+        PopularsFeed(isReady = isReady, contents = popularsFeedList)
 
         LaunchedEffect(lazyListState.canScrollForward) {
-            if(!lazyListState.canScrollForward && isReady) model.popularsPage.intValue += 1
+            if(!lazyListState.canScrollForward && isReady) model.popularsPage.emit(popularsPage.inc())
         }
     }
 }

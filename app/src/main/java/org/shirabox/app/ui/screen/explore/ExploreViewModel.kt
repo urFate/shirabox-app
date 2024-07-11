@@ -1,8 +1,6 @@
 package org.shirabox.app.ui.screen.explore
 
 import android.content.Context
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -34,9 +32,9 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
     val trendingFeedList = MutableStateFlow(emptyList<Content>())
     val historyFeedMap = MutableStateFlow(emptyMap<CombinedContent, EpisodeEntity>())
 
-    val contentObservationStatus = mutableStateOf(ObservationStatus(Status.Loading))
-    val popularsPage = mutableIntStateOf(1)
-    val refreshing = mutableStateOf(false)
+    val contentObservationStatus = MutableStateFlow(ObservationStatus(Status.Loading))
+    val popularsPage = MutableStateFlow(1)
+    val refreshing = MutableStateFlow(false)
 
     private val crashlytics = FirebaseCrashlytics.getInstance()
 
@@ -48,7 +46,8 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                     crashlytics.recordException(it)
                     contentObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
-                }.collectLatest {
+                }
+                .collectLatest {
                     trendingFeedList.emit(it)
                     contentObservationStatus.value = ObservationStatus(Status.Success)
                 }
@@ -57,13 +56,14 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
 
     fun fetchPopularsFeed() {
         viewModelScope.launch(Dispatchers.IO) {
-            ShikimoriRepository.fetchPopulars(1..popularsPage.intValue, ContentType.ANIME)
+            ShikimoriRepository.fetchPopulars(1..popularsPage.value, ContentType.ANIME)
                 .catch {
                     it.printStackTrace()
                     crashlytics.recordException(it)
                     contentObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
-                }.onCompletion {
+                }
+                .onCompletion {
                     delay(1000L)
                     refreshing.value = false
                 }
@@ -76,25 +76,29 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
 
     private fun fetchHistoryFeed() {
         viewModelScope.launch(Dispatchers.IO) {
-            db.contentDao().getAllCombinedContent().map { list ->
-                list.sortedByDescending { it.content.lastViewTimestamp }
-            }.collectLatest { contents ->
-                val episodesMap = mutableMapOf<CombinedContent, EpisodeEntity>()
-                contents.forEach { combinedContent ->
-                    val candidate = combinedContent.episodes.filter {
-                        (it.videoLength != null && it.viewTimestamp != null)
-                    }.maxByOrNull { it.viewTimestamp ?: 0L }
+            db.contentDao().getAllCombinedContent()
+                .map { list ->
+                    list.sortedByDescending { it.content.lastViewTimestamp }
+                }
+                .collectLatest { contents ->
+                    val episodesMap = mutableMapOf<CombinedContent, EpisodeEntity>()
 
-                    // Put episode if it's aren't finished
-                    candidate?.let { entity ->
-                        if (entity.watchingTime < entity.videoLength!!) episodesMap[combinedContent] = entity
+                    contents.forEach { combinedContent ->
+                        val candidate = combinedContent.episodes
+                            .filter { (it.videoLength != null && it.viewTimestamp != null) }
+                            .maxByOrNull { it.viewTimestamp ?: 0L }
+
+                        // Put episode if it's aren't finished
+                        candidate?.let { entity ->
+                            if (entity.watchingTime < entity.videoLength!!) episodesMap[combinedContent] =
+                                entity
+                        }
                     }
-                }
 
-                episodesMap.toSortedMap(compareByDescending { it.content.lastViewTimestamp }).let {
-                    historyFeedMap.emit(it)
+                    historyFeedMap.emit(
+                        episodesMap.toSortedMap(compareByDescending { it.content.lastViewTimestamp })
+                    )
                 }
-            }
         }
     }
 
@@ -113,7 +117,7 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                     }
                 }
                 false -> {
-                    popularsPage.intValue = 1
+                    popularsPage.emit(1)
                     contentObservationStatus.value = ObservationStatus(Status.Loading)
                     refreshing.value = true
 
