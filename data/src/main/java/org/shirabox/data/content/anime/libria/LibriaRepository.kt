@@ -8,29 +8,31 @@ import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentKind
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.Quality
+import org.shirabox.core.model.ReleaseStatus
 import org.shirabox.data.content.AbstractContentRepository
-import java.net.SocketTimeoutException
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 
 class LibriaRepository : AbstractContentRepository(
     "Libria",
-    "https://anilibria.tv",
+    "https://anilibria.top",
     ContentType.ANIME,
 ) {
     companion object {
-        const val API_ENDPOINT = "https://api.anilibria.tv"
-        const val ACTING_TEAM_LOGO_URL = "https://anilibria.tv/favicons/apple-touch-icon.png"
+        const val API_ENDPOINT = "https://anilibria.top/api"
+        const val ACTING_TEAM_LOGO_URL = "https://anilibria.top/static/apple-touch-icon.png"
     }
 
     override suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>> = flow {
-        emit(advancedSearch(content))
+        emit(lookupEpisodes(content))
     }
 
     override suspend fun searchEpisodesInRange(
         content: Content,
         range: IntRange
     ): Flow<List<EpisodeEntity>> = flow {
-        val results = advancedSearch(content)
+        val results = lookupEpisodes(content)
 
         emit(
             results.subList(
@@ -40,51 +42,60 @@ class LibriaRepository : AbstractContentRepository(
         )
     }
 
-    private suspend fun advancedSearch(content: Content): List<EpisodeEntity> {
-        val altNamesListQuery = "(${content.altNames.joinToString { "\"${it}\"" }})"
-        if (libriaKind(content.kind) == null) return emptyList()
-
+    private suspend fun lookupEpisodes(content: Content): List<EpisodeEntity> {
         try {
-            val response = "$API_ENDPOINT/v3/title/search/advanced"
-                .httpGet(listOf(
-                    "query" to "${content.releaseYear?.let { "{season.year} == $it" }} " +
-                            "and {type.code} == ${libriaKind(content.kind)} and " +
-                            "({names.en} == \"${content.enName}\" or " +
-                            "{names.ru} == \"${content.name}\"" +
-                            (if(content.altNames.isNotEmpty()) " or {names.en} in $altNamesListQuery or {names.ru} in $altNamesListQuery" else "") +
-                            ")",
-                    "playlist_type" to "array"
-                )).also {
-                    if (it.statusCode != 200) return emptyList()
-                }
-            val data = json.decodeFromString<LibriaSearchWrapper>(response.body).list.firstOrNull()
+            val id = search(content)?.id
+            val response = "$API_ENDPOINT/v1/anime/releases/$id"
+                .httpGet()
+                .also { if (it.statusCode != 200) return emptyList() }
 
-            return data?.let {
-                data.player.list.map { entry ->
-                    mapEpisode(entry, data.player.host)
-                }
-            } ?: emptyList()
-        } catch (_: SocketTimeoutException) {
+            return json.decodeFromString<LibriaAnimeItem>(response.body).episodes.map(::mapEpisode)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
             return emptyList()
         }
     }
 
-    private fun mapEpisode(data: LibriaEpisode, host: String) : EpisodeEntity {
-        val hostUrl = "https://$host"
+    private suspend fun search(content: Content): LibriaSearchItem? {
+        try {
+            val response = "$API_ENDPOINT/v1/app/search/releases"
+                .httpGet(listOf("query" to content.enName))
+                .also {
+                    if (it.statusCode != 200) return null
+                }
+
+            val isContentOngoing = content.status == ReleaseStatus.RELEASING
+
+            val data = json.decodeFromString<List<LibriaSearchItem>>(response.body)
+                .firstOrNull {
+                    it.year.toString() == content.releaseYear
+                            && it.isOngoing == isContentOngoing
+                            && decodeKind(it.type) == content.kind
+                }
+
+            return data
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return null
+        }
+    }
+
+    private fun mapEpisode(data: LibriaEpisode): EpisodeEntity {
+        val formatter = SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ", Locale.getDefault())
 
         return EpisodeEntity(
             name = data.name,
             source = this.name,
-            episode = data.episode,
-            uploadTimestamp = data.createdTimestamp.toLong().times(1000L),
+            episode = data.sortOrder,
+            uploadTimestamp = formatter.parse(data.updatedAt)?.time ?: System.currentTimeMillis(),
             videos = buildMap {
-                put(Quality.SD, hostUrl + data.hls.sd)
-                data.hls.hd?.let { url -> put(Quality.HD, hostUrl + url) }
-                data.hls.fhd?.let { url -> put(Quality.FHD, hostUrl + url) }
+                data.hls480?.let { put(Quality.SD, it) }
+                data.hls720?.let { put(Quality.HD, it) }
+                data.hls1080?.let { put(Quality.FHD, it) }
             },
             videoMarkers = Pair(
-                data.skips.opening.firstOrNull()?.times(1000L) ?: -1L,
-                data.skips.opening.lastOrNull()?.times(1000L) ?: -1L
+                data.opening.start?.times(1000L) ?: -1L,
+                data.opening.stop?.times(1000L) ?: -1L
             ),
             actingTeamName = "AniLibria",
             actingTeamIcon = ACTING_TEAM_LOGO_URL,
@@ -92,12 +103,12 @@ class LibriaRepository : AbstractContentRepository(
         )
     }
 
-    private fun libriaKind(kind: ContentKind) : Int? = when(kind) {
-        ContentKind.MOVIE -> 0
-        ContentKind.TV -> 1
-        ContentKind.OVA -> 2
-        ContentKind.ONA -> 3
-        ContentKind.SPECIAL -> 4
-        else -> null
+    private fun decodeKind(libriaType: LibriaType): ContentKind = when(libriaType.value) {
+        "TV" -> ContentKind.TV
+        "ONA" -> ContentKind.ONA
+        "OVA", "OAD", "WEB" -> ContentKind.OVA
+        "MOVIE" -> ContentKind.MOVIE
+        "SPECIAL" -> ContentKind.SPECIAL
+        else -> ContentKind.OTHER
     }
 }
