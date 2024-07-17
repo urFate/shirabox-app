@@ -58,6 +58,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -164,18 +165,16 @@ fun Resource(
 ) {
     val activity = LocalContext.current as Activity?
     val content = model.content.value
-    val relations by remember {
-        derivedStateOf {
-            model.relatedContents.filter { it.type == ContentType.ANIME }
-        }
-    }
     val isFavourite = model.isFavourite.value
     val isRefreshing = model.isRefreshing.value
 
     val isReady = remember(content) { content != null }
     val bottomSheetVisibilityState = remember { mutableStateOf(false) }
     var dropdownExpanded by remember { mutableStateOf(false) }
-
+    val snackbarHostState = remember { SnackbarHostState() }
+    val relations by remember {
+        derivedStateOf { model.relatedContents.filter { it.type == ContentType.ANIME } }
+    }
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -596,23 +595,25 @@ fun Resource(
                 Spacer(Modifier.height(56.dp))
             }
 
+            ResourceSnackbarHost(snackbarHostState = snackbarHostState)
+
             ResourceBottomSheet(
                 content = content,
                 visibilityState = bottomSheetVisibilityState
             )
         }
-    }
 
-    Box(
-        modifier = Modifier
-            .padding(64.dp)
-            .fillMaxSize(),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        PullRefreshIndicator(
-            refreshing = isRefreshing,
-            state = pullRefreshState
-        )
+        Box(
+            modifier = Modifier
+                .padding(64.dp)
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = pullRefreshState
+            )
+        }
     }
 }
 

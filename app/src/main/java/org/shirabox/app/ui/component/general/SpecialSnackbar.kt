@@ -26,13 +26,20 @@ fun SpecialSnackBar(
     icon: @Composable () -> Unit,
     message: String,
     containerColor: Color = Color.Black,
+    contentColor: Color = Color.White,
+    closeable: Boolean = true,
+    clickable: Boolean = true,
     onCloseClick: () -> Unit,
-    onClick: () -> Unit,
+    onClick: () -> Unit = {},
 ) {
+
     Snackbar(
-        modifier = Modifier.height(64.dp).clickable { onClick() },
+        modifier = Modifier
+            .height(64.dp)
+            .clickable(enabled = clickable, onClick = { onClick() }),
         shape = RoundedCornerShape(8.dp),
-        containerColor = containerColor
+        containerColor = containerColor,
+        contentColor = contentColor
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -45,12 +52,14 @@ fun SpecialSnackBar(
                 Text(text = message, overflow = TextOverflow.Ellipsis)
             }
 
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                IconButton(onClick = onCloseClick) {
-                    Icon(imageVector = Icons.Rounded.Close, contentDescription = "Close")
+            if(closeable) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    IconButton(onClick = onCloseClick) {
+                        Icon(imageVector = Icons.Rounded.Close, contentDescription = "Close")
+                    }
                 }
             }
         }

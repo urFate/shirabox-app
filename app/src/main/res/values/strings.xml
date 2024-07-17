@@ -103,6 +103,8 @@
     <string name="kind_ona">ONA</string>
     <string name="kind_special">Спецвыпуск</string>
     <string name="kind_other">Другое</string>
+    <string name="favourites_added_message">Добавлено в избранное!</string>
+    <string name="favourites_removal_message">Убрано из избранного</string>
 
     <!--
         Player Activity
