@@ -121,7 +121,7 @@
     <string name="faster_playback_speed">Немного быстрее</string>
     <string name="fast_playback_speed">Быстро</string>
     <string name="very_fast_playback_speed">Очень быстро</string>
-    <string name="instant_seek_time">10 секунд</string>
+    <string name="player_instant_seek">10 секунд</string>
 
     <!--
         Reader Activity
@@ -190,6 +190,9 @@
     <string name="anime_skip_key_label">Ключ клиента</string>
     <string name="logout">Выйти из учётной записи</string>
     <string name="animeskip_invalid_key">Ключ клиента недействителен! Требуется повторный вход.</string>
+    <string name="interaction_options_block">Взаимодействие</string>
+    <string name="instant_seek_time">Мгновенная перемотка</string>
+    <string name="instant_seek_time_desc">Время, на которое будет выполнена перемотка по двойному касанию в плеере</string>
 
     <!--
         Auth Activity
@@ -231,5 +234,14 @@
         <item quantity="few">%d серии</item>
         <item quantity="many">%d серий</item>
         <item quantity="other">%d серий</item>
+    </plurals>
+
+    <plurals name="seek_plurals">
+        <item quantity="zero">0 секунд</item>
+        <item quantity="one">%d секунда</item>
+        <item quantity="two">%d секунды</item>
+        <item quantity="few">%d секунды</item>
+        <item quantity="many">%d секунд</item>
+        <item quantity="other">%d секунды</item>
     </plurals>
 </resources>

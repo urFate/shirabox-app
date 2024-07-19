@@ -46,6 +46,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -65,6 +66,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -107,6 +109,25 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model:
         model.animeSkipTimestamps[currentEpisode]
     }
 
+    // Preferences dependent values
+
+    val openingSkipPreferenceFlow =
+        model.openingSkipPreferenceFlow(LocalContext.current).collectAsState(
+            initial = DataStoreScheme.FIELD_OPENING_SKIP.defaultValue
+        )
+    val openingAutoSkip = remember(openingSkipPreferenceFlow.value) {
+        openingSkipPreferenceFlow.value ?: DataStoreScheme.FIELD_OPENING_SKIP.defaultValue
+    }
+
+    val instantSeekPreferenceFlow = model.instantSeekPreferenceFlow(LocalContext.current).collectAsState(
+        initial = DataStoreScheme.FIELD_INSTANT_SEEK_TIME.defaultValue
+    )
+    val instantSeekTime = remember(instantSeekPreferenceFlow.value) {
+        derivedStateOf {
+            (instantSeekPreferenceFlow.value ?: DataStoreScheme.FIELD_INSTANT_SEEK_TIME.defaultValue)
+        }
+    }
+
     val forceHideSkipButton = remember { mutableStateOf(false) }
 
     val showSkipButton = remember(currentPosition, forceHideSkipButton) {
@@ -122,15 +143,6 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model:
             return@remember currentPosition in it.first..it.second
         }
     }
-
-    val openingSkipPreferenceFlow =
-        model.openingSkipPreferenceFlow(LocalContext.current).collectAsState(
-            initial = DataStoreScheme.FIELD_OPENING_SKIP.defaultValue
-        )
-    val openingAutoSkip = remember(openingSkipPreferenceFlow) {
-        openingSkipPreferenceFlow.value ?: DataStoreScheme.FIELD_OPENING_SKIP.defaultValue
-    }
-
 
     val activity = LocalContext.current as Activity
 
@@ -159,11 +171,12 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model:
     }
 
     InstantSeekZones(
+        seekOffset = instantSeekTime.value,
         onFastRewind = {
-            exoPlayer.seekTo(exoPlayer.currentPosition.minus(Values.INSTANT_SEEK_TIME))
+            exoPlayer.seekTo(exoPlayer.currentPosition.minus(instantSeekTime.value.times(1000L)))
         },
         onFastForward = {
-            exoPlayer.seekTo(exoPlayer.currentPosition.plus(Values.INSTANT_SEEK_TIME))
+            exoPlayer.seekTo(exoPlayer.currentPosition.plus(instantSeekTime.value.times(1000L)))
         },
         onClick = {
             coroutineScope.launch {
@@ -431,6 +444,7 @@ fun SkipButton(
 
 @Composable
 fun InstantSeekZones(
+    seekOffset: Int,
     onFastRewind: (offset: Offset) -> Unit,
     onFastForward: (offset: Offset) -> Unit,
     onClick: () -> Unit
@@ -456,6 +470,7 @@ fun InstantSeekZones(
             modifier = Modifier
                 .fillMaxWidth(0.5F),
             icon = Icons.Default.FastRewind,
+            seekOffset = seekOffset,
             xBackgroundOffset = 0.dp,
             visible = showRewindUi,
             onDoubleClick = {
@@ -469,6 +484,7 @@ fun InstantSeekZones(
         SeekZoneBox(
             modifier = Modifier.fillMaxWidth(1F),
             icon = Icons.Default.FastForward,
+            seekOffset = seekOffset,
             xBackgroundOffset = deviceWidth / 2,
             visible = showForwardUi,
             onDoubleClick = {
@@ -588,6 +604,7 @@ fun PlaybackIconButton(isActive: Boolean = true, imageVector: ImageVector, onCli
 fun SeekZoneBox(
     modifier: Modifier = Modifier,
     icon: ImageVector,
+    seekOffset: Int,
     xBackgroundOffset: Dp,
     visible: Boolean,
     onDoubleClick: (offset: Offset) -> Unit,
@@ -646,7 +663,7 @@ fun SeekZoneBox(
                         contentDescription = "rewind"
                     )
                     Text(
-                        text = stringResource(id = R.string.instant_seek_time),
+                        text = pluralStringResource(id = R.plurals.seek_plurals, count = seekOffset, seekOffset),
                         color = Color.White
                     )
                 }

@@ -147,10 +147,12 @@ class PlayerViewModel @AssistedInject constructor(
         }
     }
 
-    fun defaultQualityPreferenceFlow(context: Context): Flow<Int?> {
-        return AppDataStore.read(context, DataStoreScheme.FIELD_DEFAULT_QUALITY.key)
-    }
-    fun openingSkipPreferenceFlow(context: Context): Flow<Boolean?> {
-        return AppDataStore.read(context, DataStoreScheme.FIELD_OPENING_SKIP.key)
-    }
+    fun defaultQualityPreferenceFlow(context: Context): Flow<Int?> =
+        AppDataStore.read(context, DataStoreScheme.FIELD_DEFAULT_QUALITY.key)
+
+    fun openingSkipPreferenceFlow(context: Context): Flow<Boolean?> =
+        AppDataStore.read(context, DataStoreScheme.FIELD_OPENING_SKIP.key)
+
+    fun instantSeekPreferenceFlow(context: Context): Flow<Int?> =
+        AppDataStore.read(context, DataStoreScheme.FIELD_INSTANT_SEEK_TIME.key)
 }

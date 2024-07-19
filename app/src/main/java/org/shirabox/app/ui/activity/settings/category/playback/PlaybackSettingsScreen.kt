@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FastForward
 import androidx.compose.material.icons.outlined.HighQuality
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material3.Icon
@@ -42,6 +43,7 @@ fun PlaybackSettingsScreen() {
 
     val qualityVisibilityState = remember { mutableStateOf(false) }
     val animeskipKeyVisibilityState = remember { mutableStateOf(false) }
+    val instantSeekVisibilityState = remember { mutableStateOf(false) }
 
     val animeSkipClientKeyFlowState =
         AppDataStore.read(context, DataStoreScheme.FIELD_ANIMESKIP_USER_CLIENT_ID).collectAsState(
@@ -175,8 +177,32 @@ fun PlaybackSettingsScreen() {
                 }
             }
         }
+
+        OptionsBlock(title = stringResource(id = R.string.interaction_options_block)) {
+            Preference(
+                headlineContent = { Text(stringResource(id = R.string.instant_seek_time)) },
+                supportingContent = {
+                    Text(
+                        text = stringResource(id = R.string.instant_seek_time_desc),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                },
+                leadingContent = {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = Icons.Outlined.FastForward,
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "instant seek"
+                    )
+                }
+            ) {
+                instantSeekVisibilityState.value = true
+            }
+        }
     }
 
     QualityDialog(qualityVisibilityState)
     AnimeSkipDialog(animeskipKeyVisibilityState)
+    InstantSeekDialog(instantSeekVisibilityState)
 }

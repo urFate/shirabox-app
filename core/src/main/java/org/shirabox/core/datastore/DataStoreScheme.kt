@@ -17,6 +17,7 @@ object DataStoreScheme {
     val FIELD_DEFAULT_QUALITY = PreferenceField(intPreferencesKey("default_quality"), 1080)
     val FIELD_OPENING_SKIP = PreferenceField(booleanPreferencesKey("opening_skip"), true)
     val FIELD_USE_ANIMESKIP = PreferenceField(booleanPreferencesKey("use_anime_skip"), false)
+    val FIELD_INSTANT_SEEK_TIME = PreferenceField(intPreferencesKey("instant_seek_time"), 10)
 
     /**
      * Other fields
