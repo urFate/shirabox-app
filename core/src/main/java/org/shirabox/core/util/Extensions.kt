@@ -1,8 +1,6 @@
 package org.shirabox.core.util
 
-import java.math.RoundingMode
 import java.security.MessageDigest
-import java.text.DecimalFormat
 
 @OptIn(ExperimentalStdlibApi::class)
 fun String.md5(): String {
@@ -11,9 +9,4 @@ fun String.md5(): String {
     return digest.toHexString()
 }
 
-fun Double.round(): Double {
-    return DecimalFormat("#.##")
-        .apply { roundingMode = RoundingMode.HALF_UP }
-        .format(this)
-        .toDouble()
-}
+fun Double.round(): Double = Math.round(this * 100.0) / 100.0
