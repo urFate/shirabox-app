@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.search.SearchActivity
-import org.shirabox.app.ui.component.navigation.NestedNavItems
+import org.shirabox.app.ui.component.navigation.base.NestedNavItems
 import org.shirabox.app.ui.screen.explore.notifications.NotificationsViewModel
 import org.shirabox.core.util.Util
 

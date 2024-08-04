@@ -1,4 +1,4 @@
-package org.shirabox.app.ui.screen.explore.feed
+package org.shirabox.app.ui.screen.explore.feed.primary
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +32,7 @@ import org.shirabox.core.model.Content
 import org.shirabox.core.util.Util
 
 @Composable
-internal fun PopularsFeed(isReady: Boolean, contents: List<Content>) {
+internal fun PrimaryPopularsFeed(isReady: Boolean, contents: List<Content>) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
 

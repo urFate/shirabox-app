@@ -39,7 +39,7 @@ import androidx.navigation.NavController
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.settings.SettingsActivity
 import org.shirabox.app.ui.activity.update.AppUpdateActivity
-import org.shirabox.app.ui.component.navigation.NestedNavItems
+import org.shirabox.app.ui.component.navigation.base.NestedNavItems
 import org.shirabox.app.ui.theme.ShiraBoxTheme
 import org.shirabox.core.util.Util.Companion.openUri
 

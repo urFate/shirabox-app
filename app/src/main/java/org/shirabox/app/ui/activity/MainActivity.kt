@@ -11,7 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import org.shirabox.app.R
-import org.shirabox.app.ui.component.navigation.BottomNavigationView
+import org.shirabox.app.ui.component.navigation.base.BottomNavigationView
 import org.shirabox.app.ui.screen.explore.notifications.NotificationsDialog
 import org.shirabox.app.ui.theme.ShiraBoxTheme
 

@@ -1,4 +1,4 @@
-package org.shirabox.app.ui.component.navigation
+package org.shirabox.app.ui.component.navigation.base
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
@@ -11,7 +11,6 @@ import androidx.navigation.compose.rememberNavController
 @ExperimentalFoundationApi
 @Composable
 fun BottomNavigationView() {
-
     val navController = rememberNavController()
 
     Scaffold(bottomBar = { BottomNavigationBar(navController) }) {

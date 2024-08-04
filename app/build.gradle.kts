@@ -66,15 +66,15 @@ dependencies {
     val composeVersion = "1.6.8"
 
     implementation ("androidx.core:core-ktx:1.13.1")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
-    implementation ("androidx.activity:activity-compose:1.9.0")
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation ("androidx.activity:activity-compose:1.9.1")
     implementation ("androidx.compose.ui:ui:$composeVersion")
     implementation ("androidx.compose.ui:ui-graphics:$composeVersion")
     implementation ("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
     implementation (platform("androidx.compose:compose-bom:2024.06.00"))
     implementation (platform("org.jetbrains.kotlin:kotlin-bom:1.9.23"))
-    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
+    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation ("androidx.core:core-splashscreen:1.0.1")
     implementation ("androidx.graphics:graphics-core:1.0.0")
 
@@ -110,7 +110,7 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Exo Player
-    val media3Version = "1.3.1"
+    val media3Version = "1.4.0"
 
     implementation ("androidx.media3:media3-exoplayer:$media3Version")
     implementation ("androidx.media3:media3-exoplayer-dash:$media3Version")
@@ -118,7 +118,7 @@ dependencies {
     implementation ("androidx.media3:media3-exoplayer-hls:$media3Version")
 
     // Firebase
-    implementation (platform("com.google.firebase:firebase-bom:33.1.1"))
+    implementation (platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation ("com.google.firebase:firebase-crashlytics-ktx")
     implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-messaging-ktx")

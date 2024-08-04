@@ -21,7 +21,9 @@ import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.entity.relation.CombinedContent
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType
+import org.shirabox.core.model.ScheduleEntry
 import org.shirabox.data.catalog.shikimori.ShikimoriRepository
+import org.shirabox.data.schedule.shirabox.ShiraBoxScheduleRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,11 +32,14 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
 
     val popularsFeedList = MutableStateFlow(emptyList<Content>())
     val trendingFeedList = MutableStateFlow(emptyList<Content>())
+    val scheduleFeedList = MutableStateFlow(emptyList<ScheduleEntry>())
     val historyFeedMap = MutableStateFlow(emptyMap<CombinedContent, EpisodeEntity>())
 
-    val contentObservationStatus = MutableStateFlow(ObservationStatus(Status.Loading))
-    val popularsPage = MutableStateFlow(1)
+    val tapeObservationStatus = MutableStateFlow(ObservationStatus(Status.Loading))
+    val scheduleObservationStatus = MutableStateFlow(ObservationStatus(Status.Loading))
     val refreshing = MutableStateFlow(false)
+
+    val tapePopularsPage = MutableStateFlow(1)
 
     private val crashlytics = FirebaseCrashlytics.getInstance()
 
@@ -44,23 +49,23 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                 .catch {
                     it.printStackTrace()
                     crashlytics.recordException(it)
-                    contentObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
+                    tapeObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
                 }
                 .collectLatest {
                     trendingFeedList.emit(it)
-                    contentObservationStatus.value = ObservationStatus(Status.Success)
+                    tapeObservationStatus.value = ObservationStatus(Status.Success)
                 }
         }
     }
 
     fun fetchPopularsFeed() {
         viewModelScope.launch(Dispatchers.IO) {
-            ShikimoriRepository.fetchPopulars(1..popularsPage.value, ContentType.ANIME)
+            ShikimoriRepository.fetchPopulars(1..tapePopularsPage.value, ContentType.ANIME)
                 .catch {
                     it.printStackTrace()
                     crashlytics.recordException(it)
-                    contentObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
+                    tapeObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
                 }
                 .onCompletion {
@@ -69,7 +74,7 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                 }
                 .collectLatest {
                     popularsFeedList.emit(it)
-                    contentObservationStatus.value = ObservationStatus(Status.Success)
+                    tapeObservationStatus.value = ObservationStatus(Status.Success)
                 }
         }
     }
@@ -101,6 +106,21 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                 }
         }
     }
+    
+    private fun fetchScheduleFeed() {
+        viewModelScope.launch(Dispatchers.IO) { 
+            ShiraBoxScheduleRepository.fetchSchedule()
+                .catch {
+                    it.printStackTrace()
+                    scheduleObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
+                    emitAll(emptyFlow())
+                }
+                .collectLatest {
+                    scheduleFeedList.emit(it)
+                    scheduleObservationStatus.value = ObservationStatus(Status.Success)
+                }
+        }
+    }
 
     fun refresh(coldStartCheck: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -111,18 +131,23 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
 
             when(coldStartCheck) {
                 true -> {
-                    if(contentObservationStatus.value.status != Status.Success) {
+                    if(tapeObservationStatus.value.status != Status.Success) {
                         fetchTrendingFeed()
                         fetchPopularsFeed()
                     }
+                    if(scheduleObservationStatus.value.status != Status.Success) {
+                        fetchScheduleFeed()
+                    }
                 }
                 false -> {
-                    popularsPage.emit(1)
-                    contentObservationStatus.value = ObservationStatus(Status.Loading)
+                    tapePopularsPage.emit(1)
+                    tapeObservationStatus.value = ObservationStatus(Status.Loading)
+                    scheduleObservationStatus.value = ObservationStatus(Status.Loading)
                     refreshing.value = true
 
                     fetchTrendingFeed()
                     fetchPopularsFeed()
+                    fetchScheduleFeed()
                 }
             }
 
@@ -130,10 +155,9 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
         }
     }
 
-    fun isReady() : Boolean {
-        return popularsFeedList.value.isNotEmpty() && trendingFeedList.value.isNotEmpty()
-                && contentObservationStatus.value.status == Status.Success
-    }
+    fun isTapeReady(): Boolean =
+        popularsFeedList.value.isNotEmpty() && trendingFeedList.value.isNotEmpty()
+                && tapeObservationStatus.value.status == Status.Success
 
     data class ObservationStatus(
         val status: Status,

@@ -1,4 +1,4 @@
-package org.shirabox.app.ui.screen.explore.feed
+package org.shirabox.app.ui.screen.explore.feed.primary
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +31,7 @@ import org.shirabox.core.model.Content
 import org.shirabox.core.util.Util
 
 @Composable
-internal fun TrendingFeed(
+internal fun PrimaryTrendingFeed(
     isReady: Boolean,
     contents: List<Content>
 ) {

@@ -1,4 +1,4 @@
-package org.shirabox.app.ui.component.navigation
+package org.shirabox.app.ui.component.navigation.base
 
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn

@@ -31,7 +31,20 @@
     <string name="today">Сегодня</string>
     <string name="update_available">Доступно обновление приложения!</string>
     <string name="refresh">Попробовать снова</string>
-
+    <string name="continue_watching_feed">Продолжить просмотр</string>
+    <string name="primary_feed">Лента</string>
+    <string name="schedule_feed">Расписание</string>
+    <string name="schedule_today">Ожидается сегодня</string>
+    <string name="schedule_monday">Понедельник</string>
+    <string name="schedule_tuesday">Вторник</string>
+    <string name="schedule_wednesday">Среда</string>
+    <string name="schedule_thursday">Черверг</string>
+    <string name="schedule_friday">Пятница</string>
+    <string name="schedule_saturday">Суббота</string>
+    <string name="schedule_sunday">Воскресенье</string>
+    <string name="schedule_dialog_title">Как работает расписание?</string>
+    <string name="schedule_dialog_text">В этом разделе ты сможешь узнать, когда на этой неделе выйдет следующая серия любимого аниме. \n\nВремя выхода серий ориентировочное, отображено согласно московскому времени (MSK) и не может соответствовать времени выхода конкретной озвучки. Поэтому стоить проявить терпение! \n\nСерии, которые ещё не успели выйти помечены серым цветом, когда в свою очередь те что уже вышли помечены зелёным. Всё просто!</string>
+    <string name="schedule_dialog_confirm">Понятно!</string>
 
     <!--
         Favourites Screen
@@ -220,7 +233,6 @@
     <string name="update_dialog_title">Обновление</string>
     <string name="cancel_installation">Отменить загрузку</string>
     <string name="download_error">Произшла ошибка. Повторите попытку позже.</string>
-    <string name="continue_watching_feed">Продолжить просмотр</string>
     <string name="remaining">Осталось %s</string>
 
     <!--

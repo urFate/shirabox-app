@@ -23,4 +23,5 @@ object DataStoreScheme {
      * Other fields
      */
     val FIELD_ANIMESKIP_USER_CLIENT_ID = stringPreferencesKey("animeskip_client_id")
+    val FIELD_SCHEDULE_DIALOG_CONFIRMATION = booleanPreferencesKey("schedule_dialog_confirmation")
 }

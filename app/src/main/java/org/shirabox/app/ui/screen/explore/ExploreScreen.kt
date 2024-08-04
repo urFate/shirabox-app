@@ -23,6 +23,7 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import org.shirabox.app.ui.component.navigation.explore.ExploreNavigationView
 import org.shirabox.app.ui.component.top.TopBar
 
 
@@ -57,12 +58,12 @@ fun ExploreScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item { TopBar(navController) }
-                item { BaseMediaScreen(lazyListState = lazyListState) }
+                item { ExploreNavigationView(lazyListState = lazyListState) }
             }
 
             PullRefreshIndicator(
                 modifier = Modifier.zIndex(2f),
-                refreshing = model.refreshing.value,
+                refreshing = model.refreshing.collectAsStateWithLifecycle().value,
                 state = pullRefreshState,
                 scale = true,
                 contentColor = MaterialTheme.colorScheme.primary
@@ -70,4 +71,3 @@ fun ExploreScreen(
         }
     }
 }
-

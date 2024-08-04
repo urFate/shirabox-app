@@ -1,4 +1,4 @@
-package org.shirabox.app.ui.screen.explore.feed
+package org.shirabox.app.ui.screen.explore.feed.primary
 
 import android.content.Context
 import android.content.Intent
@@ -36,7 +36,7 @@ import org.shirabox.core.util.IntentExtras
 import org.shirabox.core.util.Util
 
 @Composable
-internal fun HistoryFeed(
+internal fun PrimaryHistoryFeed(
     isReady: Boolean,
     contents: Map<CombinedContent, EpisodeEntity>
 ) {

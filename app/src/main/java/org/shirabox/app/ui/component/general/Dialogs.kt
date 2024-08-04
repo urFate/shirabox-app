@@ -7,6 +7,7 @@ import android.provider.Settings
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material3.AlertDialog
@@ -119,6 +120,47 @@ fun NotificationsDismissDialog(context: Context, isOpen: MutableState<Boolean>) 
                         }
                         ) {
                     Text(stringResource(R.string.notifications_request))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun DisposableScheduleDialog(isOpen: MutableState<Boolean>, onConfirm: () -> Unit) {
+    if(isOpen.value) {
+        AlertDialog(
+            onDismissRequest = {
+                isOpen.value = false
+            },
+            icon = {
+                Icon(
+                    modifier = Modifier.size(48.dp),
+                    imageVector = Icons.Outlined.CalendarMonth,
+                    tint = MaterialTheme.colorScheme.primary,
+                    contentDescription = null
+                )
+            },
+            title = {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.schedule_dialog_title),
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Text(
+                    stringResource(R.string.schedule_dialog_text)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        isOpen.value = false
+                        onConfirm()
+                    }
+                ) {
+                    Text(stringResource(R.string.schedule_dialog_confirm))
                 }
             }
         )
