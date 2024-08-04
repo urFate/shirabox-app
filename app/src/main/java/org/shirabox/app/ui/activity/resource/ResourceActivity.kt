@@ -74,7 +74,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -320,19 +319,23 @@ fun Resource(
                         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
                     )
 
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(content.image)
-                            .crossfade(true)
-                            .build(),
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .width(215.dp)
-                            .height(300.dp)
-                            .clip(RoundedCornerShape(24.dp)),
-                        contentDescription = "blank",
-                        contentScale = ContentScale.Crop
-                    )
+                    Surface(
+                        modifier = Modifier.align(Alignment.Center),
+                        shape = RoundedCornerShape(24.dp),
+                        shadowElevation = 8.dp
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(content.image)
+                                .crossfade(true)
+                                .build(),
+                            modifier = Modifier
+                                .width(215.dp)
+                                .height(300.dp),
+                            contentDescription = "blank",
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
 
                 Text(
