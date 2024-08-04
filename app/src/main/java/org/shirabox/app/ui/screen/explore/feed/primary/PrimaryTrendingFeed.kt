@@ -45,7 +45,7 @@ internal fun PrimaryTrendingFeed(
     val lazyListState = rememberLazyListState()
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         Text(
             modifier = Modifier
@@ -90,6 +90,6 @@ internal fun PrimaryTrendingFeed(
     }
 
     HorizontalDivider(
-        modifier = Modifier.padding(32.dp, 8.dp)
+        modifier = Modifier.padding(32.dp, 0.dp)
     )
 }

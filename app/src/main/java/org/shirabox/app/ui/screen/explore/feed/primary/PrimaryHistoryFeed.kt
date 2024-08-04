@@ -55,7 +55,7 @@ internal fun PrimaryHistoryFeed(
         exit = fadeOut()
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             Text(
                 modifier = Modifier
