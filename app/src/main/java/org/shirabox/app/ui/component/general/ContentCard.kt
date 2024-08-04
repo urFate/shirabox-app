@@ -61,6 +61,7 @@ fun BaseCard(
 
     Surface(
         modifier = modifier,
+        shadowElevation = 8.dp,
         shape = RoundedCornerShape(10)
     ) {
         Box {
