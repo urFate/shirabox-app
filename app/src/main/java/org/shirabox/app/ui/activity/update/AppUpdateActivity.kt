@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -44,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -126,109 +128,113 @@ fun AppUpdateScreen(
     val isUpdating = remember { mutableStateOf(false) }
     val dialogVisibilityState = remember { mutableStateOf(false) }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = { activity.finish() }) {
+    Box {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(onClick = { activity.finish() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                contentDescription = "Finish",
+                            )
+                        }
+                    }
+                )
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp, 0.dp, 24.dp, 128.dp),
+                    verticalArrangement = Arrangement.spacedBy(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Finish",
+                            modifier = Modifier.size(64.dp),
+                            imageVector = when (appUpdateState.updateAvailable) {
+                                true -> Icons.Outlined.RocketLaunch
+                                false -> Icons.Outlined.Verified
+                            },
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "rocket"
                         )
                     }
-                }
-            )
-        }
-
-        item {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp, 0.dp),
-                verticalArrangement = Arrangement.spacedBy(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        modifier = Modifier.size(64.dp),
-                        imageVector = when (appUpdateState.updateAvailable) {
-                            true -> Icons.Outlined.RocketLaunch
-                            false -> Icons.Outlined.Verified
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = when (appUpdateState.updateAvailable) {
+                            true -> stringResource(id = R.string.update)
+                            false -> stringResource(id = R.string.no_update_required)
                         },
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = "rocket"
+                        lineHeight = 32.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 28.sp
                     )
-                }
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = when (appUpdateState.updateAvailable) {
-                        true -> stringResource(id = R.string.update)
-                        false -> stringResource(id = R.string.no_update_required)
-                    },
-                    lineHeight = 32.sp,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 28.sp
-                )
 
-                HorizontalDivider(
-                    modifier = Modifier.widthIn(32.dp, 256.dp)
-                )
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    RichText {
-                        val parser = remember { CommonmarkAstNodeParser() }
-                        val astNode = remember(parser) { parser.parse(appUpdateState.release.notes) }
-
-                        BasicMarkdown(astNode = astNode)
-                    }
+                    HorizontalDivider(
+                        modifier = Modifier.widthIn(32.dp, 256.dp)
+                    )
 
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                        val dateString = formatter.format(Date(appUpdateState.release.createdAt))
+                        RichText {
+                            val parser = remember { CommonmarkAstNodeParser() }
+                            val astNode = remember(parser) { parser.parse(appUpdateState.release.notes) }
 
-                        Text(
-                            text = appUpdateState.release.tag,
-                            color = MaterialTheme.colorScheme.onBackground.copy(0.7f)
-                        )
-                        Text(
-                            text = stringResource(id = R.string.update_build_date, dateString),
-                            color = MaterialTheme.colorScheme.onBackground.copy(0.7f)
-                        )
+                            BasicMarkdown(astNode = astNode)
+                        }
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                            val dateString = formatter.format(Date(appUpdateState.release.createdAt))
+
+                            Text(
+                                text = appUpdateState.release.tag,
+                                color = MaterialTheme.colorScheme.onBackground.copy(0.7f)
+                            )
+                            Text(
+                                text = stringResource(id = R.string.update_build_date, dateString),
+                                color = MaterialTheme.colorScheme.onBackground.copy(0.7f)
+                            )
+                        }
                     }
                 }
             }
         }
 
-        item {
-            if (appUpdateState.updateAvailable) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(0.dp, 96.dp),
-                    contentAlignment = Alignment.Center
+        if (appUpdateState.updateAvailable) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(0.dp, 64.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Button(
+                    modifier = Modifier.size(256.dp, 64.dp),
+                    onClick = {
+                        isUpdating.value = true
+                        dialogVisibilityState.value = true
+                    },
+                    elevation = ButtonDefaults.buttonElevation(6.dp),
+                    colors = ButtonDefaults.buttonColors().copy(
+                        disabledContainerColor = Color(0xFFC7C7C7)
+                    ),
+                    enabled = !isUpdating.value
                 ) {
-                    Button(
-                        modifier = Modifier.size(256.dp, 64.dp),
-                        onClick = {
-                            isUpdating.value = true
-                            dialogVisibilityState.value = true
-                        },
-                        enabled = !isUpdating.value
-                    ) {
-                        Text(text = stringResource(id = R.string.update_install))
-                    }
+                    Text(text = stringResource(id = R.string.update_install))
                 }
             }
         }
