@@ -29,4 +29,5 @@
     <color name="surfaceTint">#FF824790</color>
     <color name="outlineVariant">#FFCFC3CD</color>
     <color name="scrim">#FF000000</color>
+    <color name="splash_background">#FFAF83F8</color>
 </resources>
