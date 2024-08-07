@@ -70,7 +70,9 @@ import org.shirabox.data.catalog.shikimori.ShikimoriRepository
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ShiraBoxTheme {
+            ShiraBoxTheme(
+                transparentStatusBar = true
+            ) {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
