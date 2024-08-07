@@ -97,7 +97,7 @@ fun History(
                             Text(
                                 text = contentEntity.name.ifBlank { contentEntity.enName },
                                 fontWeight = FontWeight.Medium,
-                                maxLines = 2,
+                                maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         },
