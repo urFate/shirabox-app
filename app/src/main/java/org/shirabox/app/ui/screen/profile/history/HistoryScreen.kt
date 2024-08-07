@@ -44,6 +44,7 @@ fun History(
     val contents by model.contentsFlow().collectAsState(initial = emptyList())
 
     val currentType by remember { mutableStateOf(ContentType.ANIME) }
+    val unknownProduction = stringResource(id = R.string.unknown_production)
 
     val filteredContentsByTypeAndDate by remember(currentType) {
         derivedStateOf {
@@ -100,7 +101,7 @@ fun History(
                                 overflow = TextOverflow.Ellipsis
                             )
                         },
-                        supportingString = "${contentEntity.production?.let { "$it\n" }}" +
+                        supportingString = "${contentEntity.production?.let { "$it\n" } ?: "${unknownProduction}\n"}" +
                                 "${contentEntity.releaseYear}, ${ValuesHelper.decodeKind(contentEntity.kind, context)}",
                         coverImage = contentEntity.image
                     ) {
