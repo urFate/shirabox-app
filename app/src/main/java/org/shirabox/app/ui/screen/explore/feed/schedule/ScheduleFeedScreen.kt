@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
+import org.shirabox.app.ComposeUtils.getWeekDayTitle
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.resource.ResourceActivity
 import org.shirabox.app.ui.component.general.ContentCardPlaceholder
@@ -84,10 +85,17 @@ fun ScheduleFeedScreen(model: ExploreViewModel = hiltViewModel()) {
             return
         }
 
-        ScheduleRow(title = stringResource(id = R.string.schedule_today), isReady = isReady, contents = todayScheduleList)
+        ScheduleRow(
+            title = stringResource(id = R.string.schedule_today),
+            contents = todayScheduleList
+        )
 
         weekList.forEach {
-            ScheduleRow(title = getWeekDayTitle(day = it.key), divider = true, isReady = isReady, contents = it.value)
+            ScheduleRow(
+                title = getWeekDayTitle(day = it.key),
+                divider = true,
+                contents = it.value
+            )
         }
     }
 
@@ -97,7 +105,7 @@ fun ScheduleFeedScreen(model: ExploreViewModel = hiltViewModel()) {
 @Composable
 fun ScheduleRow(
     title: String,
-    isReady: Boolean,
+    isReady: Boolean = true,
     divider: Boolean = false,
     contents: List<ScheduleEntry>
 ) {
@@ -164,16 +172,4 @@ fun ScheduleRow(
             }
         }
     }
-}
-
-@Composable
-private fun getWeekDayTitle(day: Int) = when(day) {
-    1 -> stringResource(id = R.string.schedule_sunday)
-    2 -> stringResource(id = R.string.schedule_monday)
-    3 -> stringResource(id = R.string.schedule_tuesday)
-    4 -> stringResource(id = R.string.schedule_wednesday)
-    5 -> stringResource(id = R.string.schedule_thursday)
-    6 -> stringResource(id = R.string.schedule_friday)
-    7 -> stringResource(id = R.string.schedule_saturday)
-    else -> "null"
 }

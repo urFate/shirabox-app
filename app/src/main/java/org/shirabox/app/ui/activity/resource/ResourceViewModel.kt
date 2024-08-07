@@ -27,6 +27,7 @@ import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.ActingTeam
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType.ANIME
+import org.shirabox.core.model.ScheduleEntry
 import org.shirabox.core.util.Util
 import org.shirabox.core.util.Util.Companion.mapContentToEntity
 import org.shirabox.core.util.Util.Companion.mapEntityToContent
@@ -34,6 +35,8 @@ import org.shirabox.data.EpisodesHelper
 import org.shirabox.data.catalog.shikimori.ShikimoriRepository
 import org.shirabox.data.content.AbstractContentRepository
 import org.shirabox.data.content.ContentRepositoryRegistry
+import org.shirabox.data.schedule.shirabox.ShiraBoxScheduleRepository
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,6 +52,9 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val isFavourite = mutableStateOf(false)
     val pinnedTeams = mutableStateListOf<String>()
 
+    val scheduleWeekDay = mutableStateOf<Int?>(null)
+    val scheduleTime = mutableStateOf<Pair<Long, Long?>?>(null)
+
     val episodeFetchComplete = mutableStateOf(false)
     val isRefreshing = mutableStateOf(false)
     val contentObservationException = mutableStateOf<Exception?>(null)
@@ -60,48 +66,85 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         viewModelScope.launch(Dispatchers.IO) {
             db.let { database ->
                 val cachedData = database.contentDao().getContent(shikimoriId)
+                var scheduleEntry: ScheduleEntry? = null
 
-                cachedData?.let {
-                    content.value = mapEntityToContent(it)
-                    isFavourite.value = it.isFavourite
-                    internalContentUid.longValue = it.uid
-                    pinnedTeams.addAll(it.pinnedTeams)
+                // Fetch schedule
+                ShiraBoxScheduleRepository.fetchSchedule()
+                    .catch {
+                        it.printStackTrace()
+                    }
+                    .collect { entries ->
+                        val matchingEntry = entries.firstOrNull { it.shikimoriId == shikimoriId }
+                        matchingEntry?.let {
+                            val calendar = Calendar.getInstance().apply {
+                                timeInMillis = matchingEntry.releaseRange.first()
+                            }
+
+                            scheduleWeekDay.value = (calendar.get(Calendar.DAY_OF_WEEK))
+                            scheduleTime.value = matchingEntry.releaseRange.first() to matchingEntry.releaseRange.getOrNull(1)
+
+                            scheduleEntry = matchingEntry
+                        }
+                    }
+
+                cachedData?.let { cache ->
+                    var finalCache = cache
+
+                    // Set poster image from ShiraBox database if possible
+                    scheduleEntry?.let {
+                        if(cachedData.image != it.image) {
+                            finalCache = cache.copy(image = it.image)
+                            database.contentDao().updateContents(finalCache)
+                        }
+                    }
+
+                    content.value = mapEntityToContent(finalCache)
+                    isFavourite.value = cache.isFavourite
+                    internalContentUid.longValue = cache.uid
+                    pinnedTeams.addAll(cache.pinnedTeams)
 
                     if(!forceRefresh) return@launch
                 }
 
-                ShikimoriRepository.fetchContent(shikimoriId, ANIME).catch {
-                    contentObservationException.value = it as Exception
-                    it.printStackTrace()
-                    emitAll(emptyFlow())
-                }.collect {
-                    when(cachedData){
-                        null -> {
-                            val newUid = database.contentDao().insertContents(
-                                mapContentToEntity(
-                                    content = it,
-                                    isFavourite = false,
-                                    lastViewTimestamp = System.currentTimeMillis(),
-                                    pinnedTeams = emptyList()
-                                )
-                            ).first()
-
-                            internalContentUid.longValue = newUid
-                            content.value = it
-                        }
-
-                        else -> {
-                            database.contentDao().updateContents(
-                                mapContentToEntity(
-                                    contentUid = cachedData.uid,
-                                    content = it,
-                                    isFavourite = cachedData.isFavourite,
-                                    lastViewTimestamp = cachedData.lastViewTimestamp,
-                                    pinnedTeams = cachedData.pinnedTeams
-                                )
-                            )
-                        }
+                ShikimoriRepository.fetchContent(shikimoriId, ANIME)
+                    .catch {
+                        contentObservationException.value = it as Exception
+                        it.printStackTrace()
+                        emitAll(emptyFlow())
                     }
+                    .collect { shikimoriContent ->
+                        var anime = shikimoriContent
+
+                        // Update poster
+                        anime = scheduleEntry?.let { anime.copy(image = it.image) } ?: anime
+
+                        when(cachedData){
+                            null -> {
+                                val newUid = database.contentDao().insertContents(
+                                    mapContentToEntity(
+                                        content = anime,
+                                        isFavourite = false,
+                                        lastViewTimestamp = System.currentTimeMillis(),
+                                        pinnedTeams = emptyList()
+                                    )
+                                ).first()
+
+                                internalContentUid.longValue = newUid
+                                content.value = anime
+                            }
+
+                            else -> {
+                                database.contentDao().updateContents(
+                                    mapContentToEntity(
+                                        contentUid = cachedData.uid,
+                                        content = anime,
+                                        isFavourite = cachedData.isFavourite,
+                                        lastViewTimestamp = cachedData.lastViewTimestamp,
+                                        pinnedTeams = cachedData.pinnedTeams
+                                    )
+                                )
+                            }
+                        }
                 }
             }
         }

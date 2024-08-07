@@ -34,6 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
@@ -94,6 +95,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
+import org.shirabox.app.ComposeUtils.getWeekDayTitle
 import org.shirabox.app.R
 import org.shirabox.app.ValuesHelper
 import org.shirabox.app.ui.component.general.BaseCard
@@ -106,6 +108,7 @@ import org.shirabox.app.ui.theme.errorContainerLight
 import org.shirabox.app.ui.theme.onErrorContainerLight
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.ReleaseStatus
+import org.shirabox.core.util.getDuration
 import org.shirabox.core.util.round
 import java.io.IOException
 
@@ -166,6 +169,12 @@ fun Resource(
     val content = model.content.value
     val isFavourite = model.isFavourite.value
     val isRefreshing = model.isRefreshing.value
+
+    val scheduleWeekDay = model.scheduleWeekDay
+    val scheduleTime = model.scheduleTime
+    val isScheduleReady = remember(scheduleTime.value, scheduleWeekDay.value) {
+        scheduleWeekDay.value != null && scheduleTime.value != null
+    }
 
     val isReady = remember(content) { content != null }
     val bottomSheetVisibilityState = remember { mutableStateOf(false) }
@@ -362,8 +371,7 @@ fun Resource(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp, 24.dp)
-                )
-                {
+                ) {
                     /**
                      * Play button
                      */
@@ -446,6 +454,23 @@ fun Resource(
                                 ValuesHelper.decodeStatus(content.status, context)
                             }"
                         )
+
+                        AnimatedVisibility(visible = isScheduleReady) {
+                            val firstTimestamp = scheduleTime.value?.first?.getDuration() ?: "..."
+                            val secondTimestamp = scheduleTime?.value?.second?.let {
+                                " - ${it.getDuration()}"
+                            } ?: ""
+
+                            ResourceDataLabel(
+                                icon = Icons.AutoMirrored.Outlined.EventNote,
+                                text = stringResource(
+                                    id = R.string.schedule_announcement,
+                                    getWeekDayTitle(day = scheduleWeekDay.value!!),
+                                    firstTimestamp,
+                                    secondTimestamp
+                                )
+                            )
+                        }
 
                         if(content.status != ReleaseStatus.ANNOUNCED) {
                             val episodesAired =
