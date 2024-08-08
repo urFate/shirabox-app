@@ -142,6 +142,7 @@ fun AuthForm(
                         onValueChange = { passwordText.value = it },
                         enabled = !loginInProcess,
                         maxLines = 1,
+                        singleLine = true,
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Outlined.Password,
