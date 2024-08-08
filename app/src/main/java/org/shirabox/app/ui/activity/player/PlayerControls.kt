@@ -73,6 +73,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -98,6 +99,8 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model:
     var hasPreviousMediaItem by remember { mutableStateOf(exoPlayer.hasPreviousMediaItem()) }
     var currentMediaItemIndex by remember { mutableIntStateOf(exoPlayer.currentMediaItemIndex) }
 
+    val animeSkipTimestamps by model.animeSkipTimestamps.collectAsStateWithLifecycle()
+
     val currentEpisode = remember(currentMediaItemIndex) {
         playlist.getOrNull(exoPlayer.currentMediaItemIndex)?.episode ?: 1
     }
@@ -106,7 +109,7 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model:
         playlist[exoPlayer.currentMediaItemIndex].videoMarkers
     }
     val animeSkipIntroMarkers = remember(currentMediaItemIndex) {
-        model.animeSkipTimestamps[currentEpisode]
+        animeSkipTimestamps[currentEpisode]
     }
 
     // Preferences dependent values

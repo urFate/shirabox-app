@@ -17,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -55,7 +56,7 @@ class PlayerViewModel @AssistedInject constructor(
     var currentQuality by mutableStateOf(Quality.HD)
     var playbackSpeed by mutableFloatStateOf(1F)
     var coldStartSeekApplied by mutableStateOf(false)
-    val animeSkipTimestamps = mutableStateMapOf<Int, Pair<Long, Long>>()
+    val animeSkipTimestamps = MutableStateFlow<Map<Int, Pair<Long, Long>>>(emptyMap())
 
     @AssistedFactory
     interface PlayerViewModelFactory {
@@ -141,8 +142,14 @@ class PlayerViewModel @AssistedInject constructor(
                 }.firstOrNull()
             }
 
+
+
+
             timestamps?.let {
-                animeSkipTimestamps[episode] = timestamps.first.toLong() to timestamps.second.toLong()
+                val currentValue = animeSkipTimestamps.value.toMutableMap()
+                currentValue[episode] = timestamps.first.toLong() to timestamps.second.toLong()
+
+                animeSkipTimestamps.emit(currentValue)
             }
         }
     }
