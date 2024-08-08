@@ -41,6 +41,7 @@ fun AboutSettingsScreen() {
     val site = "https://shirabox.org"
 
     val privacyPolicyUri = Uri.parse("$site/privacy")
+    val staffUri = Uri.parse("$site/staff")
     val licenceUri = Uri.parse("https://github.com/urFate/shirabox-app/blob/master/LICENSE")
     val siteUri = Uri.parse(site)
     val githubUri = Uri.parse("$site/github")
@@ -80,6 +81,18 @@ fun AboutSettingsScreen() {
                     Text(
                         modifier = Modifier.padding(16.dp, 0.dp),
                         text = versionString
+                    )
+                }
+            )
+        }
+
+        item {
+            ListItem(
+                modifier = Modifier.clickable { openUri(context, staffUri) },
+                headlineContent = {
+                    Text(
+                        modifier = Modifier.padding(16.dp, 0.dp),
+                        text = stringResource(id = R.string.our_team)
                     )
                 }
             )
