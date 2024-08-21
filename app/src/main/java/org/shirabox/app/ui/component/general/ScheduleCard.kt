@@ -102,7 +102,7 @@ fun ScheduleCard(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = scheduleEntry.name,
+                            text = scheduleEntry.russianName,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
@@ -111,7 +111,7 @@ fun ScheduleCard(
                         )
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = scheduleEntry.russianName,
+                            text = scheduleEntry.name,
                             color = Color.White,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
