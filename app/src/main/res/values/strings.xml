@@ -133,6 +133,7 @@
     <string name="slow_playback_speed">Медленно</string>
     <string name="normal_playback_speed">Нормально</string>
     <string name="faster_playback_speed">Немного быстрее</string>
+    <string name="bit_faster_playback_speed">Довольно быстро</string>
     <string name="fast_playback_speed">Быстро</string>
     <string name="very_fast_playback_speed">Очень быстро</string>
     <string name="player_instant_seek">10 секунд</string>

@@ -266,7 +266,7 @@ fun PlaybackSpeedBottomSheet(
             modifier = Modifier
                 .padding(0.dp, 0.dp, 0.dp, 16.dp)
             ) {
-            val speeds = listOf(0.5F, 1F, 1.5F, 2F, 3F)
+            val speeds = listOf(0.5F, 1F, 1.5F, 1.75F, 2F, 3F)
 
             items(speeds) {
                 ListItem(
@@ -280,6 +280,7 @@ fun PlaybackSpeedBottomSheet(
                                 0.5F -> stringResource(id = R.string.slow_playback_speed)
                                 1.0F -> stringResource(id = R.string.normal_playback_speed)
                                 1.5F -> stringResource(id = R.string.faster_playback_speed)
+                                1.75F -> stringResource(id = R.string.bit_faster_playback_speed)
                                 2F -> stringResource(id = R.string.fast_playback_speed)
                                 3F -> stringResource(id = R.string.very_fast_playback_speed)
                                 else -> "Unknown speed"
@@ -293,6 +294,7 @@ fun PlaybackSpeedBottomSheet(
                                 0.5F -> painterResource(id = R.drawable.slow_speed)
                                 1.0F -> painterResource(id = R.drawable.normal_speed)
                                 1.5F -> painterResource(id = R.drawable.faster_speed)
+                                1.75F -> painterResource(id = R.drawable.bit_faster_speed)
                                 2.0F -> painterResource(id = R.drawable.fast_speed)
                                 3.0F -> painterResource(id = R.drawable.very_fast_speed)
                                 else -> painterResource(id = R.drawable.normal_speed)
