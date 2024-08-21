@@ -14,9 +14,9 @@ fun String.md5(): String {
 }
 
 fun Long.getDuration(): String {
-    val date = Date(this.toLong())
-    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-    formatter.setTimeZone(TimeZone.getTimeZone("UTC"))
+    val date = Date(this)
+    val formatter = SimpleDateFormat("H:mm", Locale.getDefault())
+    formatter.timeZone = TimeZone.getTimeZone("UTC")
     return formatter.format(date)
 }
 

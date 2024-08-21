@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import org.shirabox.core.db.AppDatabase
 import org.shirabox.core.entity.NotificationEntity
-import org.shirabox.core.entity.relation.NotificationAndContent
 import javax.inject.Inject
 
 @HiltViewModel
@@ -20,9 +19,6 @@ class NotificationsViewModel @Inject constructor(@ApplicationContext context: Co
 
     fun allNotificationsFlow(): Flow<List<NotificationEntity>> =
         db?.notificationDao()?.all() ?: emptyFlow()
-
-    fun notificationsWithContentFlow(): Flow<List<NotificationAndContent>> =
-        db?.notificationDao()?.allNotificationsWithContent() ?: emptyFlow()
 
     fun removeNotification(entity: NotificationEntity) {
         viewModelScope.launch(Dispatchers.IO) {

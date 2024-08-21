@@ -122,6 +122,7 @@ dependencies {
     implementation ("com.google.firebase:firebase-crashlytics-ktx")
     implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-messaging-ktx")
+    implementation ("com.google.firebase:firebase-inappmessaging-display")
 
     // Image processing
     implementation ("io.coil-kt:coil-compose:2.5.0")

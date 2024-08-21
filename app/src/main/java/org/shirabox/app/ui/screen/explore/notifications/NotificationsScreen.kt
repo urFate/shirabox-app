@@ -3,7 +3,6 @@ package org.shirabox.app.ui.screen.explore.notifications
 import android.content.Intent
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,13 +13,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +39,7 @@ import org.shirabox.app.R
 import org.shirabox.app.ui.activity.resource.ResourceActivity
 import org.shirabox.app.ui.component.general.ListItem
 import org.shirabox.app.ui.component.top.TopBar
+import org.shirabox.core.model.ContentType
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -59,23 +58,25 @@ fun NotificationsScreen(
         TopBar(navController)
         val context = LocalContext.current
 
-        val notifications = model.notificationsWithContentFlow().catch {
+        val notifications = model.allNotificationsFlow().catch {
             it.printStackTrace()
             emitAll(emptyFlow())
         }.collectAsStateWithLifecycle(initialValue = emptyList())
 
-        val filteredNotificationsByDate by remember(notifications.value) {
+        val filteredNotificationsByDate = remember(notifications.value) {
             derivedStateOf {
-                notifications.value.groupBy {
-                    when (DateUtils.isToday(it.notificationEntity.receiveTimestamp)) {
-                        true -> context.resources.getString(R.string.today)
-                        false -> DateUtils.formatSameDayTime(
-                            it.notificationEntity.receiveTimestamp,
-                            System.currentTimeMillis(),
-                            DateFormat.SHORT,
-                            DateFormat.SHORT
-                        ).toString()
-                    }
+                notifications.value
+                    .sortedByDescending { it.receiveTimestamp }
+                    .groupBy {
+                        when (DateUtils.isToday(it.receiveTimestamp)) {
+                            true -> context.resources.getString(R.string.today)
+                            false -> DateUtils.formatSameDayTime(
+                                it.receiveTimestamp,
+                                System.currentTimeMillis(),
+                                DateFormat.SHORT,
+                                DateFormat.SHORT
+                            ).toString()
+                        }
                 }
             }
         }
@@ -97,7 +98,7 @@ fun NotificationsScreen(
                     fontWeight = FontWeight(500)
                 )
 
-                Button(
+                OutlinedButton(
                     enabled = notifications.value.isNotEmpty(),
                     onClick = {
                         model.clearNotifications()
@@ -129,7 +130,7 @@ fun NotificationsScreen(
                 }
             }
             
-            filteredNotificationsByDate.forEach { entry ->
+            filteredNotificationsByDate.value.forEach { entry ->
                 Text(
                     modifier = Modifier
                         .padding(16.dp, 0.dp)
@@ -146,31 +147,39 @@ fun NotificationsScreen(
                     val time = SimpleDateFormat(
                         "H:mm",
                         java.util.Locale(languageCode)
-                    ).format(Date(it.notificationEntity.receiveTimestamp))
+                    ).format(Date(it.receiveTimestamp))
 
                     ListItem(
                         headlineContent = {
-                            Box(Modifier.fillMaxWidth()) {
-                                Text(modifier = Modifier.align(Alignment.TopStart),
-                                    text = it.contentEntity.name)
-                                Text(modifier = Modifier.align(Alignment.CenterEnd),
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .padding(0.dp, 0.dp, 32.dp, 0.dp)
+                                        .weight(weight = 1f, fill = false), text = it.title
+                                )
+                                Text(
                                     text = time,
-                                    fontSize = 12.sp)
+                                    fontSize = 12.sp
+                                )
                             }
                         },
-                        supportingString = it.notificationEntity.body,
-                        coverImage = it.contentEntity.image
+                        supportingString = it.body,
+                        coverImage = it.thumbnailUrl
                     ) {
                         context.startActivity(
                             Intent(
                                 context,
                                 ResourceActivity::class.java
                             ).apply {
-                                putExtra("id", it.contentEntity.shikimoriID)
-                                putExtra("type", it.contentEntity.type.toString())
+                                putExtra("id", it.contentShikimoriId)
+                                putExtra("type", ContentType.ANIME)
                             }
                         )
-                        model.removeNotification(it.notificationEntity)
+                        model.removeNotification(it)
                     }
                 }
             }

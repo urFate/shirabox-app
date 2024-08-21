@@ -23,7 +23,7 @@ import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.ScheduleEntry
 import org.shirabox.data.catalog.shikimori.ShikimoriRepository
-import org.shirabox.data.schedule.shirabox.ShiraBoxScheduleRepository
+import org.shirabox.data.shirabox.ShiraBoxRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -109,7 +109,7 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
     
     private fun fetchScheduleFeed() {
         viewModelScope.launch(Dispatchers.IO) { 
-            ShiraBoxScheduleRepository.fetchSchedule()
+            ShiraBoxRepository.fetchSchedule()
                 .catch {
                     it.printStackTrace()
                     scheduleObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)

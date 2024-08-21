@@ -111,6 +111,7 @@ import org.shirabox.core.model.ReleaseStatus
 import org.shirabox.core.util.getDuration
 import org.shirabox.core.util.round
 import java.io.IOException
+import java.util.Calendar
 
 @AndroidEntryPoint
 class ResourceActivity : ComponentActivity() {
@@ -170,11 +171,7 @@ fun Resource(
     val isFavourite = model.isFavourite.value
     val isRefreshing = model.isRefreshing.value
 
-    val scheduleWeekDay = model.scheduleWeekDay
-    val scheduleTime = model.scheduleTime
-    val isScheduleReady = remember(scheduleTime.value, scheduleWeekDay.value) {
-        scheduleWeekDay.value != null && scheduleTime.value != null
-    }
+    val shiraBoxAnime = model.shiraBoxAnime
 
     val isReady = remember(content) { content != null }
     val bottomSheetVisibilityState = remember { mutableStateOf(false) }
@@ -299,29 +296,9 @@ fun Resource(
                                 expanded = dropdownExpanded,
                                 onDismissRequest = { dropdownExpanded = false }
                             ) {
-                                TextButton(
-                                    onClick = {
-                                        shareVia(context, content.shikimoriID)
-                                        dropdownExpanded = false
-                                    },
-                                    shape = RectangleShape
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(24.dp),
-                                            imageVector = Icons.Rounded.Share,
-                                            contentDescription = "share",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = stringResource(id = R.string.share),
-                                            fontSize = 16.sp,
-                                            modifier = Modifier.padding(8.dp)
-                                        )
-                                    }
+                                DropdownActionButton(icon = Icons.Rounded.Share, text = stringResource(id = R.string.share)) {
+                                    shareVia(context, content.shikimoriID)
+                                    dropdownExpanded = false
                                 }
                             }
                         },
@@ -411,7 +388,7 @@ fun Resource(
                         modifier = Modifier
                             .requiredSize(54.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = errorContainerLight),
-                        onClick = model::switchFavouriteStatus
+                        onClick = { model.switchFavouriteStatus(context) }
                     ) {
                         Icon(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
@@ -455,21 +432,37 @@ fun Resource(
                             }"
                         )
 
-                        AnimatedVisibility(visible = isScheduleReady) {
-                            val firstTimestamp = scheduleTime.value?.first?.getDuration() ?: "..."
-                            val secondTimestamp = scheduleTime?.value?.second?.let {
-                                " - ${it.getDuration()}"
-                            } ?: ""
+                        AnimatedVisibility(visible = shiraBoxAnime.value != null) {
+                            shiraBoxAnime.value?.let { anime ->
+                                val releaseRange = anime.schedule.releaseRange
 
-                            ResourceDataLabel(
-                                icon = Icons.AutoMirrored.Outlined.EventNote,
-                                text = stringResource(
-                                    id = R.string.schedule_announcement,
-                                    getWeekDayTitle(day = scheduleWeekDay.value!!),
-                                    firstTimestamp,
-                                    secondTimestamp
+                                val weekDay = remember {
+                                    Calendar.getInstance()
+                                        .apply {
+                                            timeInMillis = releaseRange.first()
+                                        }
+                                        .get(Calendar.DAY_OF_WEEK)
+                                }
+
+                                val firstTimestamp = remember {
+                                    releaseRange.first().getDuration() ?: "..."
+                                }
+                                val secondTimestamp = remember {
+                                    releaseRange.getOrNull(1)?.let {
+                                        " - ${it.getDuration()}"
+                                    } ?: ""
+                                }
+
+                                ResourceDataLabel(
+                                    icon = Icons.AutoMirrored.Outlined.EventNote,
+                                    text = stringResource(
+                                        id = R.string.schedule_announcement,
+                                        getWeekDayTitle(day = weekDay),
+                                        firstTimestamp,
+                                        secondTimestamp
+                                    )
                                 )
-                            )
+                            }
                         }
 
                         if(content.status != ReleaseStatus.ANNOUNCED) {
@@ -662,6 +655,31 @@ fun ResourceDataLabel(icon: ImageVector, text: String){
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+fun DropdownActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        shape = RectangleShape
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                imageVector = icon,
+                contentDescription = "share",
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = text,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
     }
 }
 

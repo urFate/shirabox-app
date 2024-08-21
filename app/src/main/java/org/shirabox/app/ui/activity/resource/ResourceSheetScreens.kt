@@ -476,7 +476,7 @@ private fun TeamListItem(
         trailingIcon = if (isPinned.value) Icons.Filled.PushPin else Icons.Outlined.PushPin,
         headlineText = team.name,
         onTrailingIconClick = {
-            model.switchTeamPinStatus(context, content.shikimoriID, repository, team)
+            model.switchTeamPinStatus(content.shikimoriID, team)
         },
         onClick = onClick
     )

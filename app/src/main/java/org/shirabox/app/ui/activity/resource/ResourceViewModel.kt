@@ -15,6 +15,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -27,16 +28,13 @@ import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.ActingTeam
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType.ANIME
-import org.shirabox.core.model.ScheduleEntry
-import org.shirabox.core.util.Util
+import org.shirabox.core.model.ShiraBoxAnime
 import org.shirabox.core.util.Util.Companion.mapContentToEntity
 import org.shirabox.core.util.Util.Companion.mapEntityToContent
 import org.shirabox.data.EpisodesHelper
 import org.shirabox.data.catalog.shikimori.ShikimoriRepository
-import org.shirabox.data.content.AbstractContentRepository
 import org.shirabox.data.content.ContentRepositoryRegistry
-import org.shirabox.data.schedule.shirabox.ShiraBoxScheduleRepository
-import java.util.Calendar
+import org.shirabox.data.shirabox.ShiraBoxRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,8 +50,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val isFavourite = mutableStateOf(false)
     val pinnedTeams = mutableStateListOf<String>()
 
-    val scheduleWeekDay = mutableStateOf<Int?>(null)
-    val scheduleTime = mutableStateOf<Pair<Long, Long?>?>(null)
+    val shiraBoxAnime = mutableStateOf<ShiraBoxAnime?>(null)
 
     val episodeFetchComplete = mutableStateOf(false)
     val isRefreshing = mutableStateOf(false)
@@ -66,32 +63,18 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         viewModelScope.launch(Dispatchers.IO) {
             db.let { database ->
                 val cachedData = database.contentDao().getContent(shikimoriId)
-                var scheduleEntry: ScheduleEntry? = null
 
-                // Fetch schedule
-                ShiraBoxScheduleRepository.fetchSchedule()
-                    .catch {
-                        it.printStackTrace()
-                    }
-                    .collect { entries ->
-                        val matchingEntry = entries.firstOrNull { it.shikimoriId == shikimoriId }
-                        matchingEntry?.let {
-                            val calendar = Calendar.getInstance().apply {
-                                timeInMillis = matchingEntry.releaseRange.first()
-                            }
+                // Fetch anime from ShiraBox API
+                ShiraBoxRepository.fetchAnime(shikimoriId)
+                    .catch { it.printStackTrace() }
+                    .collectLatest { anime -> shiraBoxAnime.value = anime }
 
-                            scheduleWeekDay.value = (calendar.get(Calendar.DAY_OF_WEEK))
-                            scheduleTime.value = matchingEntry.releaseRange.first() to matchingEntry.releaseRange.getOrNull(1)
-
-                            scheduleEntry = matchingEntry
-                        }
-                    }
-
+                // Use cached data if available
                 cachedData?.let { cache ->
                     var finalCache = cache
 
-                    // Set poster image from ShiraBox database if possible
-                    scheduleEntry?.let {
+                    // Set poster image from ShiraBox API if possible
+                    shiraBoxAnime.value?.let {
                         if(cachedData.image != it.image) {
                             finalCache = cache.copy(image = it.image)
                             database.contentDao().updateContents(finalCache)
@@ -106,6 +89,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     if(!forceRefresh) return@launch
                 }
 
+                // Fetch data from APIs if content is not cached
                 ShikimoriRepository.fetchContent(shikimoriId, ANIME)
                     .catch {
                         contentObservationException.value = it as Exception
@@ -115,8 +99,8 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     .collect { shikimoriContent ->
                         var anime = shikimoriContent
 
-                        // Update poster
-                        anime = scheduleEntry?.let { anime.copy(image = it.image) } ?: anime
+                        // Replace poster
+                        anime = shiraBoxAnime.value?.let { anime.copy(image = it.image) } ?: anime
 
                         when(cachedData){
                             null -> {
@@ -212,48 +196,47 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         }
     }
 
-    fun switchFavouriteStatus() {
+    fun switchFavouriteStatus(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             isFavourite.value = !isFavourite.value
 
-            if(internalContentUid.longValue > -1) {
-                val content = db.contentDao().getContentByUid(internalContentUid.value)
-                db.contentDao().updateContents(content.copy(isFavourite = isFavourite.value))
+            launch {
+                shiraBoxAnime.value?.let { anime ->
+                    val subscriptionAllowed =
+                        AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
+                            ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
+
+                    val topic = "id-${anime.id}"
+
+                    if (subscriptionAllowed && isFavourite.value) {
+                        Firebase.messaging.subscribeToTopic(topic)
+                    } else {
+                        Firebase.messaging.unsubscribeFromTopic(topic)
+                    }
+                }
+            }
+
+            launch {
+                if(internalContentUid.longValue > -1) {
+                    val content = db.contentDao().getContentByUid(internalContentUid.value)
+                    db.contentDao().updateContents(content.copy(isFavourite = isFavourite.value))
+                }
             }
         }
     }
 
     fun switchTeamPinStatus(
-        context: Context,
         id: Int,
-        repository: AbstractContentRepository,
         team: ActingTeam
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val content = db.contentDao().getContent(id)
-            val subscriptionAllowed =
-                AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
-                    ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
 
             content?.let { entity ->
-                val contentTopic = Util.encodeTopic(
-                    repository = repository.name,
-                    actingTeam = team.name,
-                    contentEnName = entity.enName
-                )
-
-                when (pinnedTeams.contains(team.name)) {
-                    true -> {
-                        pinnedTeams.remove(team.name)
-                        if (subscriptionAllowed) Firebase.messaging.unsubscribeFromTopic(
-                            contentTopic
-                        )
-                    }
-
-                    else -> {
-                        pinnedTeams.add(team.name)
-                        if (subscriptionAllowed) Firebase.messaging.subscribeToTopic(contentTopic)
-                    }
+                if (pinnedTeams.contains(team.name)) {
+                    pinnedTeams.remove(team.name)
+                } else {
+                    pinnedTeams.add(team.name)
                 }
 
                 db.contentDao().updateContents(entity.copy(pinnedTeams = pinnedTeams))

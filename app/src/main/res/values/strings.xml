@@ -178,7 +178,7 @@
     <string name="settings_notifications">Уведомления</string>
     <string name="notifications_settings_description">Управление настройками уведомлений</string>
     <string name="notifications_subscription_settings">Подписка на уведомления</string>
-    <string name="notifications_subscription_settings_description">Автоматическая подписка на уведомления при закреплении любимого источника</string>
+    <string name="notifications_subscription_settings_description">Автоматическая подписка на уведомления при добавлении в избранное</string>
     <string name="dark_theme_settings">Тёмный режим</string>
     <string name="dark_theme_settings_description">Основной цветовой акцент приложения</string>
     <string name="user_theme_settings">Системная палитра</string>
