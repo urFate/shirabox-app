@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import org.shirabox.app.ComposeUtils.bottomSheetDynamicNavColor
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.player.PlayerActivity
 import org.shirabox.app.ui.component.general.ExtendedListItem
@@ -146,6 +147,8 @@ fun SourcesSheetScreen(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
     val coroutineScope = rememberCoroutineScope()
+
+    bottomSheetDynamicNavColor(state)
 
     ModalBottomSheet(
         sheetState = state,
@@ -236,7 +239,6 @@ fun SourcesSheetScreen(
                                     val actingTeam = ActingTeam(team, entities.first().actingTeamIcon)
 
                                     TeamListItem(
-                                        repository = repository,
                                         content = content,
                                         episodes = entities,
                                         team = actingTeam
@@ -271,6 +273,8 @@ fun EpisodesSheetScreen(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
     val coroutineScope = rememberCoroutineScope()
+
+    bottomSheetDynamicNavColor(state)
 
     ModalBottomSheet(
         sheetState = state,
@@ -443,7 +447,6 @@ fun EpisodesSheetScreen(
 
 @Composable
 private fun TeamListItem(
-    repository: AbstractContentRepository,
     content: Content,
     episodes: List<EpisodeEntity>,
     team: ActingTeam,
