@@ -54,7 +54,7 @@ fun ScheduleFeedScreen(model: ExploreViewModel = hiltViewModel()) {
         scheduleFeedList.groupBy {
             val calendar = Calendar.getInstance().apply { timeInMillis = it.releaseRange.first() }
             calendar.get(Calendar.DAY_OF_WEEK)
-        }
+        }.mapValues { entry -> entry.value.sortedBy { it.releaseRange.first() } }
     }
 
     val todayScheduleList = remember(scheduleFeedList) {
