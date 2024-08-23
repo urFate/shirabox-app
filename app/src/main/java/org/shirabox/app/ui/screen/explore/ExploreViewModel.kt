@@ -7,7 +7,6 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -16,12 +15,14 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
+import org.shirabox.app.CachingUtils
 import org.shirabox.core.db.AppDatabase
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.entity.relation.CombinedContent
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.ScheduleEntry
+import org.shirabox.core.util.Util.Companion.mapEntityToContent
 import org.shirabox.data.catalog.shikimori.ShikimoriRepository
 import org.shirabox.data.shirabox.ShiraBoxRepository
 import javax.inject.Inject
@@ -52,6 +53,17 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                     tapeObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
                 }
+                .map { contents ->
+                    contents.map {
+                        mapEntityToContent(
+                            CachingUtils.cacheContent(
+                                db = db,
+                                content = it,
+                                update = refreshing.value
+                            ).content
+                        )
+                    }
+                }
                 .collectLatest {
                     trendingFeedList.emit(it)
                     tapeObservationStatus.value = ObservationStatus(Status.Success)
@@ -68,12 +80,22 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
                     tapeObservationStatus.value = ObservationStatus(Status.Failure, it as Exception)
                     emitAll(emptyFlow())
                 }
+                .map { contents ->
+                    contents.map {
+                        mapEntityToContent(
+                            CachingUtils.cacheContent(
+                                db = db,
+                                content = it,
+                                update = refreshing.value
+                            ).content
+                        )
+                    }
+                }
                 .onCompletion {
-                    delay(1000L)
                     refreshing.value = false
                 }
-                .collectLatest {
-                    popularsFeedList.emit(it)
+                .collectLatest { contents ->
+                    popularsFeedList.emit(contents)
                     tapeObservationStatus.value = ObservationStatus(Status.Success)
                 }
         }
