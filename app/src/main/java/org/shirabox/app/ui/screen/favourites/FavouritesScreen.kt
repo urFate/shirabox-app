@@ -20,7 +20,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -294,6 +296,7 @@ fun SortingSheetScreen(
                         model.selectedKind.value = null
                     },
                 ) {
+                    Icon(modifier = Modifier.size(34.dp).padding(8.dp, 0.dp), imageVector = Icons.Rounded.Refresh, contentDescription = "Reset")
                     Text(text = stringResource(id = R.string.reset))
                 }
 
@@ -309,6 +312,7 @@ fun SortingSheetScreen(
                         }
                     }
                 ) {
+                    Icon(modifier = Modifier.size(34.dp).padding(8.dp, 0.dp), imageVector = Icons.Rounded.DoneAll, contentDescription = "Apply")
                     Text(text = stringResource(id = R.string.apply))
                 }
             }
