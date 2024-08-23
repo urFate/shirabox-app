@@ -39,6 +39,8 @@ import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.MovieCreation
+import androidx.compose.material.icons.outlined.NotificationAdd
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -297,8 +299,18 @@ fun Resource(
                                 onDismissRequest = { dropdownExpanded = false }
                             ) {
                                 DropdownActionButton(icon = Icons.Rounded.Share, text = stringResource(id = R.string.share)) {
-                                    shareVia(context, content.shikimoriID)
+                                    shareVia(context, content.shikimoriId)
                                     dropdownExpanded = false
+                                }
+
+                                val notificationsActionButtonIcon = remember(model.episodesNotifications.value) {
+                                    if (model.episodesNotifications.value) Icons.Outlined.NotificationsOff else Icons.Outlined.NotificationAdd
+                                }
+                                val notificationsActionButtonText = stringResource(
+                                    id = if (model.episodesNotifications.value) R.string.disable_notifications_action else R.string.enable_notifications_action)
+
+                                DropdownActionButton(icon = notificationsActionButtonIcon, text = notificationsActionButtonText) {
+                                    model.switchNotificationsStatus()
                                 }
                             }
                         },
@@ -603,7 +615,7 @@ fun Resource(
                                             context,
                                             ResourceActivity::class.java
                                         ).apply {
-                                            putExtra("id", it.shikimoriID)
+                                            putExtra("id", it.shikimoriId)
                                             putExtra("type", it.type)
                                         }
                                     )

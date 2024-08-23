@@ -103,7 +103,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
                             it.name to it.value
                         }),
-                        shikimoriID = data.id,
+                        shikimoriId = data.id,
                         genres = data.genres.map { it.russian }
                     )
                 }
@@ -125,7 +125,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         rating = Rating(data.score.toDouble(), data.ratesScoresStats.associate {
                             it.name to it.value
                         }),
-                        shikimoriID = data.id,
+                        shikimoriId = data.id,
                         genres = data.genres.map { it.russian}
                     )
                 }
@@ -159,7 +159,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         episodes = it.episodes,
                         episodesAired = it.episodesAired,
                         rating = Rating(it.score.toDouble()),
-                        shikimoriID = it.id
+                        shikimoriId = it.id
                     )
                 }
             }
@@ -178,7 +178,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         status = decodeStatus(it.status),
                         episodes = it.chapters,
                         rating = Rating(it.score.toDouble()),
-                        shikimoriID = it.id
+                        shikimoriId = it.id
                     )
                 }
             }
@@ -209,7 +209,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         episodes = it.anime.episodes,
                         episodesAired = it.anime.episodesAired,
                         rating = Rating(average = it.anime.score.toDouble(), scores = mapOf()),
-                        shikimoriID = it.anime.id
+                        shikimoriId = it.anime.id
                     )
 
                     it.manga != null -> Content(
@@ -222,7 +222,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                         status = decodeStatus(it.manga.status),
                         episodes = it.manga.chapters,
                         rating = Rating(average = it.manga.score.toDouble(), scores = mapOf()),
-                        shikimoriID = it.manga.id
+                        shikimoriId = it.manga.id
                     )
 
                     else -> null
@@ -262,7 +262,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                             episodes = it.episodes,
                             episodesAired = it.episodesAired,
                             rating = Rating(it.score.toDouble()),
-                            shikimoriID = it.id
+                            shikimoriId = it.id
                         )
                     }
                 }
@@ -281,7 +281,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
                             status = decodeStatus(it.status),
                             episodes = it.chapters,
                             rating = Rating(it.score.toDouble()),
-                            shikimoriID = it.id
+                            shikimoriId = it.id
                         )
                     }
                 }

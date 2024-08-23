@@ -479,7 +479,7 @@ private fun TeamListItem(
         trailingIcon = if (isPinned.value) Icons.Filled.PushPin else Icons.Outlined.PushPin,
         headlineText = team.name,
         onTrailingIconClick = {
-            model.switchTeamPinStatus(content.shikimoriID, team)
+            model.switchTeamPinStatus(content.shikimoriId, team)
         },
         onClick = onClick
     )

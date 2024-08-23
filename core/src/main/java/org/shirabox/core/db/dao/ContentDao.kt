@@ -34,6 +34,9 @@ interface ContentDao {
     @Query("SELECT * FROM content WHERE uid IS :uid")
     fun getContentByUid(uid: Long): ContentEntity
 
+    @Query("SELECT * FROM content WHERE shirabox_id IS :shiraboxId")
+    fun getContentByShiraboxId(shiraboxId: Int): ContentEntity
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertContents(vararg contents: ContentEntity): List<Long>
 

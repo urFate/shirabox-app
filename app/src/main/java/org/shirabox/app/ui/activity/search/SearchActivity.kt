@@ -245,7 +245,7 @@ fun SearchScreen() {
                         context.startActivity(Intent(
                             context, ResourceActivity::class.java
                         ).apply {
-                            putExtra("id", it.shikimoriID)
+                            putExtra("id", it.shikimoriId)
                             putExtra("type", it.type)
                         })
                     }

@@ -25,10 +25,12 @@ data class ContentEntity(
     @ColumnInfo(name = "episodes") val episodes: Int,
     @ColumnInfo(name = "episodes_aired") val episodesAired: Int?,
     @ColumnInfo(name = "episode_duration") val episodeDuration: Int?,
-    @Embedded val rating: Rating,
+    @ColumnInfo(name = "shirabox_id") val shiraboxId: Int?,
     @ColumnInfo(name = "shikimori_id") val shikimoriID: Int,
     @ColumnInfo(name = "genres") val genres: List<String> = emptyList(),
     @ColumnInfo(name = "favourite") val isFavourite: Boolean,
+    @ColumnInfo(name = "episodes_notifications") val episodesNotifications: Boolean,
     @ColumnInfo(name = "last_view") val lastViewTimestamp: Long,
-    @ColumnInfo(name = "pinned_teams") val pinnedTeams: List<String>
+    @ColumnInfo(name = "pinned_teams") val pinnedTeams: List<String>,
+    @Embedded val rating: Rating
 )

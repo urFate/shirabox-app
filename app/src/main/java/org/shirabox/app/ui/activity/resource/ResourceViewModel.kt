@@ -48,6 +48,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val internalContentUid = mutableLongStateOf(-1)
 
     val isFavourite = mutableStateOf(false)
+    val episodesNotifications = mutableStateOf(false)
     val pinnedTeams = mutableStateListOf<String>()
 
     val shiraBoxAnime = mutableStateOf<ShiraBoxAnime?>(null)
@@ -73,16 +74,15 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                 cachedData?.let { cache ->
                     var finalCache = cache
 
-                    // Set poster image from ShiraBox API if possible
-                    shiraBoxAnime.value?.let {
-                        if(cachedData.image != it.image) {
-                            finalCache = cache.copy(image = it.image)
-                            database.contentDao().updateContents(finalCache)
-                        }
+                    // Set data from ShiraBox API if possible
+                    shiraBoxAnime.value?.let { anime ->
+                        finalCache = cache.copy(shiraboxId = anime.id, image = anime.image)
+                        database.contentDao().updateContents(finalCache)
                     }
 
                     content.value = mapEntityToContent(finalCache)
                     isFavourite.value = cache.isFavourite
+                    episodesNotifications.value = cache.episodesNotifications
                     internalContentUid.longValue = cache.uid
                     pinnedTeams.addAll(cache.pinnedTeams)
 
@@ -99,8 +99,8 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     .collect { shikimoriContent ->
                         var anime = shikimoriContent
 
-                        // Replace poster
-                        anime = shiraBoxAnime.value?.let { anime.copy(image = it.image) } ?: anime
+                        // Set shirabox API data
+                        anime = shiraBoxAnime.value?.let { anime.copy(shiraboxId = it.id, image = it.image) } ?: anime
 
                         when(cachedData){
                             null -> {
@@ -109,6 +109,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                                         content = anime,
                                         isFavourite = false,
                                         lastViewTimestamp = System.currentTimeMillis(),
+                                        episodesNotifications = false,
                                         pinnedTeams = emptyList()
                                     )
                                 ).first()
@@ -124,6 +125,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                                         content = anime,
                                         isFavourite = cachedData.isFavourite,
                                         lastViewTimestamp = cachedData.lastViewTimestamp,
+                                        episodesNotifications = cachedData.episodesNotifications,
                                         pinnedTeams = cachedData.pinnedTeams
                                     )
                                 )
@@ -150,7 +152,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
 
     fun fetchEpisodes(content: Content) {
         val finishedDeferred = viewModelScope.async(Dispatchers.IO) {
-            val combinedContent = db.contentDao().getCombinedContent(content.shikimoriID)
+            val combinedContent = db.contentDao().getCombinedContent(content.shikimoriId)
 
             combinedContent.let {
                 repositories.forEach { repository ->
@@ -188,8 +190,8 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     fun refresh(content: Content) {
         viewModelScope.launch(Dispatchers.IO) {
             isRefreshing.value = true
-            fetchContent(content.shikimoriID, true)
-            fetchRelated(content.shikimoriID)
+            fetchContent(content.shikimoriId, true)
+            fetchRelated(content.shikimoriId)
             fetchEpisodes(content)
             delay(2000L)
             isRefreshing.value = false
@@ -200,26 +202,47 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         viewModelScope.launch(Dispatchers.IO) {
             isFavourite.value = !isFavourite.value
 
-            launch {
-                shiraBoxAnime.value?.let { anime ->
-                    val subscriptionAllowed =
-                        AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
-                            ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
 
-                    val topic = "id-${anime.id}"
+            val subscriptionAllowed =
+                AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
+                    ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
 
-                    if (subscriptionAllowed && isFavourite.value) {
-                        Firebase.messaging.subscribeToTopic(topic)
-                    } else {
-                        Firebase.messaging.unsubscribeFromTopic(topic)
-                    }
-                }
-            }
+            if(subscriptionAllowed) switchNotificationsStatus(forcedValue = true)
 
             launch {
                 if(internalContentUid.longValue > -1) {
-                    val content = db.contentDao().getContentByUid(internalContentUid.value)
+                    val content = db.contentDao().getContentByUid(internalContentUid.longValue)
                     db.contentDao().updateContents(content.copy(isFavourite = isFavourite.value))
+                }
+            }
+        }
+    }
+
+    fun switchNotificationsStatus(forcedValue: Boolean? = null) {
+        viewModelScope.launch(Dispatchers.IO) {
+             fun switchValue(id: Int, value: Boolean) {
+                 val topic = "id-${id}"
+
+                 db.contentDao().updateContents(
+                     db.contentDao().getContentByShiraboxId(id)
+                         .copy(episodesNotifications = value)
+                 )
+
+                 if (value) {
+                     Firebase.messaging.subscribeToTopic(topic)
+                 } else Firebase.messaging.unsubscribeFromTopic(topic)
+
+                 episodesNotifications.value = value
+             }
+
+            launch {
+                shiraBoxAnime.value?.let { anime ->
+                    if (forcedValue != null) {
+                        switchValue(anime.id, forcedValue)
+                        return@let
+                    }
+
+                    switchValue(anime.id, episodesNotifications.value.not())
                 }
             }
         }

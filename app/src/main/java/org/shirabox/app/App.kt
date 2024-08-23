@@ -12,11 +12,8 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.shirabox.core.db.AppDatabase
-import org.shirabox.data.shirabox.ShiraBoxRepository
 
 @HiltAndroidApp
 class App : Application(), ImageLoaderFactory {
@@ -39,22 +36,24 @@ class App : Application(), ImageLoaderFactory {
         super.onCreate()
 
         FirebaseApp.initializeApp(this)
-
         val db = AppDatabase.getAppDataBase(this)!!
 
-        // Migrate notifications
+        // Subscribe to notifications
         scope.launch {
             db.contentDao().getFavourites().collect { list ->
                 list.forEach { favouriteAnime ->
-                    val anime = ShiraBoxRepository.fetchAnime(favouriteAnime.shikimoriID)
+                    if (favouriteAnime.shiraboxId != null) {
+                        val topic = "id-${favouriteAnime.shiraboxId}"
 
-                    anime.catch { return@catch }.collectLatest {
-                        val topic = "id-${it.id}"
-                        Firebase.messaging.subscribeToTopic(topic)
+                        if (favouriteAnime.episodesNotifications) {
+                            Firebase.messaging.subscribeToTopic(topic)
+                        } else {
+                            Firebase.messaging.unsubscribeFromTopic(topic)
+                        }
                     }
                 }
 
-                Log.i("ShiraBoxApplication", "Favourites topics subscription finished.")
+                Log.i("ShiraBoxApplication", "Episodes topics subscription finished.")
             }
         }
     }

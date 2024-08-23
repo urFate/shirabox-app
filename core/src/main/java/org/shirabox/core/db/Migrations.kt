@@ -89,4 +89,34 @@ object Migrations {
             db.execSQL("ALTER TABLE 'episode' DROP COLUMN 'acting_team'")
         }
     }
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Initialize new columns
+            db.execSQL("ALTER TABLE 'content' ADD COLUMN 'episodes_notifications' INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE 'content' ADD COLUMN 'shirabox_id' INTEGER NULL")
+
+            val contentCursor = db.query("SELECT * FROM 'content'")
+
+            if(contentCursor.moveToFirst()) {
+                do {
+                    val uidIndex = contentCursor.getColumnIndex("uid")
+                    val isFavouriteIndex = contentCursor.getColumnIndex("favourite")
+
+                    if (uidIndex < 0) continue
+
+                    val contentUid = contentCursor.getLong(uidIndex)
+                    val isFavourite = contentCursor.getInt(isFavouriteIndex)
+
+                    val values = ContentValues().apply {
+                        put("episodes_notifications", isFavourite)
+                    }
+
+                    db.update(
+                        "content", SQLiteDatabase.CONFLICT_REPLACE, values, "uid=?", arrayOf(contentUid)
+                    )
+                } while (contentCursor.moveToNext())
+            }
+        }
+    }
 }

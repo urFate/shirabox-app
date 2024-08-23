@@ -90,6 +90,8 @@
     <string name="add_favourite">Сохранить</string>
     <string name="remove_favourite">Убрать</string>
     <string name="share">Поделиться</string>
+    <string name="enable_notifications_action">Включить уведомления</string>
+    <string name="disable_notifications_action">Отключить уведомления</string>
     <string name="watch">Смотреть</string>
     <string name="read">Читать</string>
     <string name="resource_status">%d из %d эп. по ~%d мин.</string>

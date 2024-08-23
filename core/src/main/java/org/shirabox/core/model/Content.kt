@@ -15,6 +15,7 @@ data class Content(
     val episodesAired: Int? = null,
     val episodeDuration: Int? = null,
     val rating: Rating,
-    val shikimoriID: Int,
+    val shiraboxId: Int? = null,
+    val shikimoriId: Int,
     val genres: List<String> = emptyList()
 )

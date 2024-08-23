@@ -79,7 +79,8 @@ class Util {
                 episodesAired = contentEntity.episodesAired,
                 episodeDuration = contentEntity.episodeDuration,
                 rating = contentEntity.rating,
-                shikimoriID = contentEntity.shikimoriID,
+                shiraboxId = contentEntity.shiraboxId,
+                shikimoriId = contentEntity.shikimoriID,
                 genres = contentEntity.genres
             )
         }
@@ -88,6 +89,7 @@ class Util {
             contentUid: Long? = null,
             content: Content,
             isFavourite: Boolean,
+            episodesNotifications: Boolean,
             lastViewTimestamp: Long,
             pinnedTeams: List<String>
         ): ContentEntity {
@@ -106,9 +108,11 @@ class Util {
                 episodesAired = content.episodesAired,
                 episodeDuration = content.episodeDuration,
                 rating = content.rating,
-                shikimoriID = content.shikimoriID,
+                shiraboxId = content.shiraboxId,
+                shikimoriID = content.shikimoriId,
                 genres = content.genres,
                 isFavourite = isFavourite,
+                episodesNotifications = episodesNotifications,
                 lastViewTimestamp = lastViewTimestamp,
                 pinnedTeams = pinnedTeams
             )

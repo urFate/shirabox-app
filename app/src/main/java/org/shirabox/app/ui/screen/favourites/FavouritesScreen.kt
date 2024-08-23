@@ -173,7 +173,7 @@ fun FavouritesGrid(contents: List<Content>) {
                         context,
                         ResourceActivity::class.java
                     ).apply {
-                        putExtra("id", it.shikimoriID)
+                        putExtra("id", it.shikimoriId)
                         putExtra("type", it.type)
                     }
                 )
