@@ -201,7 +201,6 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
             isFavourite.value = isFavourite.value.not()
 
             launch(Dispatchers.IO) {
-                println("INTERNAL CONTENT UID: ${internalContentUid.longValue}")
                 if(internalContentUid.longValue > -1) {
                     val content = db.contentDao().getContentByUid(internalContentUid.longValue)
                     db.contentDao().updateContents(content.copy(isFavourite = isFavourite.value))
@@ -213,7 +212,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
                         ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
 
-                if(subscriptionAllowed) switchNotificationsStatus(forcedValue = true)
+                if(subscriptionAllowed) switchNotificationsStatus(forcedValue = isFavourite.value)
             }
         }
     }
@@ -229,15 +228,13 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                  episodesNotifications.value = value
              }
 
-            launch {
-                shiraBoxAnime.value?.let { anime ->
-                    if (forcedValue != null) {
-                        switchValue(anime.id, forcedValue)
-                        return@let
-                    }
-
-                    switchValue(anime.id, episodesNotifications.value.not())
+            shiraBoxAnime.value?.let { anime ->
+                if (forcedValue != null) {
+                    switchValue(anime.id, forcedValue)
+                    return@let
                 }
+
+                switchValue(anime.id, episodesNotifications.value.not())
             }
         }
     }
