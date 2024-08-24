@@ -7,7 +7,6 @@ import kotlinx.serialization.json.Json
 import org.shirabox.core.model.ScheduleEntry
 import org.shirabox.core.model.ShiraBoxAnime
 import java.text.SimpleDateFormat
-import java.util.Locale
 
 object ShiraBoxRepository {
 
@@ -15,7 +14,7 @@ object ShiraBoxRepository {
     private const val IMAGE_HOST = "https://api.shirabox.org/assets"
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true; encodeDefaults = true }
-    private val dateParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.forLanguageTag("ru_ru"))
+    private val dateParser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 
     suspend fun fetchAnime(shikimoriId: Int): Flow<ShiraBoxAnime> = flow {
         val request = "$API_ENDPOINT/anime".httpGet(
@@ -36,8 +35,7 @@ object ShiraBoxRepository {
                     russianName = rawAnime.russianName,
                     image = IMAGE_HOST + rawAnime.image,
                     schedule = ShiraBoxAnime.Schedule(
-                        releaseRange = rawAnime.schedule.releaseRange.map { time -> dateParser.parse(time)?.time
-                            ?: System.currentTimeMillis() },
+                        releaseRange = rawAnime.schedule.releaseRange.map { time -> dateParser.parse(time).time },
                         released = rawAnime.schedule.released
                     ),
                     shikimoriId = rawAnime.shikimoriId

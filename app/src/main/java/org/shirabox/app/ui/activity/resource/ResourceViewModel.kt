@@ -15,12 +15,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.shirabox.app.CachingUtils
 import org.shirabox.core.datastore.AppDataStore
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.db.AppDatabase
@@ -29,10 +29,12 @@ import org.shirabox.core.model.ActingTeam
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType.ANIME
 import org.shirabox.core.model.ShiraBoxAnime
+import org.shirabox.core.util.Util.Companion.mapContentToEntity
 import org.shirabox.core.util.Util.Companion.mapEntityToContent
 import org.shirabox.data.EpisodesHelper
 import org.shirabox.data.catalog.shikimori.ShikimoriRepository
 import org.shirabox.data.content.ContentRepositoryRegistry
+import org.shirabox.data.shirabox.ShiraBoxRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,9 +60,36 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val repositories =
         ContentRepositoryRegistry.REPOSITORIES.filter { it.contentType == ANIME }
 
-    fun fetchContent(shikimoriId: Int, forceRefresh: Boolean = true) {
+    fun fetchContent(shikimoriId: Int, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             db.let { database ->
+                val cachedData = database.contentDao().getContent(shikimoriId)
+
+                // Fetch anime from ShiraBox API
+                ShiraBoxRepository.fetchAnime(shikimoriId)
+                    .catch { it.printStackTrace() }
+                    .collectLatest { anime -> shiraBoxAnime.value = anime }
+
+                // Use cached data if available
+                cachedData?.let { cache ->
+                    var finalCache = cache
+
+                    // Set data from ShiraBox API if possible
+                    shiraBoxAnime.value?.let { anime ->
+                        finalCache = cache.copy(shiraboxId = anime.id, image = anime.image)
+                        database.contentDao().updateContents(finalCache)
+                    }
+
+                    content.value = mapEntityToContent(finalCache)
+                    isFavourite.value = cache.isFavourite
+                    episodesNotifications.value = cache.episodesNotifications
+                    internalContentUid.longValue = cache.uid
+                    pinnedTeams.addAll(cache.pinnedTeams)
+
+                    if(!forceRefresh) return@launch
+                }
+
+                // Fetch data from APIs if content is not cached
                 ShikimoriRepository.fetchContent(shikimoriId, ANIME)
                     .catch {
                         contentObservationException.value = it as Exception
@@ -68,21 +97,43 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                         emitAll(emptyFlow())
                     }
                     .collect { shikimoriContent ->
-                        val complexContent = CachingUtils.cacheContent(
-                            db = database,
-                            content = shikimoriContent,
-                            update = forceRefresh
-                        )
+                        var anime = shikimoriContent
 
-                        content.value = mapEntityToContent(complexContent.content)
-                        shiraBoxAnime.value = complexContent.shiraBoxAnime
-                        isFavourite.value = complexContent.content.isFavourite
-                        episodesNotifications.value = complexContent.content.episodesNotifications
-                        internalContentUid.longValue = complexContent.content.uid
-                        pinnedTeams.addAll(complexContent.content.pinnedTeams)
-                    }
+                        // Set shirabox API data
+                        anime = shiraBoxAnime.value?.let { anime.copy(shiraboxId = it.id, image = it.image) } ?: anime
+
+                        when(cachedData){
+                            null -> {
+                                val newUid = database.contentDao().insertContents(
+                                    mapContentToEntity(
+                                        content = anime,
+                                        isFavourite = false,
+                                        lastViewTimestamp = System.currentTimeMillis(),
+                                        episodesNotifications = false,
+                                        pinnedTeams = emptyList()
+                                    )
+                                ).first()
+
+                                internalContentUid.longValue = newUid
+                                content.value = anime
+                            }
+
+                            else -> {
+                                database.contentDao().updateContents(
+                                    mapContentToEntity(
+                                        contentUid = cachedData.uid,
+                                        content = anime,
+                                        isFavourite = cachedData.isFavourite,
+                                        lastViewTimestamp = cachedData.lastViewTimestamp,
+                                        episodesNotifications = cachedData.episodesNotifications,
+                                        pinnedTeams = cachedData.pinnedTeams
+                                    )
+                                )
+                            }
+                        }
                 }
             }
+        }
     }
 
     fun fetchRelated(shikimoriID: Int) {
