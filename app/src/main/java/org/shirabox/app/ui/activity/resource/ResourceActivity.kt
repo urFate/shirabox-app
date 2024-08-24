@@ -136,21 +136,18 @@ class ResourceActivity : ComponentActivity() {
                     val activity = context as Activity?
 
                     var resourceId: Int = -1
-                    lateinit var type: ContentType
 
                     try {
                         val arguments = intent.extras!!
 
                         resourceId = arguments.getInt("id")
-                        type = arguments.getString("type").toString()
-                            .let { ContentType.fromString(it) }
                     } catch (ex: Exception) {
                         ex.printStackTrace()
                         activity?.finish()
                         Toast.makeText(context, ex.localizedMessage, Toast.LENGTH_LONG).show()
                     }
 
-                    Resource(resourceId, type, LocalContext.current)
+                    Resource(resourceId, LocalContext.current)
                 }
             }
         }
@@ -163,7 +160,6 @@ class ResourceActivity : ComponentActivity() {
 @Composable
 fun Resource(
     id: Int,
-    type: ContentType,
     context: Context,
     model: ResourceViewModel = hiltViewModel(),
     colorScheme: ColorScheme = MaterialTheme.colorScheme
@@ -384,14 +380,7 @@ fun Resource(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(
-                            stringResource(
-                                id = when (type) {
-                                    ContentType.ANIME -> R.string.watch
-                                    else -> R.string.read
-                                }
-                            )
-                        )
+                        Text(stringResource(id = R.string.watch))
                     }
 
                     /**
@@ -459,7 +448,7 @@ fun Resource(
                                 }
 
                                 val firstTimestamp = remember {
-                                    releaseRange.first().getDuration() ?: "..."
+                                    releaseRange.firstOrNull()?.getDuration() ?: "..."
                                 }
                                 val secondTimestamp = remember {
                                     releaseRange.getOrNull(1)?.let {

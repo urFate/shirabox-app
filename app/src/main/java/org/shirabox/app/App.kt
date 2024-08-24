@@ -12,6 +12,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.shirabox.core.db.AppDatabase
 
@@ -40,7 +41,7 @@ class App : Application(), ImageLoaderFactory {
 
         // Subscribe to notifications
         scope.launch {
-            db.contentDao().getFavourites().collect { list ->
+            db.contentDao().getFavourites().collectLatest { list ->
                 list.forEach { favouriteAnime ->
                     if (favouriteAnime.shiraboxId != null) {
                         val topic = "id-${favouriteAnime.shiraboxId}"

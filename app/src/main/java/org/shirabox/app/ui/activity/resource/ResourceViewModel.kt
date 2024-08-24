@@ -6,8 +6,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -200,20 +198,22 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
 
     fun switchFavouriteStatus(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            isFavourite.value = !isFavourite.value
+            isFavourite.value = isFavourite.value.not()
 
-
-            val subscriptionAllowed =
-                AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
-                    ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
-
-            if(subscriptionAllowed) switchNotificationsStatus(forcedValue = true)
-
-            launch {
+            launch(Dispatchers.IO) {
+                println("INTERNAL CONTENT UID: ${internalContentUid.longValue}")
                 if(internalContentUid.longValue > -1) {
                     val content = db.contentDao().getContentByUid(internalContentUid.longValue)
                     db.contentDao().updateContents(content.copy(isFavourite = isFavourite.value))
                 }
+            }
+
+            launch(Dispatchers.IO) {
+                val subscriptionAllowed =
+                    AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
+                        ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
+
+                if(subscriptionAllowed) switchNotificationsStatus(forcedValue = true)
             }
         }
     }
@@ -221,16 +221,10 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     fun switchNotificationsStatus(forcedValue: Boolean? = null) {
         viewModelScope.launch(Dispatchers.IO) {
              fun switchValue(id: Int, value: Boolean) {
-                 val topic = "id-${id}"
-
                  db.contentDao().updateContents(
                      db.contentDao().getContentByShiraboxId(id)
                          .copy(episodesNotifications = value)
                  )
-
-                 if (value) {
-                     Firebase.messaging.subscribeToTopic(topic)
-                 } else Firebase.messaging.unsubscribeFromTopic(topic)
 
                  episodesNotifications.value = value
              }
