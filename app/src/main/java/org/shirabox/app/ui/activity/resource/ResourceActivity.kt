@@ -303,14 +303,16 @@ fun Resource(
                                     dropdownExpanded = false
                                 }
 
-                                val notificationsActionButtonIcon = remember(model.episodesNotifications.value) {
-                                    if (model.episodesNotifications.value) Icons.Outlined.NotificationsOff else Icons.Outlined.NotificationAdd
-                                }
-                                val notificationsActionButtonText = stringResource(
-                                    id = if (model.episodesNotifications.value) R.string.disable_notifications_action else R.string.enable_notifications_action)
+                                if(model.shiraBoxAnime.value != null) {
+                                    val notificationsActionButtonIcon = remember(model.episodesNotifications.value) {
+                                        if (model.episodesNotifications.value) Icons.Outlined.NotificationsOff else Icons.Outlined.NotificationAdd
+                                    }
+                                    val notificationsActionButtonText = stringResource(
+                                        id = if (model.episodesNotifications.value) R.string.disable_notifications_action else R.string.enable_notifications_action)
 
-                                DropdownActionButton(icon = notificationsActionButtonIcon, text = notificationsActionButtonText) {
-                                    model.switchNotificationsStatus()
+                                    DropdownActionButton(icon = notificationsActionButtonIcon, text = notificationsActionButtonText) {
+                                        model.switchNotificationsStatus()
+                                    }
                                 }
                             }
                         },
