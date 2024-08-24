@@ -55,5 +55,5 @@ data class LibriaOpening(
 @Serializable
 data class LibriaType(
     @SerialName("value")
-    val value: String
+    val value: String?
 )
