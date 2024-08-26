@@ -89,14 +89,14 @@ fun TopBar(
         }
 
         IconButton(
-            modifier = Modifier.requiredSize(48.dp),
+            modifier = Modifier.requiredSize(58.dp),
             onClick = { navController.navigate(NestedNavItems.Notifications.route) }
         ) {
             BadgedBox(
                 badge = {
                     if (notifications.value.isNotEmpty()) Badge {
                         Text(text = Util.formatBadgeNumber(notifications.value.size))
-                }
+                    }
             }) {
                 Icon(
                     modifier = Modifier.size(24.dp),
@@ -105,7 +105,6 @@ fun TopBar(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
         }
     }
 }
