@@ -198,43 +198,36 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
 
     fun switchFavouriteStatus(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            isFavourite.value = isFavourite.value.not()
+            if(internalContentUid.longValue > -1) {
+                isFavourite.value = isFavourite.value.not()
 
-            launch(Dispatchers.IO) {
-                if(internalContentUid.longValue > -1) {
-                    val content = db.contentDao().getContentByUid(internalContentUid.longValue)
-                    db.contentDao().updateContents(content.copy(isFavourite = isFavourite.value))
-                }
-            }
+                var cachedContent = db.contentDao().getContentByUid(internalContentUid.longValue)
 
-            launch(Dispatchers.IO) {
+                cachedContent = cachedContent.copy(isFavourite = isFavourite.value)
+
                 val subscriptionAllowed =
                     AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
                         ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
 
-                if(subscriptionAllowed) switchNotificationsStatus(forcedValue = isFavourite.value)
+                if(subscriptionAllowed) {
+                    shiraBoxAnime.value?.let {
+                        cachedContent = cachedContent.copy(episodesNotifications = isFavourite.value)
+                    }
+                }
+
+                db.contentDao().updateContents(cachedContent)
             }
         }
     }
 
-    fun switchNotificationsStatus(forcedValue: Boolean? = null) {
+    fun switchNotificationsStatus() {
         viewModelScope.launch(Dispatchers.IO) {
-             fun switchValue(id: Int, value: Boolean) {
-                 db.contentDao().updateContents(
-                     db.contentDao().getContentByShiraboxId(id)
-                         .copy(episodesNotifications = value)
-                 )
-
-                 episodesNotifications.value = value
-             }
-
             shiraBoxAnime.value?.let { anime ->
-                if (forcedValue != null) {
-                    switchValue(anime.id, forcedValue)
-                    return@let
-                }
+                val cachedContent = db.contentDao().getContentByUid(internalContentUid.longValue)
 
-                switchValue(anime.id, episodesNotifications.value.not())
+                db.contentDao().updateContents(
+                    cachedContent.copy(episodesNotifications = cachedContent.episodesNotifications.not())
+                )
             }
         }
     }
