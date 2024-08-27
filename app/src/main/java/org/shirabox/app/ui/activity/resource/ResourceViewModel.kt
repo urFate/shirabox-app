@@ -209,10 +209,8 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     AppDataStore.read(context, DataStoreScheme.FIELD_SUBSCRIPTION.key).firstOrNull()
                         ?: DataStoreScheme.FIELD_SUBSCRIPTION.defaultValue
 
-                if(subscriptionAllowed) {
-                    shiraBoxAnime.value?.let {
-                        cachedContent = cachedContent.copy(episodesNotifications = isFavourite.value)
-                    }
+                shiraBoxAnime.value?.let {
+                    cachedContent = cachedContent.copy(episodesNotifications = isFavourite.value && subscriptionAllowed)
                 }
 
                 db.contentDao().updateContents(cachedContent)
