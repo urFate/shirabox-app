@@ -222,9 +222,10 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
 
     fun switchNotificationsStatus() {
         viewModelScope.launch(Dispatchers.IO) {
-            shiraBoxAnime.value?.let { anime ->
+            shiraBoxAnime.value?.let {
                 val cachedContent = db.contentDao().getContentByUid(internalContentUid.longValue)
 
+                episodesNotifications.value = cachedContent.episodesNotifications.not()
                 db.contentDao().updateContents(
                     cachedContent.copy(episodesNotifications = cachedContent.episodesNotifications.not())
                 )
