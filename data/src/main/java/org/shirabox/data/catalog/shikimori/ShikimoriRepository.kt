@@ -326,7 +326,7 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
         return when (dayOfYear) {
             in 1 until 65 -> "winter_$year"
             in 65 until 186 -> "spring_$year"
-            in 186 until 249 -> "summer_$year"
+            in 186 until 279 -> "summer_$year"
             else -> "fall_$year"
         }
     }
