@@ -63,26 +63,26 @@ android {
 
 dependencies {
     // Core dependencies
-    val composeVersion = "1.6.8"
+    val composeVersion = "1.7.0"
 
     implementation ("androidx.core:core-ktx:1.13.1")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation ("androidx.activity:activity-compose:1.9.1")
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.8.5")
+    implementation ("androidx.activity:activity-compose:1.9.2")
     implementation ("androidx.compose.ui:ui:$composeVersion")
     implementation ("androidx.compose.ui:ui-graphics:$composeVersion")
     implementation ("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
-    implementation (platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.5")
+    implementation (platform("androidx.compose:compose-bom:2024.09.00"))
     implementation (platform("org.jetbrains.kotlin:kotlin-bom:1.9.23"))
-    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.8.5")
     implementation ("androidx.core:core-splashscreen:1.0.1")
-    implementation ("androidx.graphics:graphics-core:1.0.0")
+    implementation ("androidx.graphics:graphics-core:1.0.1")
 
     testImplementation ("junit:junit:4.13.2")
     androidTestImplementation ("androidx.test.ext:junit:1.2.1")
     androidTestImplementation ("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation ("androidx.compose.ui:ui-test-junit4:$composeVersion")
-    androidTestImplementation (platform("androidx.compose:compose-bom:2024.06.00"))
+    androidTestImplementation (platform("androidx.compose:compose-bom:2024.09.00"))
     debugImplementation ("androidx.compose.ui:ui-tooling:$composeVersion")
     debugImplementation ("androidx.compose.ui:ui-test-manifest:$composeVersion")
 
@@ -90,10 +90,10 @@ dependencies {
     val richtextVersion = "1.0.0-alpha01"
 
     implementation ("de.mr-pine.utils:zoomables:1.4.0")
-    implementation ("androidx.compose.material3:material3:1.2.1")
+    implementation ("androidx.compose.material3:material3:1.3.0")
     implementation ("androidx.compose.material:material:$composeVersion")
     implementation ("androidx.compose.material:material-icons-extended:$composeVersion")
-    implementation ("androidx.navigation:navigation-compose:2.7.7")
+    implementation ("androidx.navigation:navigation-compose:2.8.0")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation ("com.google.accompanist:accompanist-placeholder-material3:0.30.1")
     implementation("com.halilibo.compose-richtext:richtext-ui-material3:$richtextVersion")
@@ -107,10 +107,10 @@ dependencies {
 
 
     // Kotlin Serialization
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Exo Player
-    val media3Version = "1.4.0"
+    val media3Version = "1.4.1"
 
     implementation ("androidx.media3:media3-exoplayer:$media3Version")
     implementation ("androidx.media3:media3-exoplayer-dash:$media3Version")
@@ -118,7 +118,7 @@ dependencies {
     implementation ("androidx.media3:media3-exoplayer-hls:$media3Version")
 
     // Firebase
-    implementation (platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation (platform("com.google.firebase:firebase-bom:33.2.0"))
     implementation ("com.google.firebase:firebase-crashlytics-ktx")
     implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-messaging-ktx")
