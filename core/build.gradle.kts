@@ -1,9 +1,8 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
-    kotlin("plugin.serialization") version "1.9.20"
-    id("com.google.devtools.ksp")
-    id("kotlin-parcelize")
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -39,22 +38,20 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("androidx.room:room-common:2.6.1")
-    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
-    implementation ("androidx.media3:media3-common:1.4.1")
-    implementation ("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.org.jetbrains.kotlinx.serialization.json)
+    implementation(libs.com.google.accompanist.systemuicontroller)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.room.common)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.appcompat)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 
     // Room
-    val roomVersion = "2.6.1"
-
-    implementation ("androidx.room:room-common:$roomVersion")
-    api ("androidx.room:room-runtime:$roomVersion")
-    ksp ("androidx.room:room-compiler:$roomVersion")
-    implementation ("androidx.room:room-ktx:$roomVersion")
+    api(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.common)
+    implementation(libs.androidx.room.ktx)
 }

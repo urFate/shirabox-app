@@ -1,11 +1,12 @@
 plugins {
-    kotlin("android")
-    kotlin("plugin.serialization") version "1.9.20"
-    id ("com.android.application")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.googleServices)
+    alias(libs.plugins.crashlytics)
+    alias(libs.plugins.daggerHiltAndroid)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -63,76 +64,72 @@ android {
 
 dependencies {
     // Core dependencies
-    val composeVersion = "1.7.0"
 
-    implementation ("androidx.core:core-ktx:1.13.1")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.8.5")
-    implementation ("androidx.activity:activity-compose:1.9.2")
-    implementation ("androidx.compose.ui:ui:$composeVersion")
-    implementation ("androidx.compose.ui:ui-graphics:$composeVersion")
-    implementation ("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.5")
-    implementation (platform("androidx.compose:compose-bom:2024.09.00"))
-    implementation (platform("org.jetbrains.kotlin:kotlin-bom:1.9.23"))
-    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.8.5")
-    implementation ("androidx.core:core-splashscreen:1.0.1")
-    implementation ("androidx.graphics:graphics-core:1.0.1")
-
-    testImplementation ("junit:junit:4.13.2")
-    androidTestImplementation ("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation ("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation ("androidx.compose.ui:ui-test-junit4:$composeVersion")
-    androidTestImplementation (platform("androidx.compose:compose-bom:2024.09.00"))
-    debugImplementation ("androidx.compose.ui:ui-tooling:$composeVersion")
-    debugImplementation ("androidx.compose.ui:ui-test-manifest:$composeVersion")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(platform(libs.org.jetbrains.kotlin.bom))
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.graphics.core)
+    implementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // Compose UI
-    val richtextVersion = "1.0.0-alpha01"
 
-    implementation ("de.mr-pine.utils:zoomables:1.4.0")
-    implementation ("androidx.compose.material3:material3:1.3.0")
-    implementation ("androidx.compose.material:material:$composeVersion")
-    implementation ("androidx.compose.material:material-icons-extended:$composeVersion")
-    implementation ("androidx.navigation:navigation-compose:2.8.0")
-    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
-    implementation ("com.google.accompanist:accompanist-placeholder-material3:0.30.1")
-    implementation("com.halilibo.compose-richtext:richtext-ui-material3:$richtextVersion")
-    implementation("com.halilibo.compose-richtext:richtext-markdown:$richtextVersion")
-    implementation("com.halilibo.compose-richtext:richtext-commonmark:$richtextVersion")
+    implementation(libs.de.mr.pine.utils.zoomables)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.com.google.accompanist.systemuicontroller)
+    implementation(libs.com.google.accompanist.placeholder.material3)
+    implementation(libs.com.halilibo.compose.richtext.ui.material3)
+    implementation(libs.com.halilibo.compose.richtext.markdown)
+    implementation(libs.com.halilibo.compose.richtext.commonmark)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    ksp("com.google.dagger:hilt-android-compiler:2.51.1")
+    implementation(libs.com.google.dagger.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    ksp(libs.com.google.dagger.hilt.android.compiler)
 
 
     // Kotlin Serialization
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation(libs.org.jetbrains.kotlinx.serialization.json)
 
     // Exo Player
-    val media3Version = "1.4.1"
 
-    implementation ("androidx.media3:media3-exoplayer:$media3Version")
-    implementation ("androidx.media3:media3-exoplayer-dash:$media3Version")
-    implementation ("androidx.media3:media3-ui:$media3Version")
-    implementation ("androidx.media3:media3-exoplayer-hls:$media3Version")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.exoplayer.hls)
 
     // Firebase
-    implementation (platform("com.google.firebase:firebase-bom:33.2.0"))
-    implementation ("com.google.firebase:firebase-crashlytics-ktx")
-    implementation ("com.google.firebase:firebase-analytics-ktx")
-    implementation ("com.google.firebase:firebase-messaging-ktx")
-    implementation ("com.google.firebase:firebase-inappmessaging-display")
+    implementation(platform(libs.com.google.firebase.bom))
+    implementation(libs.firebase.crashlytics.ktx)
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.inappmessaging.display)
 
     // Image processing
-    implementation ("io.coil-kt:coil-compose:2.5.0")
-    implementation("io.coil-kt:coil-svg:2.6.0")
+    implementation(libs.io.coil.kt.compose)
+    implementation(libs.io.coil.kt.svg)
 
     // Network
-    implementation("com.github.kittinunf.fuel:fuel:3.0.0-alpha1")
+    implementation(libs.com.github.kittinunf.fuel)
 
     // Datastore
-    implementation ("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.datastore.preferences)
 
     // Project modules
     implementation (project(":core"))
