@@ -206,7 +206,7 @@ fun SortingSheetScreen(
                 visibilityState.value = false
             }
         },
-        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) }
     ) {
         Column(
             modifier = Modifier

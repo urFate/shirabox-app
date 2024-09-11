@@ -158,7 +158,7 @@ fun SourcesSheetScreen(
                 visibilityState.value = false
             }
         },
-        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom),
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) },
     ) {
         Box(
             modifier = Modifier
@@ -286,7 +286,7 @@ fun EpisodesSheetScreen(
                 currentSheetScreenState.value = ResourceSheetScreen.Sources(model)
             }
         },
-        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) }
         ) {
         Box (
             modifier = Modifier

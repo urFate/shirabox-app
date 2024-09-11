@@ -100,7 +100,7 @@ private fun SettingsOptions(
                 model.bottomSheetVisibilityState = false
             }
         },
-        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) }
     ) {
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
@@ -207,7 +207,7 @@ fun QualityBottomSheet(
         onDismissRequest = {
             hideBottomSheet(coroutineScope, state, currentSheetScreen)
         },
-        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) }
     ) {
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
@@ -260,7 +260,7 @@ fun PlaybackSpeedBottomSheet(
         onDismissRequest = {
             hideBottomSheet(coroutineScope, state, currentSheetScreen)
         },
-        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) }
     ) {
         LazyColumn(
             modifier = Modifier
@@ -326,7 +326,7 @@ fun ClosedCationsBottomSheet(currentSheetScreen: MutableState<SettingsSheetScree
                 currentSheetScreen.value = SettingsSheetScreen.OVERVIEW
             }
         },
-        windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) }
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
