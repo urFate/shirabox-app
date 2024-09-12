@@ -8,11 +8,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -105,6 +107,7 @@ fun ExtendedListItem(
         modifier = if (clickable) Modifier
             .clickable(onClick = onClick)
             .then(modifier) else Modifier.then(modifier),
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         overlineContent = overlineContent,
         headlineContent = headlineContent,
         supportingContent = supportingContent,
@@ -122,6 +125,7 @@ fun ExtendedListItem(
         leadingContent = {
             coverImage?.let {
                 SubcomposeAsyncImage(
+                    modifier = Modifier.height(40.dp).width(40.dp),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(coverImage)
                         .crossfade(true)
