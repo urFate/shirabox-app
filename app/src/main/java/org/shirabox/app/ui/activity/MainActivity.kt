@@ -23,7 +23,9 @@ class MainActivity : ComponentActivity() {
         setTheme(R.style.Theme_ShiraBox)
 
         setContent {
-            ShiraBoxTheme {
+            ShiraBoxTheme(
+                transparentStatusBar = true
+            ) {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
