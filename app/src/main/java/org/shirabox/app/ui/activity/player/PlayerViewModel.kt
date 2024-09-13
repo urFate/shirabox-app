@@ -1,10 +1,8 @@
 package org.shirabox.app.ui.activity.player
 
 import android.content.Context
-import android.content.pm.ActivityInfo
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -52,7 +50,6 @@ class PlayerViewModel @AssistedInject constructor(
     val episodesPositions = mutableStateMapOf<Int, Long>()
     var controlsVisibilityState by mutableStateOf(true)
     var bottomSheetVisibilityState by mutableStateOf(false)
-    var orientationState by mutableIntStateOf(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
     var currentQuality by mutableStateOf(Quality.HD)
     var playbackSpeed by mutableFloatStateOf(1F)
     var coldStartSeekApplied by mutableStateOf(false)

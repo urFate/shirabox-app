@@ -3,13 +3,13 @@ package org.shirabox.app.ui.activity.player
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
@@ -34,6 +34,7 @@ class PlayerActivity : ComponentActivity() {
 
         setContent {
             ShiraBoxTheme(
+                transparentStatusBar = true,
                 darkTheme = false
             ) {
                 // A surface container using the 'background' color from the theme
@@ -45,10 +46,6 @@ class PlayerActivity : ComponentActivity() {
                     val context = LocalContext.current
 
                     rememberSystemUiController().apply {
-                        setStatusBarColor(
-                            color = Color.Transparent,
-                            darkIcons = false
-                        )
                         Util.hideSystemUi(this)
                     }
 
@@ -81,6 +78,8 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
         }
+
+        enableEdgeToEdge()
     }
 
     override fun onPause() {

@@ -20,6 +20,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -32,17 +33,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.ExoPlayer
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.shirabox.app.R
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Quality
-import org.shirabox.core.util.Util
 
 @Composable
 fun SettingsBottomSheet(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: PlayerViewModel) {
@@ -74,8 +74,8 @@ fun SettingsBottomSheet(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, mod
          * fact that the BottomSheet shows it when opening
          */
 
-        val systemUiController = rememberSystemUiController()
-        Util.hideSystemUi(systemUiController)
+//        val systemUiController = rememberSystemUiController()
+//        Util.hideSystemUi(systemUiController)
     }
 
 }
@@ -100,7 +100,7 @@ private fun SettingsOptions(
                 model.bottomSheetVisibilityState = false
             }
         },
-        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom) }
+        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom).only(WindowInsetsSides.Top) }
     ) {
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
@@ -134,7 +134,8 @@ private fun SettingsOptions(
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = model.currentQuality.quality.toString()
                     )
-                }
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
             )
 
             /*
@@ -162,7 +163,8 @@ private fun SettingsOptions(
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = null
                     )
-                }
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
             )
 
             /*
@@ -183,7 +185,8 @@ private fun SettingsOptions(
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = null
                     )
-                }
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
             )
         }
     }
@@ -237,7 +240,8 @@ fun QualityBottomSheet(
                             contentDescription = "${it.quality}"
                         )
                     },
-                    supportingContent = { Text("${it.quality}p") }
+                    supportingContent = { Text("${it.quality}p") },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
         }
@@ -303,7 +307,8 @@ fun PlaybackSpeedBottomSheet(
                             tint = MaterialTheme.colorScheme.primary,
                             contentDescription = "${it}x"
                         )
-                    }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
         }

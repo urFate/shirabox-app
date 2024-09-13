@@ -4,10 +4,13 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,6 +74,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -89,6 +93,7 @@ import org.shirabox.core.util.Values
 fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: PlayerViewModel) {
 
     val context = LocalContext.current
+    val activity = context as Activity
     val coroutineScope = rememberCoroutineScope()
 
     var isPlaying by remember { mutableStateOf(exoPlayer.isPlaying) }
@@ -146,10 +151,6 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model:
             return@remember currentPosition in it.first..it.second
         }
     }
-
-    val activity = LocalContext.current as Activity
-
-    activity.requestedOrientation = model.orientationState
 
     LaunchedEffect(currentMediaItemIndex) {
         model.fetchAnimeSkipIntroTimestamps(context = context, episode = currentEpisode)
@@ -273,12 +274,14 @@ fun ControlsScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model:
 @Composable
 fun PlayerTopBar(title: String, episode: Int, onBackClick: () -> Unit, onSettingsClick: () -> Unit) {
     TopAppBar(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .padding(4.dp, 16.dp)
+            .fillMaxWidth(),
         title = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(0.dp, 8.dp),
+                    .padding(0.dp, 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -499,6 +502,7 @@ fun InstantSeekZones(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerBottomBar(
     currentPosition: Long,
@@ -509,9 +513,15 @@ fun PlayerBottomBar(
 ) {
     var isValueChanging by remember { mutableStateOf(false) }
     var currentValue by remember { mutableFloatStateOf(0F) }
-    var mutablePosition by remember {
-        mutableLongStateOf(currentPosition)
-    }
+    var mutablePosition by remember { mutableLongStateOf(currentPosition) }
+
+    val animatedValue by animateFloatAsState(if (isValueChanging) currentValue else (currentPosition.toFloat() / duration.toFloat()),
+        label = ""
+    )
+
+    val thumbGapSize by animateDpAsState(if (isValueChanging) 8.dp else 0.dp, label = "")
+    val cornerSize by animateDpAsState(if (isValueChanging) 4.dp else 0.dp, label = "")
+    val thumbHeight by animateDpAsState(if (isValueChanging) 36.dp else 16.dp, label = "")
 
     Box(
         contentAlignment = Alignment.BottomCenter
@@ -541,10 +551,16 @@ fun PlayerBottomBar(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.onPrimary,
+                    inactiveTrackColor = Color.Gray.copy(0.4F),
+                    disabledInactiveTrackColor = Color.Gray.copy(0.4F)
+                )
+                val interactionSource = remember(::MutableInteractionSource)
 
                 Slider(
                     modifier = Modifier.weight(1f, false),
-                    value = if (isValueChanging) currentValue else (currentPosition.toFloat() / duration.toFloat()),
+                    value = animatedValue,
                     enabled = duration != C.TIME_UNSET, // Prevent seeking while content is loading
                     onValueChange = { value ->
                         mutablePosition = value.times(duration).toLong()
@@ -556,28 +572,52 @@ fun PlayerBottomBar(
                         onSliderValueChangeFinish((currentValue * duration).toLong())
                         isValueChanging = false
                     },
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.onPrimary,
-                        inactiveTrackColor = Color.Gray.copy(0.6F),
-                        disabledInactiveTrackColor = Color.Gray.copy(0.6F)
-                    )
+                    track = {
+                        SliderDefaults.Track(
+                            colors = colors,
+                            enabled = duration != C.TIME_UNSET,
+                            sliderState = it,
+                            thumbTrackGapSize = thumbGapSize,
+                            trackInsideCornerSize = cornerSize
+                        )
+                    },
+                    thumb = {
+                        SliderDefaults.Thumb(
+                            interactionSource = interactionSource,
+                            colors = colors,
+                            enabled = true,
+                            thumbSize = DpSize(6.dp, thumbHeight)
+                        )
+                    },
+                    colors = colors
                 )
+
+                val activity = LocalContext.current as Activity
+
+                val isPortrait = when (activity.requestedOrientation) {
+                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED,
+                    ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT,
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT -> true
+
+                    else -> false
+                }
 
                 IconButton(
                     onClick = {
-                        model.orientationState =
-                            if (model.orientationState == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+                        activity.requestedOrientation =
+                            if (isPortrait) {
                                 ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                             } else {
-                                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                             }
                     }
                 ) {
                     Icon(
-                        imageVector = if (model.orientationState ==
-                            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                        ) Icons.Rounded.Fullscreen
-                        else Icons.Rounded.FullscreenExit,
+                        imageVector = if (isPortrait) {
+                            Icons.Rounded.Fullscreen
+                        } else {
+                            Icons.Rounded.FullscreenExit
+                        },
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.inverseOnSurface
                     )
