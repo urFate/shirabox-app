@@ -67,17 +67,7 @@ fun SettingsBottomSheet(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, mod
 
             SettingsSheetScreen.CLOSED_CAPTIONS -> ClosedCationsBottomSheet(currentSheetScreen)
         }
-    } else {
-
-        /**
-         * We have to hide the system UI due to the
-         * fact that the BottomSheet shows it when opening
-         */
-
-//        val systemUiController = rememberSystemUiController()
-//        Util.hideSystemUi(systemUiController)
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,7 +90,11 @@ private fun SettingsOptions(
                 model.bottomSheetVisibilityState = false
             }
         },
-        contentWindowInsets = { BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom).only(WindowInsetsSides.Top) }
+        contentWindowInsets = {
+            BottomSheetDefaults.windowInsets
+                .only(WindowInsetsSides.Bottom)
+                .only(WindowInsetsSides.Top)
+        }
     ) {
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)

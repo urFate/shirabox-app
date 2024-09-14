@@ -27,6 +27,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.entity.EpisodeEntity
@@ -79,27 +80,30 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
 
     val defaultQualityState = model.defaultQualityPreferenceFlow(context)
         .collectAsState(initial = DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue)
-    val defaultQuality = remember(defaultQualityState) {
-        defaultQualityState.value ?: DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue
-    }
 
     LaunchedEffect(Unit) {
-        model.currentQuality = Quality.valueOfInt(defaultQuality)
         model.fetchEpisodePositions()
+    }
+
+    LaunchedEffect(defaultQualityState.value) {
+        model.currentQuality = Quality.valueOfInt(
+            defaultQualityState.value ?: DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue
+        )
     }
 
     LaunchedEffect(model.episodesPositions[model.initialEpisode]) {
         val startPosition = model.episodesPositions[model.initialEpisode]
 
         if (!model.coldStartSeekApplied) startPosition?.let { startPos ->
+            val quality = model.defaultQualityPreferenceFlow(context).firstOrNull()
+                ?: DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue
+
             exoPlayer.apply {
                 setMediaItems(playlist.map { episode ->
                     // Choose stream quality using default value, otherwise use highest available
                     val stream = episode.videos.entries.findLast {
-                        it.key == Quality.valueOfInt(defaultQuality)
+                        it.key == Quality.valueOfInt(quality)
                     } ?: episode.videos.maxBy { it.key.quality }
-
-                    model.currentQuality = stream.key
 
                     return@map MediaItem.fromUri(stream.value)
                 })
@@ -121,7 +125,7 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
     }
 
     LaunchedEffect(model.currentQuality, playlist.size) {
-        if (exoPlayer.mediaItemCount != 0) {
+        if (exoPlayer.mediaItemCount != 0 && model.coldStartSeekApplied) {
             rebuildExoPlaylist(
                 exoPlayer,
                 playlist,
