@@ -1,4 +1,4 @@
-package org.shirabox.app.ui.activity.player
+package org.shirabox.app.ui.activity.player.presentation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -41,6 +41,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.shirabox.app.R
+import org.shirabox.app.ui.activity.player.PlayerViewModel
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Quality
 

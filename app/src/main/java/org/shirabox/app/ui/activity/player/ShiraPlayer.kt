@@ -29,6 +29,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import org.shirabox.app.ui.activity.player.presentation.PlayerScaffold
+import org.shirabox.app.ui.activity.player.presentation.SettingsBottomSheet
+import org.shirabox.app.ui.activity.player.presentation.hideControls
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Quality
@@ -163,7 +166,7 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
         }
     )
 
-    ControlsScaffold(exoPlayer = exoPlayer, playlist = playlist, model = model)
+    PlayerScaffold(exoPlayer = exoPlayer, playlist = playlist, model = model)
 
     SettingsBottomSheet(exoPlayer = exoPlayer, playlist = playlist, model = model)
 }
