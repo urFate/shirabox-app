@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.Sd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -150,7 +151,8 @@ private fun QualityListItem(
             RadioButton(
                 selected = selected,
                 onClick = { onClick() })
-        }
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
     )
 }
 

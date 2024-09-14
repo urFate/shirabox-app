@@ -86,7 +86,8 @@ fun ListItem(
                 contentDescription = stringResource(id = R.string.history),
                 contentScale = ContentScale.Crop
             )
-        }
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
     )
 }
 
