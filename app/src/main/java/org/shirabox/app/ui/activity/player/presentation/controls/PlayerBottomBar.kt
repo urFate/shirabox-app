@@ -2,6 +2,7 @@ package org.shirabox.app.ui.activity.player.presentation.controls
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -52,7 +54,8 @@ internal fun PlayerBottomBar(
     var currentValue by remember { mutableFloatStateOf(0F) }
     var mutablePosition by remember { mutableLongStateOf(currentPosition) }
 
-    val animatedValue by animateFloatAsState(if (isValueChanging) currentValue else (currentPosition.toFloat() / duration.toFloat()),
+    val animatedValue by animateFloatAsState(
+        targetValue = if (isValueChanging) currentValue else (currentPosition.toFloat() / duration.toFloat()),
         label = ""
     )
 
@@ -129,31 +132,25 @@ internal fun PlayerBottomBar(
                     colors = colors
                 )
 
+                val localConf = LocalConfiguration.current
                 val activity = LocalContext.current as Activity
-
-                val isPortrait = when (activity.requestedOrientation) {
-                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED,
-                    ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT,
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT -> true
-
-                    else -> false
-                }
+                val isLandscape = localConf.orientation == Configuration.ORIENTATION_LANDSCAPE
 
                 IconButton(
                     onClick = {
                         activity.requestedOrientation =
-                            if (isPortrait) {
-                                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                            } else {
+                            if (isLandscape) {
                                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                            } else {
+                                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                             }
                     }
                 ) {
                     Icon(
-                        imageVector = if (isPortrait) {
-                            Icons.Rounded.Fullscreen
-                        } else {
+                        imageVector = if (isLandscape) {
                             Icons.Rounded.FullscreenExit
+                        } else {
+                            Icons.Rounded.Fullscreen
                         },
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.inverseOnSurface

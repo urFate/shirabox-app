@@ -36,9 +36,9 @@ internal fun PlayerSkipButton(
 ) {
     var percentage by remember { mutableIntStateOf(0) }
     val orientation = LocalConfiguration.current.orientation
-    val isVerticalOrientation =
+    val isPortraitOrientation =
         orientation == Configuration.ORIENTATION_PORTRAIT || orientation == Configuration.ORIENTATION_UNDEFINED
-    val contentAlignment = if (isVerticalOrientation) Alignment.CenterEnd else Alignment.BottomEnd
+    val contentAlignment = if (isPortraitOrientation) Alignment.CenterEnd else Alignment.BottomEnd
 
     if (autoSkip) {
         LaunchedEffect(isPlaying) {
@@ -58,7 +58,7 @@ internal fun PlayerSkipButton(
             .padding(16.dp, 64.dp),
         contentAlignment = contentAlignment
     ) {
-        val endPadding = if (isVerticalOrientation) 0.dp else 16.dp
+        val endPadding = if (isPortraitOrientation) 0.dp else 16.dp
 
         OutlinedButton(
             modifier = Modifier.padding(0.dp, 128.dp, endPadding, 0.dp),
