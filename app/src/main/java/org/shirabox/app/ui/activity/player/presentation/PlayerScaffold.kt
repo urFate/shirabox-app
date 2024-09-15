@@ -121,11 +121,17 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
 
     InstantSeekArea(
         seekOffset = instantSeekTime.value,
-        onFastRewind = {
-            exoPlayer.seekTo(exoPlayer.currentPosition.minus(instantSeekTime.value.times(1000L)))
+        onFastRewind = { multiplier ->
+            exoPlayer.seekTo(
+                (exoPlayer.currentPosition - (instantSeekTime.value.times(1000L) * multiplier))
+                    .coerceAtLeast(0)
+            )
         },
-        onFastForward = {
-            exoPlayer.seekTo(exoPlayer.currentPosition.plus(instantSeekTime.value.times(1000L)))
+        onFastForward = { multiplier ->
+            exoPlayer.seekTo(
+                (exoPlayer.currentPosition + (instantSeekTime.value.times(1000L) * multiplier))
+                    .coerceAtMost(exoPlayer.duration)
+            )
         },
         onClick = {
             coroutineScope.launch {

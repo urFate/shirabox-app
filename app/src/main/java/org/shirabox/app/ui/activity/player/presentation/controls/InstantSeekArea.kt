@@ -1,9 +1,17 @@
 package org.shirabox.app.ui.activity.player.presentation.controls
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,10 +38,10 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.shirabox.app.R
@@ -40,8 +49,8 @@ import org.shirabox.app.R
 @Composable
 internal fun InstantSeekArea(
     seekOffset: Int,
-    onFastRewind: (offset: Offset) -> Unit,
-    onFastForward: (offset: Offset) -> Unit,
+    onFastRewind: (multiplier: Int) -> Unit,
+    onFastForward: (multiplier: Int) -> Unit,
     onClick: () -> Unit
 ) {
     Row(
@@ -50,14 +59,30 @@ internal fun InstantSeekArea(
     ) {
         val deviceWidth = LocalConfiguration.current.screenWidthDp.dp
 
-        var showRewindUi by remember { mutableStateOf(false) }
-        var showForwardUi by remember { mutableStateOf(false) }
+        val fastRewindMultiplier = remember { mutableIntStateOf(0) }
+        var fastRewindActivated by remember { mutableStateOf(false) }
 
-        LaunchedEffect(showRewindUi) {
-            if(showRewindUi) delay(1000L).let { showRewindUi = false }
-        }
-        LaunchedEffect(showForwardUi) {
-            if(showForwardUi) delay(1000L).let { showForwardUi = false }
+        val fastForwardMultiplier = remember { mutableIntStateOf(0) }
+        var fastForwardActivated by remember { mutableStateOf(false) }
+
+        val userInputAwaitTime = 800L
+
+        LaunchedEffect(fastRewindMultiplier.intValue, fastForwardMultiplier.intValue) {
+            if (fastRewindActivated) {
+                delay(userInputAwaitTime)
+                onFastRewind(fastRewindMultiplier.intValue)
+            }
+
+            if (fastForwardActivated) {
+                delay(userInputAwaitTime)
+                onFastForward(fastForwardMultiplier.intValue)
+            }
+
+            fastRewindActivated = false
+            fastForwardActivated = false
+            delay(100L)
+            fastRewindMultiplier.intValue = 0
+            fastForwardMultiplier.intValue = 0
         }
 
         // Rewind seek zone
@@ -65,32 +90,41 @@ internal fun InstantSeekArea(
             modifier = Modifier
                 .fillMaxWidth(0.5F),
             icon = Icons.Default.FastRewind,
-            seekOffset = seekOffset,
+            seekOffset = seekOffset.times(fastRewindMultiplier.intValue),
             xBackgroundOffset = 0.dp,
             visible = showRewindUi,
             onDoubleClick = {
-                onFastRewind(it)
-                showRewindUi = true
+                fastRewindActivated = true
+                if (fastRewindMultiplier.intValue <= 4) {
+                    fastRewindMultiplier.intValue += 1
+                }
             },
-            onClick = onClick
+            onClick = {
+                 if (!fastRewindActivated) onClick()
+            }
         )
 
         // Forward seek zone
         SeekZoneBox(
             modifier = Modifier.fillMaxWidth(1F),
             icon = Icons.Default.FastForward,
-            seekOffset = seekOffset,
+            seekOffset = seekOffset.times(fastForwardMultiplier.intValue),
             xBackgroundOffset = deviceWidth / 2,
             visible = showForwardUi,
             onDoubleClick = {
-                onFastForward(it)
-                showForwardUi = true
+                fastForwardActivated = true
+                if (fastForwardMultiplier.intValue <= 4) {
+                    fastForwardMultiplier.intValue += 1
+                }
             },
-            onClick = onClick
+            onClick = {
+                if (!fastForwardActivated) onClick()
+            }
         )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SeekZoneBox(
     modifier: Modifier = Modifier,
@@ -98,21 +132,24 @@ private fun SeekZoneBox(
     seekOffset: Int,
     xBackgroundOffset: Dp,
     visible: Boolean,
-    onDoubleClick: (offset: Offset) -> Unit,
+    onDoubleClick: () -> Unit,
     onClick: () -> Unit
 ) {
     val deviceHeight = LocalConfiguration.current.screenHeightDp.dp
     val deviceWidth = LocalConfiguration.current.screenWidthDp.dp
 
+    val interactionSource = remember { MutableInteractionSource() }
+
     Box(
         modifier = Modifier
             .fillMaxHeight()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onDoubleTap = onDoubleClick,
-                    onTap = { onClick() },
-                )
-            }
+            .combinedClickable(
+                enabled = true,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+                onDoubleClick = onDoubleClick
+            )
             .then(modifier),
         contentAlignment = Alignment.Center
     ) {
@@ -132,7 +169,7 @@ private fun SeekZoneBox(
                                     .toPx()
                                     .div(2F),
                                 color = Color.LightGray,
-                                alpha = 0.3F,
+                                alpha = 0.2F,
                                 center = Offset(
                                     xBackgroundOffset.toPx(),
                                     deviceHeight
