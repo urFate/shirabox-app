@@ -92,7 +92,8 @@ internal fun InstantSeekArea(
             icon = Icons.Default.FastRewind,
             seekOffset = seekOffset.times(fastRewindMultiplier.intValue),
             xBackgroundOffset = 0.dp,
-            visible = showRewindUi,
+            xSlideOffset = -150,
+            visible = fastRewindActivated,
             onDoubleClick = {
                 fastRewindActivated = true
                 if (fastRewindMultiplier.intValue <= 4) {
@@ -110,7 +111,8 @@ internal fun InstantSeekArea(
             icon = Icons.Default.FastForward,
             seekOffset = seekOffset.times(fastForwardMultiplier.intValue),
             xBackgroundOffset = deviceWidth / 2,
-            visible = showForwardUi,
+            xSlideOffset = 150,
+            visible = fastForwardActivated,
             onDoubleClick = {
                 fastForwardActivated = true
                 if (fastForwardMultiplier.intValue <= 4) {
@@ -131,6 +133,7 @@ private fun SeekZoneBox(
     icon: ImageVector,
     seekOffset: Int,
     xBackgroundOffset: Dp,
+    xSlideOffset: Int,
     visible: Boolean,
     onDoubleClick: () -> Unit,
     onClick: () -> Unit
@@ -155,8 +158,19 @@ private fun SeekZoneBox(
     ) {
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(),
-            exit = fadeOut()
+            enter = fadeIn(
+                animationSpec = tween(durationMillis = 180)
+            ) + slideIn(
+                initialOffset = { IntOffset(xSlideOffset, 0) }
+            ),
+            exit = fadeOut(
+                animationSpec = tween(durationMillis = 180)
+            ) + slideOut(
+                animationSpec = spring(
+                    stiffness = Spring.StiffnessMedium,
+                    visibilityThreshold = IntOffset.VisibilityThreshold
+                ),
+                targetOffset = { IntOffset(xSlideOffset, 0) }),
         ) {
             Box(
                 modifier = Modifier
