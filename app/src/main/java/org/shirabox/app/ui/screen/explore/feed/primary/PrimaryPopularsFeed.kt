@@ -28,6 +28,7 @@ import org.shirabox.app.R
 import org.shirabox.app.ui.activity.resource.ResourceActivity
 import org.shirabox.app.ui.component.general.BaseCard
 import org.shirabox.app.ui.component.general.ContentCardPlaceholder
+import org.shirabox.app.ui.component.general.HorizontalCard
 import org.shirabox.core.model.Content
 import org.shirabox.core.util.Util
 
@@ -36,11 +37,15 @@ internal fun PrimaryPopularsFeed(isReady: Boolean, contents: List<Content>) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
 
-    val cardWidth = 180
-    val cardHeight = 240
-    val columns = remember { configuration.screenWidthDp.floorDiv(cardWidth) }
+    val cardWidth = remember(configuration.orientation) { if(configuration.orientation == 1) 180 else 260 }
+    val cardHeight = remember(configuration.orientation) { if(configuration.orientation == 1) 240 else 180 }
 
-    val gridHeight by remember(contents) {
+    val columns = remember(configuration.orientation) { configuration.screenWidthDp.floorDiv(cardWidth) }
+    val placeholders = remember(configuration.orientation) {
+        if (configuration.orientation == 2) 7 else 2
+    }
+
+    val gridHeight by remember(contents, configuration.orientation) {
         derivedStateOf {
             Util.calcGridHeight(
                 itemsCount = contents.size.plus(2),
@@ -73,11 +78,7 @@ internal fun PrimaryPopularsFeed(isReady: Boolean, contents: List<Content>) {
             userScrollEnabled = false
         ) {
             items(contents) {
-                BaseCard(
-                    modifier = Modifier
-                        .size(cardWidth.dp, cardHeight.dp),
-                    title = it.name, image = it.image, type = it.type
-                ) {
+                val action = {
                     context.startActivity(
                         Intent(
                             context,
@@ -88,9 +89,27 @@ internal fun PrimaryPopularsFeed(isReady: Boolean, contents: List<Content>) {
                         }
                     )
                 }
+
+                if (configuration.orientation == 1) {
+                    BaseCard(
+                        modifier = Modifier.size(cardWidth.dp, cardHeight.dp),
+                        title = it.name,
+                        image = it.image,
+                        type = it.type,
+                        onClick = action
+                    )
+                } else {
+                    HorizontalCard(
+                        modifier = Modifier.size(cardWidth.dp, cardHeight.dp),
+                        title = it.name,
+                        subTitle = it.enName,
+                        image = it.image,
+                        onClick = action
+                    )
+                }
             }
 
-            items(2) {
+            items(placeholders) {
                 ContentCardPlaceholder(modifier = Modifier.size(cardWidth.dp, cardHeight.dp))
             }
         }
