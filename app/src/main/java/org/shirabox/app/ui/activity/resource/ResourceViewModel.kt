@@ -136,12 +136,15 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
 
     fun fetchRelated(shikimoriID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            ShikimoriRepository.fetchRelated(shikimoriID, ANIME).catch {
-                it.printStackTrace()
-                emitAll(emptyFlow())
-            }.collect { contents ->
-                contents.forEach { it.let(relatedContents::add) }
-            }
+            ShikimoriRepository.fetchRelated(shikimoriID, ANIME)
+                .catch {
+                    it.printStackTrace()
+                    emitAll(emptyFlow())
+                }
+                .collect { contents ->
+                    relatedContents.clear()
+                    contents.forEach { it.let(relatedContents::add) }
+                }
         }
     }
 
