@@ -14,6 +14,7 @@ object RequestBody {
             "    id\n" +
             "  }\n" +
             "}"
+
     fun loginQuery(email: String, hash: String): String {
         return "query Login {\n" +
                 "  login(usernameEmail: \"$email\", passwordHash: \"$hash\") {\n" +
@@ -28,11 +29,7 @@ object RequestBody {
     }
 
     fun searchShowsQuery(query: String): String {
-        return "query SearchShows {\n" +
-                "\tsearchShows(search:\"$query\", limit:1){\n" +
-                "\t\tid\n" +
-                "\t}\n" +
-                "}"
+        return "{ searchShows(search: \"${query.replace("\"", "")}\", limit: 1) { id } }"
     }
 
     fun findEpisodesByShowIdQuery(showId: String): String {
