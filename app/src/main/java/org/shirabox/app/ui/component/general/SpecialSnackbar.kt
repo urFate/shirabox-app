@@ -49,7 +49,11 @@ fun SpecialSnackBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 icon()
-                Text(text = message, overflow = TextOverflow.Ellipsis)
+                Text(
+                    text = message,
+                    color = contentColor,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
 
             if(closeable) {
@@ -58,7 +62,7 @@ fun SpecialSnackBar(
                     contentAlignment = Alignment.CenterEnd
                 ) {
                     IconButton(onClick = onCloseClick) {
-                        Icon(imageVector = Icons.Rounded.Close, contentDescription = "Close")
+                        Icon(imageVector = Icons.Rounded.Close, tint = contentColor, contentDescription = "Close")
                     }
                 }
             }

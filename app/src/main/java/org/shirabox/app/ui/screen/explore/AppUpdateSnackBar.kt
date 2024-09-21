@@ -68,13 +68,15 @@ fun AppUpdateSnackbarHost(){
         ) { snackbarData: SnackbarData ->
             SpecialSnackBar(
                 icon = {
-                Icon(
-                    imageVector = Icons.Rounded.RocketLaunch,
-                    contentDescription = "rocket launch"
-                )
-            },
+                    Icon(
+                        imageVector = Icons.Rounded.RocketLaunch,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        contentDescription = "rocket launch"
+                    )
+                },
                 message = snackbarData.visuals.message,
                 containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 onClick = {
                     snackbarData.performAction()
                     context.startActivity(Intent(context, AppUpdateActivity::class.java))

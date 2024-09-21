@@ -635,7 +635,9 @@ fun Resource(
         ) {
             PullRefreshIndicator(
                 refreshing = isRefreshing,
-                state = pullRefreshState
+                state = pullRefreshState,
+                contentColor = MaterialTheme.colorScheme.primary,
+                backgroundColor = MaterialTheme.colorScheme.surfaceContainer
             )
         }
     }

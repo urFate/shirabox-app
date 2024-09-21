@@ -64,7 +64,8 @@ fun ExploreScreen(
                 refreshing = model.refreshing.collectAsStateWithLifecycle().value,
                 state = pullRefreshState,
                 scale = true,
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MaterialTheme.colorScheme.primary,
+                backgroundColor = MaterialTheme.colorScheme.surfaceContainer
             )
         }
     }
