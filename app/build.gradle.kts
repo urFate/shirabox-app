@@ -18,7 +18,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.2.41"
+        versionName = "1.2.42"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -64,7 +64,6 @@ android {
 
 dependencies {
     // Core dependencies
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -86,7 +85,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // Compose UI
-
     implementation(libs.de.mr.pine.utils.zoomables)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material)
@@ -108,7 +106,6 @@ dependencies {
     implementation(libs.org.jetbrains.kotlinx.serialization.json)
 
     // Exo Player
-
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
