@@ -42,20 +42,35 @@ android {
             isDebuggable = true
         }
     }
+
+    splits {
+        abi {
+            isEnable = true
+            isUniversalApk = true
+
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
+        }
+    }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

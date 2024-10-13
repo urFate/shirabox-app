@@ -1,5 +1,5 @@
 [versions]
-ffmpegKitFull = "6.0-2"
+ffmpegKitMin = "6.0-2"
 googleServicesVersion = "4.4.2"
 kotlin = "2.0.20"
 ksp = "2.0.20-1.0.25"
@@ -13,7 +13,6 @@ androidxLifecycle = "2.8.5"
 androidxActivity = "1.9.2"
 androidxComposeUi = "1.7.0"
 androidxCompose = "2024.09.00"
-okhttp = "3.2.0"
 orgJetbrainsKotlin = "1.9.23"
 androidxGraphics = "1.0.1"
 junit = "4.13.2"
@@ -48,7 +47,7 @@ androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics", ver
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "androidxComposeUi" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidxCompose" }
-ffmpeg-kit-full = { module = "com.arthenica:ffmpeg-kit-full", version.ref = "ffmpegKitFull" }
+ffmpeg-kit-min = { module = "com.arthenica:ffmpeg-kit-min", version.ref = "ffmpegKitMin" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 firebase-inappmessaging-display = { module = "com.google.firebase:firebase-inappmessaging-display" }

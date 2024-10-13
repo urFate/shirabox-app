@@ -49,7 +49,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
 
-    implementation(libs.ffmpeg.kit.full)
+    implementation(libs.ffmpeg.kit.min)
 
     // Room
     api(libs.androidx.room.runtime)
