@@ -54,6 +54,8 @@ class PlayerViewModel @AssistedInject constructor(
     var playbackSpeed by mutableFloatStateOf(1F)
     var coldStartSeekApplied by mutableStateOf(false)
     val animeSkipTimestamps = MutableStateFlow<Map<Int, Pair<Long, Long>>>(emptyMap())
+    val currentRepository = ContentRepositoryRegistry.getRepositoryByName(repository)
+    val isCurrentItemOffline = mutableStateOf(false)
 
     @AssistedFactory
     interface PlayerViewModelFactory {

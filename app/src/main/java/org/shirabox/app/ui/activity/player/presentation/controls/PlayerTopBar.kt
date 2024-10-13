@@ -2,11 +2,16 @@ package org.shirabox.app.ui.activity.player.presentation.controls
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.Hd
+import androidx.compose.material.icons.rounded.HighQuality
+import androidx.compose.material.icons.rounded.Sd
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,10 +29,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.shirabox.app.R
+import org.shirabox.core.model.Quality
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun PlayerTopBar(title: String, episode: Int, onBackClick: () -> Unit, onSettingsClick: () -> Unit) {
+internal fun PlayerTopBar(title: String, episode: Int, offlineQuality: Quality?, onBackClick: () -> Unit, onSettingsClick: () -> Unit) {
     TopAppBar(
         modifier = Modifier
             .padding(4.dp, 16.dp)
@@ -48,11 +54,29 @@ internal fun PlayerTopBar(title: String, episode: Int, onBackClick: () -> Unit, 
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1
                 )
-                Text(
-                    text = stringResource(id = R.string.episode_string, episode),
-                    color = Color.White.copy(0.7f),
-                    fontSize = 14.sp
-                )
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.episode_string, episode),
+                        color = Color.White.copy(0.7f),
+                        fontSize = 14.sp
+                    )
+
+                    if (offlineQuality != null) {
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            imageVector = when (offlineQuality) {
+                                Quality.SD -> Icons.Rounded.Sd
+                                Quality.HD -> Icons.Rounded.Hd
+                                Quality.FHD -> Icons.Rounded.HighQuality
+                            },
+                            tint = Color.White.copy(0.7f),
+                            contentDescription = "quality"
+                        )
+                    }
+                }
             }
         },
         navigationIcon = {

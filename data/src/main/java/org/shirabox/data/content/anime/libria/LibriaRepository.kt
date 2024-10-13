@@ -9,15 +9,17 @@ import org.shirabox.core.model.ContentKind
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.Quality
 import org.shirabox.core.model.ReleaseStatus
+import org.shirabox.core.model.StreamProtocol
 import org.shirabox.data.content.AbstractContentRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 
 class LibriaRepository : AbstractContentRepository(
-    "Libria",
-    "https://anilibria.top",
-    ContentType.ANIME,
+    name = "Libria",
+    url = "https://anilibria.top",
+    contentType = ContentType.ANIME,
+    streamingType = StreamProtocol.HLS
 ) {
     companion object {
         const val API_ENDPOINT = "https://anilibria.top/api"

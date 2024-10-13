@@ -17,6 +17,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -24,26 +25,36 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.auth.AuthActivity
 import org.shirabox.app.ui.activity.settings.CombinedSwitchPreference
 import org.shirabox.app.ui.activity.settings.OptionsBlock
 import org.shirabox.app.ui.activity.settings.Preference
 import org.shirabox.app.ui.activity.settings.SwitchPreference
+import org.shirabox.app.ui.component.general.QualityDialog
 import org.shirabox.core.datastore.AppDataStore
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.model.AuthService
+import org.shirabox.core.model.Quality
 import org.shirabox.data.animeskip.AnimeSkipRepository
 import java.io.IOException
 
 @Composable
 fun PlaybackSettingsScreen() {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val qualityVisibilityState = remember { mutableStateOf(false) }
     val animeskipKeyVisibilityState = remember { mutableStateOf(false) }
     val instantSeekVisibilityState = remember { mutableStateOf(false) }
+
+    val currentQualityFlowState =
+        AppDataStore.read(context, DataStoreScheme.FIELD_DEFAULT_QUALITY.key).collectAsState(
+            initial = DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue
+        )
 
     val animeSkipClientKeyFlowState =
         AppDataStore.read(context, DataStoreScheme.FIELD_ANIMESKIP_USER_CLIENT_ID).collectAsState(
@@ -202,7 +213,18 @@ fun PlaybackSettingsScreen() {
         }
     }
 
-    QualityDialog(qualityVisibilityState)
+    QualityDialog(
+        title = stringResource(id = R.string.playback_default_quality),
+        description = stringResource(id = R.string.playback_default_quality_desc),
+        icon = Icons.Outlined.HighQuality,
+        visibilityState = qualityVisibilityState,
+        maxQuality = Quality.FHD,
+        autoSelect = Quality.valueOfInt(currentQualityFlowState.value ?: 1080)
+    ) {
+        coroutineScope.launch(Dispatchers.IO) {
+            AppDataStore.write(context, DataStoreScheme.FIELD_DEFAULT_QUALITY.key, it.quality)
+        }
+    }
     AnimeSkipDialog(animeskipKeyVisibilityState)
     InstantSeekDialog(instantSeekVisibilityState)
 }

@@ -15,6 +15,8 @@ enum class Quality(val quality: Int) {
     FHD(1080);
 
     companion object {
+        val qualities = listOf(SD, HD, FHD)
+
         fun valueOfInt(i: Int): Quality {
             return when(i) {
                 480, 360 -> SD

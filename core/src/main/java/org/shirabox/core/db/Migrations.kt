@@ -119,4 +119,11 @@ object Migrations {
             }
         }
     }
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Initialize new columns
+            db.execSQL("ALTER TABLE 'episode' ADD COLUMN 'offline_videos' TEXT NULL")
+        }
+    }
 }

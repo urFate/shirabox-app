@@ -1,5 +1,6 @@
 package org.shirabox.app.ui.activity.player
 
+import android.net.Uri
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.OptIn
@@ -25,7 +26,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.FileDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -35,6 +40,7 @@ import org.shirabox.app.ui.activity.player.presentation.hideControls
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Quality
+import org.shirabox.core.model.StreamProtocol
 
 
 @OptIn(UnstableApi::class)
@@ -100,19 +106,43 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
         if (!model.coldStartSeekApplied) startPosition?.let { startPos ->
             val quality = model.defaultQualityPreferenceFlow(context).firstOrNull()
                 ?: DataStoreScheme.FIELD_DEFAULT_QUALITY.defaultValue
+            val repository = model.currentRepository!!
 
             exoPlayer.apply {
-                setMediaItems(playlist.map { episode ->
-                    // Choose stream quality using default value, otherwise use highest available
-                    val stream = episode.videos.entries.findLast {
+                setMediaSources(playlist.map { episodeEntity ->
+                    val stream = episodeEntity.videos.entries.findLast {
                         it.key == Quality.valueOfInt(quality)
-                    } ?: episode.videos.maxBy { it.key.quality }
+                    } ?: episodeEntity.videos.maxBy { it.key.quality }
 
-                    return@map MediaItem.fromUri(stream.value)
+                    val offlineFilePath = episodeEntity.offlineVideos?.entries?.findLast {
+                        it.key == Quality.valueOfInt(quality)
+                    } ?: episodeEntity.offlineVideos?.maxByOrNull { it.key.quality }
+
+                    val offlineFileUri = offlineFilePath?.let {
+                        Uri.parse(it.value)
+                    }
+
+                    val offlineMediaSource = offlineFileUri?.let { uri ->
+                        ProgressiveMediaSource
+                            .Factory(FileDataSource.Factory())
+                            .createMediaSource(MediaItem.fromUri(uri))
+                    }
+
+                    val streamMediaSource = when (repository.streamingType) {
+                        StreamProtocol.MPEG -> ProgressiveMediaSource
+                            .Factory(DefaultHttpDataSource.Factory())
+                        StreamProtocol.HLS -> HlsMediaSource
+                            .Factory(DefaultHttpDataSource.Factory())
+                    }.createMediaSource(MediaItem.fromUri(stream.value))
+
+
+                    return@map offlineMediaSource ?: streamMediaSource
                 })
 
+                val seekIndex = playlist.indexOfFirst { it.episode == model.initialEpisode }
+
                 exoPlayer.seekTo(
-                    playlist.indexOfFirst { it.episode == model.initialEpisode },
+                    seekIndex,
                     startPos
                 )
 

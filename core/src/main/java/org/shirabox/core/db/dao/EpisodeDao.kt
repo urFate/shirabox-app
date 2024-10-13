@@ -23,6 +23,9 @@ interface EpisodeDao {
     @Query("SELECT * FROM episode WHERE content_uid = :contentUid AND acting_team_name = :team AND source = :repository")
     fun getEpisodes(contentUid: Long, team: String, repository: String): Flow<List<EpisodeEntity>>
 
+    @Query("SELECT * FROM episode WHERE uid = :uid")
+    fun getEpisodeByUid(uid: Int): EpisodeEntity
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertEpisodes(vararg episodeEntity: EpisodeEntity)
 

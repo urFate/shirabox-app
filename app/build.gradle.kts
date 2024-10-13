@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.googleServices)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.daggerHiltAndroid)
+    alias(libs.plugins.kotlinParcelize)
     alias(libs.plugins.ksp)
 }
 

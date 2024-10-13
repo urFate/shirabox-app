@@ -52,14 +52,16 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
     val animeSkipTimestamps by model.animeSkipTimestamps.collectAsStateWithLifecycle()
 
     val currentEpisode = remember(currentMediaItemIndex) {
-        playlist.getOrNull(exoPlayer.currentMediaItemIndex)?.episode ?: 1
+        playlist.getOrNull(exoPlayer.currentMediaItemIndex)
     }
-
+    val currentEpisodeInt = remember(currentEpisode) {
+        currentEpisode?.episode ?: 1
+    }
     val providedIntroMarkers = remember(currentMediaItemIndex) {
         playlist[exoPlayer.currentMediaItemIndex].videoMarkers
     }
     val animeSkipIntroMarkers = remember(currentMediaItemIndex) {
-        animeSkipTimestamps[currentEpisode]
+        currentEpisode?.let { animeSkipTimestamps[currentEpisode.episode] }
     }
 
     // Preferences dependent values
@@ -98,7 +100,19 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
     }
 
     LaunchedEffect(currentMediaItemIndex) {
-        model.fetchAnimeSkipIntroTimestamps(context = context, episode = currentEpisode)
+        model.fetchAnimeSkipIntroTimestamps(context = context, episode = currentEpisodeInt)
+    }
+
+    LaunchedEffect(playbackState) {
+        if (playbackState == Player.STATE_READY) {
+            // Sync model quality with actual quality
+            if (currentEpisode?.videos?.containsKey(model.currentQuality) == false) {
+                model.currentQuality = currentEpisode.videos.keys.maxOf { it }
+            }
+
+            // Determine offline mode
+            model.isCurrentItemOffline.value = currentEpisode?.offlineVideos.isNullOrEmpty() == false
+        }
     }
 
     /**
@@ -146,11 +160,16 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
         enter = fadeIn(),
         exit = fadeOut()
     ) {
+        val offlineQuality = remember(currentEpisode) {
+            currentEpisode?.offlineVideos?.keys?.maxBy { it }
+        }
+
         Scaffold(
             topBar = {
                 PlayerTopBar(
                     title = model.contentName,
-                    episode = currentEpisode,
+                    episode = currentEpisode?.episode ?: 1,
+                    offlineQuality = offlineQuality,
                     onBackClick = { activity.finish() },
                 ) {
                     model.bottomSheetVisibilityState = true
@@ -178,7 +197,7 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
                     hasNextMediaItem = hasNextMediaItem,
                     hasPreviousMediaItem = hasPreviousMediaItem,
                     onSkipPrevious = {
-                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition, exoPlayer.duration)
+                        model.saveEpisodePosition(currentEpisodeInt, exoPlayer.currentPosition, exoPlayer.duration)
                         exoPlayer.seekToPrevious()
                     },
                     onPlayToggle = {
@@ -186,7 +205,7 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
                         coroutineScope.launch { hideControls(exoPlayer, model) }
                     },
                     onSkipNext = {
-                        model.saveEpisodePosition(currentEpisode, exoPlayer.currentPosition, exoPlayer.duration)
+                        model.saveEpisodePosition(currentEpisodeInt, exoPlayer.currentPosition, exoPlayer.duration)
                         exoPlayer.seekToNext()
                     }
                 )

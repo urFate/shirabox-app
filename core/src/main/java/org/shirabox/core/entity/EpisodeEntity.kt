@@ -17,6 +17,7 @@ data class EpisodeEntity(
     @ColumnInfo(name = "episode") val episode: Int,
     @ColumnInfo(name = "upload_timestamp") val uploadTimestamp: Long,
     @ColumnInfo(name = "videos") val videos: Map<Quality, String> = emptyMap(),
+    @ColumnInfo(name = "offline_videos") val offlineVideos: Map<Quality, String>? = null,
     @ColumnInfo(name = "chapters") val pages: List<String> = emptyList(),
     @ColumnInfo(name = "opening_markers") val videoMarkers: Pair<Long, Long> = -1L to -1L,
     @ColumnInfo(name = "reading_page") val readingPage: Int = -1,

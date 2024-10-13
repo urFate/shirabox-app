@@ -78,6 +78,16 @@
     <string name="notificaion_channel_description">Уведомления о новых выпусках эпизодов</string>
 
     <!--
+        Downloads Service
+    -->
+    <string name="downloads_notification_channel">Загрузка серий</string>
+    <string name="downloads_notification_channel_desc">Состояние загрузки серий</string>
+    <string name="episodes_downloading">Скачивание серий…</string>
+    <string name="episodes_downloading_counter">Скачивание серий… (%d из %d)</string>
+    <string name="episodes_downloading_finished">Скачивание завершено.</string>
+    <string name="episodes_downloading_failed">Скачивание завершено с ошибками.</string>
+
+    <!--
         Login Card
     -->
     <string name="guest">Гость</string>
@@ -95,7 +105,7 @@
     <string name="watch">Смотреть</string>
     <string name="read">Читать</string>
     <string name="resource_status">%d из %d эп. по ~%d мин.</string>
-    <string name="anime_episode">Серия #%1$s</string>
+    <string name="anime_episode">Серия %1$s</string>
     <string name="unknown_production">Неизвестный издатель</string>
     <string name="no_sources">Не удалось найти подходящий ресурс</string>
     <string name="no_contents">Что то пошло не так…</string>
@@ -121,6 +131,8 @@
     <string name="favourites_added_message">Добавлено в избранное!</string>
     <string name="favourites_removal_message">Убрано из избранного</string>
     <string name="schedule_announcement">%s, %s%s</string>
+    <string name="offline_quality_dialog_title">Качество видео</string>
+    <string name="offline_quality_dialog_desc">Чем выше качество, тем больше места будет занимать серия.</string>
 
     <!--
         Player Activity
@@ -128,6 +140,8 @@
     <string name="title_activity_player">PlayerActivity</string>
     <string name="episode_string">Серия %d</string>
     <string name="quality">Качество видео • %dp</string>
+    <string name="quality_offline">Качество видео • Оффлайн режим</string>
+    <string name="offline_mode">Оффлайн режим</string>
     <string name="playback_speed">Скорость воспроизведения • %sx</string>
     <string name="subtitles">Субтитры</string>
     <string name="normal_speed">Обычная</string>
@@ -239,6 +253,11 @@
     <string name="cancel_installation">Отменить загрузку</string>
     <string name="download_error">Произшла ошибка. Повторите попытку позже.</string>
     <string name="remaining">Осталось %s</string>
+    
+    <!--
+        Notifications & services
+    -->
+    <string name="main_channel_descripion">Основные уведомления</string>
 
     <!--
         Plurals

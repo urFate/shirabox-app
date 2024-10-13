@@ -14,6 +14,7 @@ import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.Quality
+import org.shirabox.core.model.StreamProtocol
 import org.shirabox.data.content.AbstractContentRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -21,7 +22,8 @@ import java.util.Locale
 class AniLibRepository : AbstractContentRepository(
     name = "AniLib",
     url = "https://anilib.me",
-    contentType = ContentType.ANIME
+    contentType = ContentType.ANIME,
+    streamingType = StreamProtocol.MPEG
 ) {
     companion object {
         private const val API_ENDPOINT = "https://api.lib.social/api"

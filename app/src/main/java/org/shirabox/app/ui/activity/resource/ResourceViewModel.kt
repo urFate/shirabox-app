@@ -1,6 +1,9 @@
 package org.shirabox.app.ui.activity.resource
 
 import android.content.Context
+import android.content.Intent
+import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +22,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.shirabox.app.service.media.MediaDownloadsService
+import org.shirabox.app.service.media.model.MediaDownloadTask
 import org.shirabox.core.datastore.AppDataStore
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.db.AppDatabase
@@ -26,6 +31,7 @@ import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.ActingTeam
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType.ANIME
+import org.shirabox.core.model.Quality
 import org.shirabox.core.model.ShiraBoxAnime
 import org.shirabox.core.util.Util.Companion.mapContentToEntity
 import org.shirabox.core.util.Util.Companion.mapEntityToContent
@@ -33,6 +39,8 @@ import org.shirabox.data.EpisodesHelper
 import org.shirabox.data.catalog.shikimori.ShikimoriRepository
 import org.shirabox.data.content.ContentRepositoryRegistry
 import org.shirabox.data.shirabox.ShiraBoxRepository
+import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,6 +52,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val relatedContents = mutableStateListOf<Content>()
 
     val internalContentUid = mutableLongStateOf(-1)
+    val downloadGroupId = mutableIntStateOf(-1)
 
     val isFavourite = mutableStateOf(false)
     val episodesNotifications = mutableStateOf(false)
@@ -187,6 +196,54 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
             episodeFetchComplete.value = finishedDeferred.await()
         }
     }
+
+    fun saveEpisodes(context: Context, quality: Quality, vararg episodes: EpisodeEntity) {
+        Log.d("DOWNLOAD_D", "Saving episodes...")
+        viewModelScope.launch(Dispatchers.IO) {
+            val tasks = episodes
+                .filter {
+                    it.offlineVideos.isNullOrEmpty()
+                }
+                .map { entity ->
+                    val uuid = UUID.randomUUID()
+                    val repository = ContentRepositoryRegistry.getRepositoryByName(entity.source)!!
+
+                    val destination = File(context.filesDir, "/${entity.contentUid}/${quality.quality}/$uuid.mp4")
+
+                    val url = entity.videos[quality]
+                        ?: entity.videos.toSortedMap(compareBy { it.quality }).values.last()
+
+                    MediaDownloadTask(
+                        url = url,
+                        file = destination.path,
+                        quality = quality,
+                        streamProtocol = repository.streamingType,
+                        group = entity.actingTeamName,
+                        contentUid = entity.contentUid,
+                        uid = entity.uid
+                    )
+            }
+
+            context.startService(Intent(context, MediaDownloadsService::class.java))
+            MediaDownloadsService.helper.enqueue(internalContentUid.longValue, *tasks.toTypedArray())
+        }
+    }
+
+    fun deleteOfflineEpisodes(vararg episodes: EpisodeEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            episodes.forEach { entity ->
+                val offlinePaths = entity.offlineVideos
+
+                offlinePaths?.values?.forEach {
+                    val destination = File(it)
+                    destination.delete()
+                }
+
+                db.episodeDao().updateEpisodes(entity.copy(offlineVideos = null))
+            }
+        }
+    }
+
 
     fun refresh(content: Content) {
         viewModelScope.launch(Dispatchers.IO) {

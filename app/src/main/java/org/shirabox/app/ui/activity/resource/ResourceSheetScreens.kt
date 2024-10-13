@@ -3,6 +3,7 @@ package org.shirabox.app.ui.activity.resource
 import android.content.Context
 import android.content.Intent
 import android.text.format.DateUtils
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
@@ -16,23 +17,32 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.OfflinePin
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Hd
+import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Sd
+import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -41,6 +51,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,28 +59,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.shirabox.app.ComposeUtils.bottomSheetDynamicNavColor
 import org.shirabox.app.R
+import org.shirabox.app.service.media.MediaDownloadsService
 import org.shirabox.app.ui.activity.player.PlayerActivity
 import org.shirabox.app.ui.component.general.ExtendedListItem
+import org.shirabox.app.ui.component.general.QualityDialog
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.ActingTeam
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentKind
 import org.shirabox.core.model.ContentType
+import org.shirabox.core.model.Quality
 import org.shirabox.core.util.IntentExtras
 import org.shirabox.data.content.AbstractContentRepository
 
@@ -268,6 +286,7 @@ fun EpisodesSheetScreen(
     model: ResourceViewModel = hiltViewModel()
     ) {
     val context = LocalContext.current
+    val mediaHelper = MediaDownloadsService.helper
 
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
@@ -381,7 +400,7 @@ fun EpisodesSheetScreen(
                                 Row (
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ){
+                                ) {
                                     Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = "Play")
                                     Text(
                                         text = when(lastViewedEpisode.watchingTime) {
@@ -407,24 +426,95 @@ fun EpisodesSheetScreen(
                         } else episodeEntity.name.toString()
 
                         val isViewed = episodeEntity.watchingTime > 0
+                        val isOffline = episodeEntity.offlineVideos?.isNotEmpty() ?: false
                         val textColor = if (isViewed)
                             Color.Gray else Color.Unspecified
+
+                        val maxQuality = remember { episodeEntity.videos.keys.max() }
+                        val enqueuedDownloadingTask =
+                            mediaHelper.getEnqueuedTask(model.internalContentUid.longValue, episodeEntity.uid)
+                                .collectAsStateWithLifecycle(null)
+                        val stoppedState =
+                            enqueuedDownloadingTask.value?.stopState?.collectAsStateWithLifecycle()
+                        val downloadProgress =
+                            enqueuedDownloadingTask.value?.progressState?.collectAsStateWithLifecycle()
 
                         ListItem(
                             overlineContent = {
                                 Text(
-                                    text = "#${episodeEntity.episode}",
+                                    text = "#${episodeEntity.episode} ($updatedTimestamp)",
                                     color = textColor
                                 )
                             },
                             headlineContent = {
-                                Text(
-                                    text = headlineText,
-                                    color = textColor
-                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = headlineText,
+                                        color = textColor
+                                    )
+
+                                    if (isOffline) {
+
+
+                                        val qualityVector = when(episodeEntity.offlineVideos?.keys?.firstOrNull()) {
+                                            Quality.SD -> Icons.Rounded.Sd
+                                            Quality.HD -> Icons.Rounded.Hd
+                                            Quality.FHD -> Icons.Rounded.HighQuality
+                                            null -> Icons.Rounded.HighQuality
+                                        }
+
+                                        Icon(
+                                            modifier = Modifier.size(21.dp),
+                                            imageVector = qualityVector,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
                             },
                             trailingContent = {
-                                Text(updatedTimestamp.toString())
+                                val qualityDialogVisible = remember { mutableStateOf(false) }
+
+                                if (isOffline) {
+                                    IconButton(
+                                        onClick = {
+                                            model.deleteOfflineEpisodes(episodeEntity)
+                                        }
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(24.dp),
+                                            imageVector = Icons.Rounded.DeleteOutline,
+                                            contentDescription = "download"
+                                        )
+                                    }
+                                } else {
+                                    DownloadButton(
+                                        isDownloading = stoppedState?.value == false,
+                                        progress = downloadProgress?.value ?: 0.0f
+                                    ) {
+                                        if (stoppedState?.value != false) {
+                                            qualityDialogVisible.value = true
+                                        } else {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                enqueuedDownloadingTask.value?.stopState?.emit(true)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                QualityDialog(
+                                    title = stringResource(R.string.offline_quality_dialog_title),
+                                    description = stringResource(R.string.offline_quality_dialog_desc),
+                                    icon = Icons.Outlined.OfflinePin,
+                                    visibilityState = qualityDialogVisible,
+                                    maxQuality = maxQuality,
+                                    autoSelect = maxQuality
+                                ) {
+                                    model.saveEpisodes(context = context, quality = it, episodeEntity)
+                                }
                             },
                             modifier = Modifier.clickable {
                                 when (episodeEntity.type) {
@@ -445,6 +535,8 @@ fun EpisodesSheetScreen(
             }
         }
     }
+
+
 }
 
 @Composable
@@ -456,6 +548,8 @@ private fun TeamListItem(
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val mediaHelper = MediaDownloadsService.helper
 
     val isPinned = remember(model.pinnedTeams.size) {
         derivedStateOf { model.pinnedTeams.contains(team.name) }
@@ -465,6 +559,38 @@ private fun TeamListItem(
             context,
             episodes.first().uploadTimestamp
         )
+    }
+
+    val enqueuedDownloadingTasks =
+        mediaHelper.getQueryByGroupId(model.internalContentUid.longValue, team.name)
+            .collectAsStateWithLifecycle(emptyList())
+
+    val isDownloading = remember { mutableStateOf(false) }
+
+    val progress = remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(enqueuedDownloadingTasks.value) {
+        isDownloading.value = enqueuedDownloadingTasks.value?.any { !it.stopState.value } ?: false
+        println("Enqueued tasks list fired effect")
+
+        if (isDownloading.value) {
+            val summaryProgress = mutableMapOf<Int, Float>()
+
+            enqueuedDownloadingTasks.value?.let { list ->
+                list.forEach { enqueuedTask ->
+                    launch {
+                        enqueuedTask.progressState.collect {
+                            summaryProgress[enqueuedTask.mediaDownloadTask.uid ?: -1] = it
+
+                            val tasksAmount = list.size
+                            progress.floatValue = summaryProgress.values.sum().div(tasksAmount)
+                        }
+                    }
+                }
+            }
+        } else {
+            progress.floatValue = 0f
+        }
     }
 
     ExtendedListItem(
@@ -478,13 +604,101 @@ private fun TeamListItem(
         },
         overlineContent = { Text("Обновлено $updatedTimestamp") },
         coverImage = team.logoUrl,
-        trailingIcon = if (isPinned.value) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-        headlineText = team.name,
-        onTrailingIconClick = {
-            model.switchTeamPinStatus(content.shikimoriId, team)
+        trailingContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy((-8).dp)
+            ) {
+                val qualityDialogVisible = remember { mutableStateOf(false) }
+
+                DownloadButton(isDownloading = isDownloading.value, progress = progress.floatValue) {
+                    if(!isDownloading.value) {
+                        qualityDialogVisible.value = true
+                    } else {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            mediaHelper.stopByGroupId(model.internalContentUid.longValue, team.name)
+                        }
+                    }
+                }
+
+                IconButton(onClick = { model.switchTeamPinStatus(content.shikimoriId, team) }) {
+                    Icon(
+                        imageVector = if (isPinned.value) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                        contentDescription = "Trailing Icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                val maxQuality = remember(episodes.size) {
+                    Quality.valueOfInt(
+                        episodes.maxOf { entity -> entity.videos.keys.maxOf { it.quality } }
+                    )
+                }
+
+                QualityDialog(
+                    title = stringResource(R.string.offline_quality_dialog_title),
+                    description = stringResource(R.string.offline_quality_dialog_desc),
+                    icon = Icons.Outlined.OfflinePin,
+                    visibilityState = qualityDialogVisible,
+                    maxQuality = maxQuality,
+                    autoSelect = maxQuality
+                ) {
+                    model.saveEpisodes(context = context, it, *episodes.reversed().toTypedArray())
+                }
+            }
         },
+        headlineText = team.name,
+        onTrailingIconClick = {},
         onClick = onClick
     )
+}
+
+@Composable
+private fun DownloadButton(isDownloading: Boolean, progress: Float, onClick: () -> Unit) {
+    val iconSize = remember(isDownloading) {
+        if (!isDownloading) 24.dp else 16.dp
+    }
+
+    IconButton(
+        onClick = { onClick() }
+    ) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isDownloading,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                if (progress > 0.001f) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        progress = { progress },
+                        trackColor = ProgressIndicatorDefaults.circularDeterminateTrackColor,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
+
+            Icon(
+                modifier = Modifier
+                    .animateContentSize()
+                    .size(iconSize),
+                imageVector = if (isDownloading) {
+                    Icons.Rounded.Stop
+                } else {
+                    ImageVector.vectorResource(id = R.drawable.download_for_offline)
+                },
+                contentDescription = "download"
+            )
+        }
+    }
 }
 
 private fun startPlayerActivity(

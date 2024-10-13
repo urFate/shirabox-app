@@ -15,7 +15,7 @@ import org.shirabox.core.util.Values
 
 @Database(
     entities = [ContentEntity::class, EpisodeEntity::class, NotificationEntity::class],
-    version = 3
+    version = 4
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -37,6 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                         )
                         .addMigrations(Migrations.MIGRATION_1_2)
                         .addMigrations(Migrations.MIGRATION_2_3)
+                        .addMigrations(Migrations.MIGRATION_3_4)
                         .build()
                 }
             }

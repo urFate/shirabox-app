@@ -722,7 +722,6 @@ fun CommentComponent(username: String, avatar: String, timestamp: String, text: 
         coverImage = avatar,
         clickable = false,
         headlineText = username,
-        trailingIcon = null,
     )
 }
 

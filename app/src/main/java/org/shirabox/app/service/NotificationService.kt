@@ -1,4 +1,4 @@
-package org.shirabox.app
+package org.shirabox.app.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -18,6 +18,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.shirabox.app.R
 import org.shirabox.app.ui.activity.resource.ResourceActivity
 import org.shirabox.core.db.AppDatabase
 import org.shirabox.core.entity.NotificationEntity
@@ -29,7 +30,7 @@ class NotificationService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "ShiraBoxService"
         private const val MAIN_CHANNEL_ID = "SB_NOTIFICATIONS"
-        lateinit var db: AppDatabase
+        private lateinit var db: AppDatabase
     }
 
     private val job = SupervisorJob()

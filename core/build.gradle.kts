@@ -49,6 +49,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
 
+    implementation(libs.ffmpeg.kit.full)
+
     // Room
     api(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)

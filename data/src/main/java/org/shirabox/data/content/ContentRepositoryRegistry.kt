@@ -7,4 +7,6 @@ object ContentRepositoryRegistry {
     val REPOSITORIES = listOf(
         LibriaRepository(), AniLibRepository()
     )
+
+    fun getRepositoryByName(name: String) = REPOSITORIES.firstOrNull { it.name == name }
 }

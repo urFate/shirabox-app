@@ -1,4 +1,5 @@
 [versions]
+ffmpegKitFull = "6.0-2"
 googleServicesVersion = "4.4.2"
 kotlin = "2.0.20"
 ksp = "2.0.20-1.0.25"
@@ -12,6 +13,7 @@ androidxLifecycle = "2.8.5"
 androidxActivity = "1.9.2"
 androidxComposeUi = "1.7.0"
 androidxCompose = "2024.09.00"
+okhttp = "3.2.0"
 orgJetbrainsKotlin = "1.9.23"
 androidxGraphics = "1.0.1"
 junit = "4.13.2"
@@ -35,6 +37,7 @@ comGithubKittinunfFuel = "3.0.0-alpha1"
 androidxDatastore = "1.1.1"
 androidxRoom = "2.6.1"
 androidxAppcompat = "1.7.0"
+jetbrainsKotlinJvm = "2.0.20"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -45,6 +48,7 @@ androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics", ver
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "androidxComposeUi" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidxCompose" }
+ffmpeg-kit-full = { module = "com.arthenica:ffmpeg-kit-full", version.ref = "ffmpegKitFull" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 firebase-inappmessaging-display = { module = "com.google.firebase:firebase-inappmessaging-display" }
@@ -96,11 +100,12 @@ org-jetbrains-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datet
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin"}
-kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
-kotlinParcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin"}
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinParcelize = { id = "org.jetbrains.kotlin.plugin.parcelize",  version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
 daggerHiltAndroid = { id = "com.google.dagger.hilt.android", version.ref = "daggerHiltAndroid" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }

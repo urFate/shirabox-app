@@ -13,4 +13,6 @@ plugins {
     alias(libs.plugins.googleServices) apply false
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.daggerHiltAndroid) apply false
+    alias(libs.plugins.kotlinParcelize) apply false
+    alias(libs.plugins.jetbrains.kotlin.jvm) apply false
 }

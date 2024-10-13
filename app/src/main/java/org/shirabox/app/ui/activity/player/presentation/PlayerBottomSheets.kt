@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.Hd
 import androidx.compose.material.icons.outlined.HighQuality
+import androidx.compose.material.icons.outlined.OfflinePin
 import androidx.compose.material.icons.outlined.Sd
 import androidx.compose.material.icons.outlined.SlowMotionVideo
 import androidx.compose.material3.BottomSheetDefaults
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -104,8 +106,14 @@ private fun SettingsOptions(
              * Video Quality
              */
 
+            val isCurrentItemOffline = remember {
+                derivedStateOf { model.isCurrentItemOffline.value }
+            }
+
             ListItem(
-                modifier = Modifier.clickable {
+                modifier = Modifier.clickable(
+                    enabled = !isCurrentItemOffline.value
+                ) {
                     coroutineScope.launch {
                         state.hide()
                         currentSheetScreen.value = SettingsSheetScreen.VIDEO_QUALITY
@@ -113,20 +121,29 @@ private fun SettingsOptions(
                 },
                 headlineContent = {
                     Text(
-                        stringResource(
-                            id = R.string.quality,
-                            model.currentQuality.quality
-                        )
+                        if (model.isCurrentItemOffline.value) {
+                            stringResource(id = R.string.quality_offline)
+                        } else {
+                            stringResource(id = R.string.quality, model.currentQuality.quality)
+                        }
                     )
                 },
                 leadingContent = {
                     Icon(
-                        imageVector = when (model.currentQuality) {
-                            Quality.SD -> Icons.Outlined.Sd
-                            Quality.HD -> Icons.Outlined.Hd
-                            Quality.FHD -> Icons.Outlined.HighQuality
+                        imageVector = if (!model.isCurrentItemOffline.value) {
+                            when (model.currentQuality) {
+                                Quality.SD -> Icons.Outlined.Sd
+                                Quality.HD -> Icons.Outlined.Hd
+                                Quality.FHD -> Icons.Outlined.HighQuality
+                            }
+                        } else {
+                            Icons.Outlined.OfflinePin
                         },
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = if (!model.isCurrentItemOffline.value) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            Color.Gray
+                        },
                         contentDescription = model.currentQuality.quality.toString()
                     )
                 },
@@ -210,6 +227,7 @@ fun QualityBottomSheet(
         Column(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
         ) {
+
             playlist[exoPlayer.currentMediaItemIndex].videos.keys.reversed().forEach {
                 ListItem(
                     modifier = Modifier.clickable {
