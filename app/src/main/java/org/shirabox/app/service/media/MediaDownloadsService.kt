@@ -103,6 +103,7 @@ class MediaDownloadsService : Service() {
         private val db = AppDatabase.getAppDataBase(service)!!
         private val job = SupervisorJob()
         private val scope = CoroutineScope(Dispatchers.IO + job)
+        private var exception: Exception? = null
 
         private val notificationId = 1
 
@@ -138,18 +139,21 @@ class MediaDownloadsService : Service() {
                     }
                 }
             }
+
+            this.exception = if (exception !is DownloadsServiceHelper.ForcedInterruptionException) {
+                exception
+            } else this.exception
         }
 
         override fun onQueryFinish(
-            downloadQuery: DownloadsServiceHelper.DownloadQuery,
-            exception: Exception?
+            downloadQuery: DownloadsServiceHelper.DownloadQuery
         ) {
             val finishNotificationId = System.currentTimeMillis().div(1000).toInt()
 
             baseBuilder
                 .setProgress(0, 0, false)
                 .apply {
-                    if (exception == null || exception is DownloadsServiceHelper.ForcedInterruptionException) {
+                    if (exception == null) {
                         setContentText(service.getString(R.string.episodes_downloading_finished))
                     } else {
                         setContentText(service.getString(R.string.episodes_downloading_failed))

@@ -67,13 +67,12 @@ class DownloadsServiceHelper(
 
             while (queryListIterator.hasNext()) {
                 val downloadQuery = queryListIterator.next()
-                var exception: Exception? = null
-
                 val queryIterator = downloadQuery.query.listIterator()
 
                 while (queryIterator.hasNext()) {
                     val index = queryIterator.nextIndex()
                     val enqueuedTask = queryIterator.next()
+                    val exceptions: MutableMap<EnqueuedTask, Exception> = mutableMapOf()
 
                     if (enqueuedTask.stopState.value) continue
 
@@ -97,22 +96,22 @@ class DownloadsServiceHelper(
                             StreamProtocol.MPEG -> download(enqueuedTask)
                             StreamProtocol.HLS -> downloadHLS(enqueuedTask)
                         }
-
                     } catch (ex: Exception) {
                         ex.printStackTrace()
-                        exception = ex
+                        exceptions[enqueuedTask] = ex
                     } finally {
-                        listeners.forEach { it.onTaskFinish(enqueuedTask, exception) }
+                        listeners.forEach {
+                            it.onTaskFinish(
+                                enqueuedTask,
+                                exceptions.getOrDefault(enqueuedTask, null)
+                            )
+                        }
                         enqueuedTask.stopState.emit(true)
                     }
                 }
 
                 listeners.forEach {
-                    it.onQueryFinish(
-                        downloadQuery = downloadQuery,
-                        exception = exception
-                    )
-
+                    it.onQueryFinish(downloadQuery = downloadQuery)
                     downloadQuery.query.clear()
                 }
 
