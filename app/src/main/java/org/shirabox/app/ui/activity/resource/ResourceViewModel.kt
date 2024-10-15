@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.shirabox.app.ValuesHelper
 import org.shirabox.app.service.media.MediaDownloadsService
 import org.shirabox.app.service.media.model.MediaDownloadTask
 import org.shirabox.core.datastore.AppDataStore
@@ -208,7 +209,14 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     val uuid = UUID.randomUUID()
                     val repository = ContentRepositoryRegistry.getRepositoryByName(entity.source)!!
 
-                    val destination = File(context.filesDir, "/${entity.contentUid}/${quality.quality}/$uuid.mp4")
+                    val destination = File(
+                        context.filesDir,
+                        ValuesHelper.buildOfflineMediaPath(
+                            contentUid = entity.contentUid,
+                            quality = quality,
+                            fileName = uuid.toString()
+                        )
+                    )
 
                     val url = entity.videos[quality]
                         ?: entity.videos.toSortedMap(compareBy { it.quality }).values.last()
@@ -225,7 +233,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
             }
 
             context.startService(Intent(context, MediaDownloadsService::class.java))
-            MediaDownloadsService.helper.enqueue(internalContentUid.longValue, *tasks.toTypedArray())
+            MediaDownloadsService.helper.enqueue(*tasks.toTypedArray())
         }
     }
 

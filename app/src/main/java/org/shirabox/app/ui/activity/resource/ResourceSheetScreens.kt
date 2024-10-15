@@ -55,6 +55,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -79,6 +80,7 @@ import kotlinx.coroutines.launch
 import org.shirabox.app.ComposeUtils.bottomSheetDynamicNavColor
 import org.shirabox.app.R
 import org.shirabox.app.service.media.MediaDownloadsService
+import org.shirabox.app.service.media.model.DownloadState
 import org.shirabox.app.ui.activity.player.PlayerActivity
 import org.shirabox.app.ui.component.general.ExtendedListItem
 import org.shirabox.app.ui.component.general.QualityDialog
@@ -431,13 +433,18 @@ fun EpisodesSheetScreen(
                             Color.Gray else Color.Unspecified
 
                         val maxQuality = remember { episodeEntity.videos.keys.max() }
+
                         val enqueuedDownloadingTask =
                             mediaHelper.getEnqueuedTask(model.internalContentUid.longValue, episodeEntity.uid)
                                 .collectAsStateWithLifecycle(null)
-                        val stoppedState =
-                            enqueuedDownloadingTask.value?.stopState?.collectAsStateWithLifecycle()
+                        val taskState =
+                            enqueuedDownloadingTask.value?.state?.collectAsStateWithLifecycle()
                         val downloadProgress =
                             enqueuedDownloadingTask.value?.progressState?.collectAsStateWithLifecycle()
+
+                        val isTaskEnqueued = remember(taskState?.value) {
+                            taskState?.value == DownloadState.ENQUEUED || taskState?.value == DownloadState.IN_PROGRESS
+                        }
 
                         ListItem(
                             overlineContent = {
@@ -457,8 +464,6 @@ fun EpisodesSheetScreen(
                                     )
 
                                     if (isOffline) {
-
-
                                         val qualityVector = when(episodeEntity.offlineVideos?.keys?.firstOrNull()) {
                                             Quality.SD -> Icons.Rounded.Sd
                                             Quality.HD -> Icons.Rounded.Hd
@@ -492,14 +497,14 @@ fun EpisodesSheetScreen(
                                     }
                                 } else {
                                     DownloadButton(
-                                        isDownloading = stoppedState?.value == false,
+                                        isDownloading = isTaskEnqueued,
                                         progress = downloadProgress?.value ?: 0.0f
                                     ) {
-                                        if (stoppedState?.value != false) {
+                                        if (!isTaskEnqueued) {
                                             qualityDialogVisible.value = true
                                         } else {
                                             coroutineScope.launch(Dispatchers.IO) {
-                                                enqueuedDownloadingTask.value?.stopState?.emit(true)
+                                                enqueuedDownloadingTask.value?.state?.emit(DownloadState.STOPPED)
                                             }
                                         }
                                     }
@@ -549,11 +554,13 @@ private fun TeamListItem(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val contentUid = model.internalContentUid.longValue
     val mediaHelper = MediaDownloadsService.helper
 
     val isPinned = remember(model.pinnedTeams.size) {
         derivedStateOf { model.pinnedTeams.contains(team.name) }
     }
+
     val updatedTimestamp = remember {
         DateUtils.getRelativeTimeSpanString(
             context,
@@ -561,35 +568,42 @@ private fun TeamListItem(
         )
     }
 
-    val enqueuedDownloadingTasks =
-        mediaHelper.getQueryByGroupId(model.internalContentUid.longValue, team.name)
+    var downloadingProgress by remember { mutableFloatStateOf(0f) }
+    var isGroupEnqueued by remember { mutableStateOf(false) }
+
+    val isAllEpisodesOffline = remember(episodes) { episodes.all { !it.offlineVideos.isNullOrEmpty() } }
+
+    val enqueuedDownloadingTasks by mediaHelper.getQueryByGroupId(contentUid, team.name)
             .collectAsStateWithLifecycle(emptyList())
 
-    val isDownloading = remember { mutableStateOf(false) }
+    LaunchedEffect(enqueuedDownloadingTasks) {
+        enqueuedDownloadingTasks?.forEach { enqueuedTask ->
+            enqueuedTask.state.collect {
+                isGroupEnqueued = (it == DownloadState.ENQUEUED) || (it == DownloadState.IN_PROGRESS)
+            }
+        }
+    }
 
-    val progress = remember { mutableFloatStateOf(0f) }
-
-    LaunchedEffect(enqueuedDownloadingTasks.value) {
-        isDownloading.value = enqueuedDownloadingTasks.value?.any { !it.stopState.value } ?: false
+    LaunchedEffect(enqueuedDownloadingTasks) {
         println("Enqueued tasks list fired effect")
 
-        if (isDownloading.value) {
+        if (isGroupEnqueued) {
             val summaryProgress = mutableMapOf<Int, Float>()
 
-            enqueuedDownloadingTasks.value?.let { list ->
+            enqueuedDownloadingTasks?.let { list ->
                 list.forEach { enqueuedTask ->
                     launch {
                         enqueuedTask.progressState.collect {
                             summaryProgress[enqueuedTask.mediaDownloadTask.uid ?: -1] = it
 
                             val tasksAmount = list.size
-                            progress.floatValue = summaryProgress.values.sum().div(tasksAmount)
+                            downloadingProgress = summaryProgress.values.sum().div(tasksAmount)
                         }
                     }
                 }
             }
         } else {
-            progress.floatValue = 0f
+            downloadingProgress = 0f
         }
     }
 
@@ -611,12 +625,29 @@ private fun TeamListItem(
             ) {
                 val qualityDialogVisible = remember { mutableStateOf(false) }
 
-                DownloadButton(isDownloading = isDownloading.value, progress = progress.floatValue) {
-                    if(!isDownloading.value) {
-                        qualityDialogVisible.value = true
-                    } else {
-                        coroutineScope.launch(Dispatchers.IO) {
-                            mediaHelper.stopByGroupId(model.internalContentUid.longValue, team.name)
+                if (isAllEpisodesOffline) {
+                    IconButton(
+                        onClick = {
+                            model.deleteOfflineEpisodes(*episodes.toTypedArray())
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            imageVector = Icons.Rounded.DeleteOutline,
+                            contentDescription = "download"
+                        )
+                    }
+                } else {
+                    DownloadButton(
+                        isDownloading = isGroupEnqueued,
+                        progress = downloadingProgress
+                    ) {
+                        if(!isGroupEnqueued) {
+                            qualityDialogVisible.value = true
+                        } else {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                mediaHelper.stopByGroupId(model.internalContentUid.longValue, team.name)
+                            }
                         }
                     }
                 }

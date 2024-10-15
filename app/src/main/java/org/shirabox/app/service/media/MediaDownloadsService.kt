@@ -107,20 +107,23 @@ class MediaDownloadsService : Service() {
 
         private val notificationId = 1
 
-        override fun onCurrentTaskChanged(task: EnqueuedTask, position: Int, querySize: Int) {
+        override fun onCurrentTaskChanged(task: EnqueuedTask) {
             val contentUid = task.mediaDownloadTask.contentUid
             val title = db.contentDao().getContentByUid(contentUid).name
-
-            Log.d("DService", "Current Task Changed $position/$querySize $task")
-
+            
             scope.launch {
-                task.progressState.collect { progress ->
-                    baseBuilder
-                        .setContentTitle(title)
-                        .setContentText(service.getString(R.string.episodes_downloading_counter, position, querySize))
-                        .setProgress(100, progress.times(100).roundToInt(), progress < 0.001F)
+                helper.getQueryByGroupId(task.mediaDownloadTask.contentUid, task.mediaDownloadTask.group).collect { list ->
+                    val currentPosition = list?.indexOf(task)?.inc() ?: 0
+                    val querySize = list?.size ?: 0
 
-                    manager.notify(notificationId, baseBuilder.build())
+                    task.progressState.collect { progress ->
+                        baseBuilder
+                            .setContentTitle("$title (${task.mediaDownloadTask.group})")
+                            .setContentText(service.getString(R.string.episodes_downloading_counter, currentPosition, querySize))
+                            .setProgress(100, progress.times(100).roundToInt(), progress < 0.001F)
+
+                        manager.notify(notificationId, baseBuilder.build())
+                    }
                 }
             }
         }
@@ -145,9 +148,7 @@ class MediaDownloadsService : Service() {
             } else this.exception
         }
 
-        override fun onQueryFinish(
-            downloadQuery: DownloadsServiceHelper.DownloadQuery
-        ) {
+        override fun onLifecycleEnd() {
             val finishNotificationId = System.currentTimeMillis().div(1000).toInt()
 
             baseBuilder
@@ -162,9 +163,7 @@ class MediaDownloadsService : Service() {
 
             manager.cancel(notificationId)
             manager.notify(finishNotificationId, baseBuilder.build())
-        }
 
-        override fun onLifecycleEnd() {
             service.stopSelf()
         }
 

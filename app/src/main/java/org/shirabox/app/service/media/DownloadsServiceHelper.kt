@@ -13,6 +13,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.buffer
 import okio.sink
+import org.shirabox.app.service.media.model.DownloadState
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
@@ -23,37 +24,36 @@ import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
-import java.util.concurrent.CopyOnWriteArrayList
 
 
 class DownloadsServiceHelper(
     private val coroutineScope: CoroutineScope
 ) {
-    private val _queriesList: MutableStateFlow<List<DownloadQuery>> = MutableStateFlow(emptyList())
+    private val _queriesList: MutableStateFlow<List<EnqueuedTask>> = MutableStateFlow(emptyList())
     private val listeners: MutableList<DownloadsListener> = mutableListOf()
     private val okHttpClient = OkHttpClient()
 
-    fun enqueue(
-        contentUid: Long,
-        vararg tasks: MediaDownloadTask
-    ) {
+    fun enqueue(vararg tasks: MediaDownloadTask) {
         coroutineScope.launch {
             println("Initialing new query...")
-            val query = DownloadQuery(
-                contentUid = contentUid,
-                query = CopyOnWriteArrayList(
-                    tasks.map {
-                        EnqueuedTask(
-                            mediaDownloadTask = it,
-                        )
-                    }
+            val query = tasks.map {
+                EnqueuedTask(
+                    mediaDownloadTask = it,
                 )
-            )
+            }
 
             _queriesList.update {
-                it.toMutableList().apply { add(query) }
+                it.toMutableList().apply { addAll(query) }
             }
-            println("Queries: ${_queriesList.value.size}")
+
+            query.forEach {
+                it.state.emit(DownloadState.ENQUEUED)
+            }
+
+            println("Queries:")
+            _queriesList.value.forEach {
+                println(it)
+            }
         }
     }
 
@@ -61,69 +61,56 @@ class DownloadsServiceHelper(
      * Starts queries downloading.
      * Should be called only after full service initialization.
      */
-    suspend fun initQueryJob() {
+    internal fun initQueryJob() {
         coroutineScope.launch {
-            var queryListIterator = _queriesList.value.iterator()
+            var queryListIterator = _queriesList.value.listIterator()
 
             while (queryListIterator.hasNext()) {
-                val downloadQuery = queryListIterator.next()
-                val queryIterator = downloadQuery.query.listIterator()
+                val enqueuedTask = queryListIterator.next()
+                val exceptions: MutableMap<EnqueuedTask, Exception> = mutableMapOf()
 
-                while (queryIterator.hasNext()) {
-                    val index = queryIterator.nextIndex()
-                    val enqueuedTask = queryIterator.next()
-                    val exceptions: MutableMap<EnqueuedTask, Exception> = mutableMapOf()
+                if (enqueuedTask.state.value == DownloadState.STOPPED) continue
 
-                    if (enqueuedTask.stopState.value) continue
+                Log.d("MDSH", "Started task")
+                enqueuedTask.state.value = DownloadState.IN_PROGRESS
 
-                    Log.d("MDSH", "Started task")
+                launch {
+                    // Notify listeners about current task
+                    Log.d("MDSH", "Trying to notify listeners")
 
-                    launch {
-                        // Notify listeners about current task
-                        Log.d("MDSH", "Trying to notify listeners")
-
-                        listeners.forEach {
-                            it.onCurrentTaskChanged(
-                                task = enqueuedTask,
-                                position = index.inc(),
-                                querySize = downloadQuery.query.size
-                            )
-                        }
-                    }
-
-                    try {
-                        when (enqueuedTask.mediaDownloadTask.streamProtocol) {
-                            StreamProtocol.MPEG -> download(enqueuedTask)
-                            StreamProtocol.HLS -> downloadHLS(enqueuedTask)
-                        }
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        exceptions[enqueuedTask] = ex
-                    } finally {
-                        listeners.forEach {
-                            it.onTaskFinish(
-                                enqueuedTask,
-                                exceptions.getOrDefault(enqueuedTask, null)
-                            )
-                        }
-                        enqueuedTask.stopState.emit(true)
+                    listeners.forEach {
+                        it.onCurrentTaskChanged(enqueuedTask)
                     }
                 }
 
-                listeners.forEach {
-                    it.onQueryFinish(downloadQuery = downloadQuery)
-                    downloadQuery.query.clear()
-                }
-
-                _queriesList.update {
-                    it.toMutableList().apply { remove(downloadQuery) }
+                try {
+                    when (enqueuedTask.mediaDownloadTask.streamProtocol) {
+                        StreamProtocol.MPEG -> download(enqueuedTask)
+                        StreamProtocol.HLS -> downloadHLS(enqueuedTask)
+                    }
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                    exceptions[enqueuedTask] = ex
+                } finally {
+                    listeners.forEach {
+                        it.onTaskFinish(
+                            enqueuedTask,
+                            exceptions.getOrDefault(enqueuedTask, null)
+                        )
+                    }
+                    if (enqueuedTask.state.value != DownloadState.STOPPED) {
+                        enqueuedTask.state.emit(DownloadState.FINISHED)
+                    }
                 }
 
                 queryListIterator = _queriesList.value.listIterator()
             }
 
-            if (_queriesList.value.isEmpty()) {
-                listeners.forEach { it.onLifecycleEnd() }
+            println("Out of the cycle")
+
+            listeners.forEach { it.onLifecycleEnd() }
+            _queriesList.update {
+                it.toMutableList().apply { clear() }
             }
         }
     }
@@ -150,7 +137,7 @@ class DownloadsServiceHelper(
             var total = 0L
 
             while (count != -1) {
-                if (enqueuedTask.stopState.value) {
+                if (enqueuedTask.state.value == DownloadState.STOPPED) {
                     Log.d("MDSH", "Forcing stop...")
                     input.close()
                     if (file.exists()) file.delete()
@@ -192,7 +179,7 @@ class DownloadsServiceHelper(
 
                 if (response.isSuccessful) {
                     response.body.bytes().forEach { byte ->
-                        if(enqueuedTask.stopState.value) {
+                        if(enqueuedTask.state.value == DownloadState.STOPPED) {
                             response.close()
                             sink.close()
                             if (file.exists()) file.delete()
@@ -222,38 +209,31 @@ class DownloadsServiceHelper(
 
     fun removeListener(listener: DownloadsListener) = listeners.remove(listener)
 
-    fun getQuery(): Flow<List<DownloadQuery>> = _queriesList
+    fun getQuery(): Flow<List<EnqueuedTask>> = _queriesList
 
-    fun getQueryByGroupId(contentUid: Long, groupId: String): Flow<CopyOnWriteArrayList<EnqueuedTask>?> =
-        _queriesList.map { queries ->
-            queries
-                .filter { it.contentUid == contentUid }
-                .firstOrNull { it.query.any { task -> task.mediaDownloadTask.group == groupId } }
-                ?.query
+    fun getQueryByGroupId(contentUid: Long, groupId: String): Flow<List<EnqueuedTask>?> =
+        _queriesList.map { query ->
+            query
+                .filter { it.mediaDownloadTask.contentUid == contentUid }
+                .filter { it.mediaDownloadTask.group == groupId }
+                .filter { it.state.value != DownloadState.STOPPED }
         }
 
 
     fun getEnqueuedTask(contentUid: Long, uid: Int?): Flow<EnqueuedTask?> =
-        _queriesList.map { queryList ->
-            queryList
-                .firstOrNull { it.contentUid == contentUid }
-                ?.query
-                ?.firstOrNull { it.mediaDownloadTask.uid == uid && !it.stopState.value }
+        _queriesList.map { query ->
+            query
+                .filter { it.mediaDownloadTask.contentUid == contentUid }
+                .lastOrNull { it.mediaDownloadTask.uid == uid }
         }
 
-
-    suspend fun stopByGroupId(contentUid: Long, groupId: String) {
+    fun stopByGroupId(contentUid: Long, groupId: String) {
         _queriesList
             .value
-            .filter { it.contentUid == contentUid }
-            .filter { it.query.any { task -> task.mediaDownloadTask.group == groupId } }
-            .forEach { it.query.forEach { task -> task.stopState.emit(true) } }
+            .filter { it.mediaDownloadTask.contentUid == contentUid }
+            .filter { it.mediaDownloadTask.group == groupId }
+            .forEach { it.state.value = DownloadState.STOPPED }
     }
-
-    data class DownloadQuery(
-        val contentUid: Long,
-        val query: CopyOnWriteArrayList<EnqueuedTask>
-    )
 
     class ForcedInterruptionException : Exception()
 
