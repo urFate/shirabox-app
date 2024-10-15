@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,6 +18,8 @@ import org.shirabox.app.service.media.model.DownloadState
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
+import org.shirabox.core.db.AppDatabase
+import org.shirabox.core.entity.DownloadEntity
 import org.shirabox.core.media.HlsParser
 import org.shirabox.core.media.MpegTools
 import org.shirabox.core.model.StreamProtocol
@@ -27,7 +30,8 @@ import java.net.URL
 
 
 class DownloadsServiceHelper(
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope,
+    private val db: AppDatabase
 ) {
     private val _queriesList: MutableStateFlow<List<EnqueuedTask>> = MutableStateFlow(emptyList())
     private val listeners: MutableList<DownloadsListener> = mutableListOf()
@@ -137,20 +141,36 @@ class DownloadsServiceHelper(
             var total = 0L
 
             while (count != -1) {
-                if (enqueuedTask.state.value == DownloadState.STOPPED) {
-                    Log.d("MDSH", "Forcing stop...")
-                    input.close()
-                    if (file.exists()) file.delete()
+                val pausedProgress = enqueuedTask.mediaDownloadTask.pausedProgress
+                val currentProgress = total.toFloat() / length
 
-                    throw ForcedInterruptionException()
+                when (enqueuedTask.state.value) {
+                    DownloadState.PAUSED -> {
+                        input.close()
+                        output.close()
+                        throw ForcedInterruptionException()
+                    }
+                    DownloadState.STOPPED -> {
+                        input.close()
+                        output.close()
+                        if (file.exists()) file.delete()
+
+                        throw ForcedInterruptionException()
+                    }
+                    else -> {
+                        if (pausedProgress != null && (pausedProgress <= currentProgress) ) {
+                            total += count
+                            count = input.read(bytes)
+                            continue
+                        }
+                    }
                 }
 
                 total += count
                 output.write(bytes, 0, count)
-
-                val progress = total.toFloat() / length
                 count = input.read(bytes)
 
+                val progress = total.toFloat() / length
                 enqueuedTask.progressState.emit(progress)
             }
 
@@ -163,6 +183,7 @@ class DownloadsServiceHelper(
     private suspend fun downloadHLS(enqueuedTask: EnqueuedTask) {
         withContext(Dispatchers.IO) {
             val mediaDownloadTask = enqueuedTask.mediaDownloadTask
+            val pausedProgress = enqueuedTask.mediaDownloadTask.pausedProgress
 
             val segmentsList = HlsParser.parseUrl(mediaDownloadTask.url)
 
@@ -174,27 +195,41 @@ class DownloadsServiceHelper(
             val sink = file.sink().buffer()
 
             segmentsList.forEachIndexed { index, segmentUrl ->
+                val progress = index.inc() / segmentsList.size.toFloat()
+
+                // Skip cycle until we reach previous progress
+                pausedProgress?.let {
+                    if (progress <= pausedProgress) return@forEachIndexed
+                }
+
                 val request = Request.Builder().url(segmentUrl).build()
                 val response = okHttpClient.newCall(request).execute()
 
                 if (response.isSuccessful) {
                     response.body.bytes().forEach { byte ->
-                        if(enqueuedTask.state.value == DownloadState.STOPPED) {
-                            response.close()
-                            sink.close()
-                            if (file.exists()) file.delete()
+                        when (enqueuedTask.state.value) {
+                            DownloadState.PAUSED -> {
+                                response.close()
+                                sink.close()
 
-                            throw ForcedInterruptionException()
+                                throw ForcedInterruptionException()
+                            }
+                            DownloadState.STOPPED -> {
+                                response.close()
+                                sink.close()
+                                if (file.exists()) file.delete()
+
+                                throw ForcedInterruptionException()
+                            }
+                            else -> sink.writeByte(byte.toInt())
                         }
-
-                        sink.writeByte(byte.toInt())
                     }
 
                     sink.flush()
                     response.close()
                 }
 
-                enqueuedTask.progressState.emit(index.inc() / segmentsList.size.toFloat())
+                enqueuedTask.progressState.emit(progress)
             }
 
             sink.close()
@@ -215,7 +250,7 @@ class DownloadsServiceHelper(
         _queriesList.map { query ->
             query
                 .filter { it.mediaDownloadTask.contentUid == contentUid }
-                .filter { it.mediaDownloadTask.group == groupId }
+                .filter { it.mediaDownloadTask.groupId == groupId }
                 .filter { it.state.value != DownloadState.STOPPED }
         }
 
@@ -227,11 +262,44 @@ class DownloadsServiceHelper(
                 .lastOrNull { it.mediaDownloadTask.uid == uid }
         }
 
+    fun pauseEnqueuedTask(task: EnqueuedTask) {
+        coroutineScope.launch {
+            task.state.value = DownloadState.PAUSED
+
+            task.state.collect { state ->
+                if (state == DownloadState.FINISHED) {
+                    val mediaDownloadTask = task.mediaDownloadTask
+
+                    db.downloadDao().insertDownload(
+                        DownloadEntity(
+                            url = mediaDownloadTask.url,
+                            file = mediaDownloadTask.file,
+                            pausedProgress = task.progressState.value,
+                            quality = mediaDownloadTask.quality,
+                            streamProtocol = mediaDownloadTask.streamProtocol,
+                            group = mediaDownloadTask.groupId,
+                            contentUid = mediaDownloadTask.contentUid,
+                            episodeUid = mediaDownloadTask.uid
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun pauseGroup(contentUid: Long, groupId: String) {
+        coroutineScope.launch {
+            getQueryByGroupId(contentUid, groupId).last()?.forEach {
+                pauseEnqueuedTask(it)
+            }
+        }
+    }
+
     fun stopByGroupId(contentUid: Long, groupId: String) {
         _queriesList
             .value
             .filter { it.mediaDownloadTask.contentUid == contentUid }
-            .filter { it.mediaDownloadTask.group == groupId }
+            .filter { it.mediaDownloadTask.groupId == groupId }
             .forEach { it.state.value = DownloadState.STOPPED }
     }
 

@@ -226,7 +226,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                         file = destination.path,
                         quality = quality,
                         streamProtocol = repository.streamingType,
-                        group = entity.actingTeamName,
+                        groupId = entity.actingTeamName,
                         contentUid = entity.contentUid,
                         uid = entity.uid
                     )

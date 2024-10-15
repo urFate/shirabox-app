@@ -7,8 +7,9 @@ data class MediaDownloadTask(
     val url: String,
     val file: String,
     val quality: Quality,
+    val pausedProgress: Float? = null,
     val streamProtocol: StreamProtocol,
-    val group: String,
+    val groupId: String,
     val contentUid: Long,
     val uid: Int?
 )

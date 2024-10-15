@@ -26,11 +26,12 @@ class MediaDownloadsService : Service() {
     companion object {
         private const val CHANNEL_ID = "SB_DOWNLOADS"
         private lateinit var db: AppDatabase
+        private lateinit var _helper: DownloadsServiceHelper
 
         private val job = SupervisorJob()
         private val scope = CoroutineScope(Dispatchers.IO + job)
 
-        val helper = DownloadsServiceHelper(scope)
+        val helper = _helper
     }
 
     private lateinit var listener: DListener
@@ -40,6 +41,7 @@ class MediaDownloadsService : Service() {
         Log.d("DOWNLOADS_D", "Service started.")
 
         db = AppDatabase.getAppDataBase(this@MediaDownloadsService)!!
+        _helper = DownloadsServiceHelper(scope, db)
 
         scope.launch {
             if (initStartId == null) {
@@ -112,13 +114,13 @@ class MediaDownloadsService : Service() {
             val title = db.contentDao().getContentByUid(contentUid).name
             
             scope.launch {
-                helper.getQueryByGroupId(task.mediaDownloadTask.contentUid, task.mediaDownloadTask.group).collect { list ->
+                helper.getQueryByGroupId(task.mediaDownloadTask.contentUid, task.mediaDownloadTask.groupId).collect { list ->
                     val currentPosition = list?.indexOf(task)?.inc() ?: 0
                     val querySize = list?.size ?: 0
 
                     task.progressState.collect { progress ->
                         baseBuilder
-                            .setContentTitle("$title (${task.mediaDownloadTask.group})")
+                            .setContentTitle("$title (${task.mediaDownloadTask.groupId})")
                             .setContentText(service.getString(R.string.episodes_downloading_counter, currentPosition, querySize))
                             .setProgress(100, progress.times(100).roundToInt(), progress < 0.001F)
 
