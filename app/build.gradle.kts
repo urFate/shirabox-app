@@ -101,7 +101,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // Compose UI
-    implementation(libs.de.mr.pine.utils.zoomables)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.material.icons.extended)
