@@ -35,5 +35,5 @@ object ValuesHelper {
     }
 
     fun buildOfflineMediaPath(contentUid: Long, quality: Quality, fileName: String) =
-        "/$contentUid}/$quality/$fileName.mp4"
+        "/$contentUid/$quality/$fileName.mp4"
 }

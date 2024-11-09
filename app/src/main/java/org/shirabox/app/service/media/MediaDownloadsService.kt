@@ -26,12 +26,9 @@ class MediaDownloadsService : Service() {
     companion object {
         private const val CHANNEL_ID = "SB_DOWNLOADS"
         private lateinit var db: AppDatabase
-        private lateinit var _helper: DownloadsServiceHelper
 
         private val job = SupervisorJob()
         private val scope = CoroutineScope(Dispatchers.IO + job)
-
-        val helper = _helper
     }
 
     private lateinit var listener: DListener
@@ -39,14 +36,12 @@ class MediaDownloadsService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("DOWNLOADS_D", "Service started.")
-
-        db = AppDatabase.getAppDataBase(this@MediaDownloadsService)!!
-        _helper = DownloadsServiceHelper(scope, db)
-
+        
         scope.launch {
             if (initStartId == null) {
+                db = AppDatabase.getAppDataBase(this@MediaDownloadsService)!!
                 initNotification()
-                helper.initQueryJob()
+                DownloadsServiceHelper.initQueryJob()
                 initStartId = startId
             }
         }
@@ -58,8 +53,8 @@ class MediaDownloadsService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        println("Destroying service...")
-        helper.removeListener(listener)
+
+        DownloadsServiceHelper.removeListener(listener)
         initStartId = null
     }
 
@@ -83,7 +78,7 @@ class MediaDownloadsService : Service() {
 
         listener = DListener(manager, builder, this)
 
-        helper.addListener(listener)
+        DownloadsServiceHelper.addListener(listener)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -94,7 +89,6 @@ class MediaDownloadsService : Service() {
     ).apply {
         description = context.getString(R.string.downloads_notification_channel_desc)
         lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
-
     }
 
     private class DListener(
@@ -114,19 +108,20 @@ class MediaDownloadsService : Service() {
             val title = db.contentDao().getContentByUid(contentUid).name
             
             scope.launch {
-                helper.getQueryByGroupId(task.mediaDownloadTask.contentUid, task.mediaDownloadTask.groupId).collect { list ->
-                    val currentPosition = list?.indexOf(task)?.inc() ?: 0
-                    val querySize = list?.size ?: 0
+                DownloadsServiceHelper.getQueryByGroupId(task.mediaDownloadTask.contentUid, task.mediaDownloadTask.groupId)
+                    .collect { list ->
+                        val currentPosition = list?.indexOf(task)?.inc() ?: 0
+                        val querySize = list?.size ?: 0
 
-                    task.progressState.collect { progress ->
-                        baseBuilder
-                            .setContentTitle("$title (${task.mediaDownloadTask.groupId})")
-                            .setContentText(service.getString(R.string.episodes_downloading_counter, currentPosition, querySize))
-                            .setProgress(100, progress.times(100).roundToInt(), progress < 0.001F)
+                        task.progressState.collect { progress ->
+                            baseBuilder
+                                .setContentTitle("$title (${task.mediaDownloadTask.groupId})")
+                                .setContentText(service.getString(R.string.episodes_downloading_counter, currentPosition, querySize))
+                                .setProgress(100, progress.times(100).roundToInt(), progress < 0.001F)
 
-                        manager.notify(notificationId, baseBuilder.build())
+                            manager.notify(notificationId, baseBuilder.build())
+                        }
                     }
-                }
             }
         }
 
@@ -136,12 +131,10 @@ class MediaDownloadsService : Service() {
                 val mediaDownloadTask = task.mediaDownloadTask
 
                 scope.launch {
-                    mediaDownloadTask.uid?.let {
-                        writeDownloadPath(
-                            uid = it,
-                            task = mediaDownloadTask
-                        )
-                    }
+                    writeDownloadPath(
+                        uid = mediaDownloadTask.uid,
+                        task = mediaDownloadTask
+                    )
                 }
             }
 

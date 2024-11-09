@@ -1,9 +1,9 @@
 package org.shirabox.app.service.media.model
 
-enum class DownloadState {
+enum class TaskState() {
     ENQUEUED,
     IN_PROGRESS,
-    FINISHED,
+    PAUSED,
     STOPPED,
-    PAUSED
+    FINISHED
 }

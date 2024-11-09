@@ -8,25 +8,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileDownloadDone
-import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import org.shirabox.app.R
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import org.shirabox.app.ui.activity.downloads.presentation.DownloadsTab
 import org.shirabox.app.ui.activity.downloads.presentation.DownloadsTopBar
 import org.shirabox.app.ui.theme.ShiraBoxTheme
 
+@AndroidEntryPoint
 class DownloadsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +40,8 @@ class DownloadsActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadsScreen() {
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState { DownloadsTabsItems.items.size }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -52,28 +51,33 @@ fun DownloadsScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             PrimaryTabRow(
-                selectedTabIndex = selectedTabIndex,
+                selectedTabIndex = pagerState.currentPage,
                 divider = {
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth()
                     )
                 },
                 tabs = {
-                    DownloadsTab(
-                        text = stringResource(R.string.downloads_query),
-                        icon = Icons.Outlined.FileDownload,
-                        selected = selectedTabIndex == 0,
-                        onClick = { selectedTabIndex = 0 }
-                    )
-
-                    DownloadsTab(
-                        text = stringResource(R.string.downloads_saved),
-                        icon = Icons.Filled.FileDownloadDone,
-                        selected = selectedTabIndex == 1,
-                        onClick = { selectedTabIndex = 1 }
-                    )
+                    DownloadsTabsItems.items.forEachIndexed { index, item ->
+                        DownloadsTab(
+                            text = stringResource(item.name),
+                            icon = item.icon,
+                            selected = pagerState.currentPage == index,
+                            onClick = {
+                                coroutineScope.launch {
+                                    pagerState.scrollToPage(index)
+                                }
+                            }
+                        )
+                    }
                 }
             )
+
+            HorizontalPager(
+                state = pagerState
+            ) { index ->
+                DownloadsTabsItems.items[index].content()
+            }
         }
     }
 }

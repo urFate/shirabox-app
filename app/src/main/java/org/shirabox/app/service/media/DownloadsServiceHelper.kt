@@ -3,6 +3,7 @@ package org.shirabox.app.service.media
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.last
@@ -14,10 +15,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.buffer
 import okio.sink
-import org.shirabox.app.service.media.model.DownloadState
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
+import org.shirabox.app.service.media.model.TaskState
 import org.shirabox.core.db.AppDatabase
 import org.shirabox.core.entity.DownloadEntity
 import org.shirabox.core.media.HlsParser
@@ -29,11 +30,9 @@ import java.io.FileOutputStream
 import java.net.URL
 
 
-class DownloadsServiceHelper(
-    private val coroutineScope: CoroutineScope,
-    private val db: AppDatabase
-) {
+object DownloadsServiceHelper {
     private val _queriesList: MutableStateFlow<List<EnqueuedTask>> = MutableStateFlow(emptyList())
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val listeners: MutableList<DownloadsListener> = mutableListOf()
     private val okHttpClient = OkHttpClient()
 
@@ -51,7 +50,7 @@ class DownloadsServiceHelper(
             }
 
             query.forEach {
-                it.state.emit(DownloadState.ENQUEUED)
+                it.state.emit(TaskState.ENQUEUED)
             }
 
             println("Queries:")
@@ -73,10 +72,12 @@ class DownloadsServiceHelper(
                 val enqueuedTask = queryListIterator.next()
                 val exceptions: MutableMap<EnqueuedTask, Exception> = mutableMapOf()
 
-                if (enqueuedTask.state.value == DownloadState.STOPPED) continue
+                when (enqueuedTask.state.value) {
+                    TaskState.STOPPED, TaskState.FINISHED, TaskState.PAUSED -> continue
+                    else -> enqueuedTask.state.value = TaskState.IN_PROGRESS
+                }
 
                 Log.d("MDSH", "Started task")
-                enqueuedTask.state.value = DownloadState.IN_PROGRESS
 
                 launch {
                     // Notify listeners about current task
@@ -102,8 +103,8 @@ class DownloadsServiceHelper(
                             exceptions.getOrDefault(enqueuedTask, null)
                         )
                     }
-                    if (enqueuedTask.state.value != DownloadState.STOPPED) {
-                        enqueuedTask.state.emit(DownloadState.FINISHED)
+                    if (enqueuedTask.state.value != TaskState.STOPPED) {
+                        enqueuedTask.state.emit(TaskState.FINISHED)
                     }
                 }
 
@@ -145,12 +146,12 @@ class DownloadsServiceHelper(
                 val currentProgress = total.toFloat() / length
 
                 when (enqueuedTask.state.value) {
-                    DownloadState.PAUSED -> {
+                    TaskState.PAUSED -> {
                         input.close()
                         output.close()
                         throw ForcedInterruptionException()
                     }
-                    DownloadState.STOPPED -> {
+                    TaskState.STOPPED -> {
                         input.close()
                         output.close()
                         if (file.exists()) file.delete()
@@ -208,13 +209,13 @@ class DownloadsServiceHelper(
                 if (response.isSuccessful) {
                     response.body.bytes().forEach { byte ->
                         when (enqueuedTask.state.value) {
-                            DownloadState.PAUSED -> {
+                            TaskState.PAUSED -> {
                                 response.close()
                                 sink.close()
 
                                 throw ForcedInterruptionException()
                             }
-                            DownloadState.STOPPED -> {
+                            TaskState.STOPPED -> {
                                 response.close()
                                 sink.close()
                                 if (file.exists()) file.delete()
@@ -251,7 +252,7 @@ class DownloadsServiceHelper(
             query
                 .filter { it.mediaDownloadTask.contentUid == contentUid }
                 .filter { it.mediaDownloadTask.groupId == groupId }
-                .filter { it.state.value != DownloadState.STOPPED }
+                .filter { it.state.value != TaskState.STOPPED }
         }
 
 
@@ -262,12 +263,12 @@ class DownloadsServiceHelper(
                 .lastOrNull { it.mediaDownloadTask.uid == uid }
         }
 
-    fun pauseEnqueuedTask(task: EnqueuedTask) {
+    fun pauseEnqueuedTask(db: AppDatabase, task: EnqueuedTask) {
         coroutineScope.launch {
-            task.state.value = DownloadState.PAUSED
+            task.state.value = TaskState.PAUSED
 
             task.state.collect { state ->
-                if (state == DownloadState.FINISHED) {
+                if (state == TaskState.FINISHED) {
                     val mediaDownloadTask = task.mediaDownloadTask
 
                     db.downloadDao().insertDownload(
@@ -287,10 +288,18 @@ class DownloadsServiceHelper(
         }
     }
 
-    fun pauseGroup(contentUid: Long, groupId: String) {
+    fun pauseQuery(db: AppDatabase) {
+        coroutineScope.launch {
+            _queriesList.value.forEach {
+                pauseEnqueuedTask(db, it)
+            }
+        }
+    }
+
+    fun pauseGroup(db: AppDatabase, contentUid: Long, groupId: String) {
         coroutineScope.launch {
             getQueryByGroupId(contentUid, groupId).last()?.forEach {
-                pauseEnqueuedTask(it)
+                pauseEnqueuedTask(db, it)
             }
         }
     }
@@ -300,7 +309,7 @@ class DownloadsServiceHelper(
             .value
             .filter { it.mediaDownloadTask.contentUid == contentUid }
             .filter { it.mediaDownloadTask.groupId == groupId }
-            .forEach { it.state.value = DownloadState.STOPPED }
+            .forEach { it.state.value = TaskState.STOPPED }
     }
 
     class ForcedInterruptionException : Exception()

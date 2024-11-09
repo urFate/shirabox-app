@@ -253,7 +253,15 @@
     <string name="cancel_installation">Отменить загрузку</string>
     <string name="download_error">Произшла ошибка. Повторите попытку позже.</string>
     <string name="remaining">Осталось %s</string>
-    
+
+    <!--
+        Downloads Activity
+    -->
+    <string name="downloads_activity_title">Загрузки</string>
+    <string name="downloads_query">Очередь</string>
+    <string name="downloads_suspended">Отложено</string>
+    <string name="downloads_saved">Загружено</string>
+
     <!--
         Notifications & services
     -->
@@ -280,4 +288,5 @@
         <item quantity="many">%d секунд</item>
         <item quantity="other">%d секунды</item>
     </plurals>
+    <string name="title_activity_downloads">DownloadsActivity</string>
 </resources>

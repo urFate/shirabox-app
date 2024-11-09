@@ -1,5 +1,6 @@
 package org.shirabox.core.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.shirabox.core.model.Quality
@@ -7,13 +8,14 @@ import org.shirabox.core.model.StreamProtocol
 
 @Entity(tableName = "download")
 data class DownloadEntity(
-    @PrimaryKey(autoGenerate = true) val uid: Long = 0,
-    val url: String,
-    val file: String,
-    val pausedProgress: Float,
-    val quality: Quality,
-    val streamProtocol: StreamProtocol,
-    val group: String,
-    val contentUid: Long,
-    val episodeUid: Int?
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "uid") val uid: Long = 0,
+    @ColumnInfo(name = "url") val url: String,
+    @ColumnInfo(name = "file") val file: String,
+    @ColumnInfo(name = "paused_progress") val pausedProgress: Float,
+    @ColumnInfo(name = "quality") val quality: Quality,
+    @ColumnInfo(name = "stream_protocol") val streamProtocol: StreamProtocol,
+    @ColumnInfo(name = "group") val group: String,
+    @ColumnInfo(name = "content_uid") val contentUid: Long,
+    @ColumnInfo(name = "episode_uid") val episodeUid: Int
 )

@@ -3,7 +3,6 @@ package org.shirabox.app.ui.activity.resource
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.shirabox.app.ValuesHelper
+import org.shirabox.app.service.media.DownloadsServiceHelper
 import org.shirabox.app.service.media.MediaDownloadsService
 import org.shirabox.app.service.media.model.MediaDownloadTask
 import org.shirabox.core.datastore.AppDataStore
@@ -53,7 +53,6 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val relatedContents = mutableStateListOf<Content>()
 
     val internalContentUid = mutableLongStateOf(-1)
-    val downloadGroupId = mutableIntStateOf(-1)
 
     val isFavourite = mutableStateOf(false)
     val episodesNotifications = mutableStateOf(false)
@@ -203,6 +202,9 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         viewModelScope.launch(Dispatchers.IO) {
             val tasks = episodes
                 .filter {
+                    it.uid != null
+                }
+                .filter {
                     it.offlineVideos.isNullOrEmpty()
                 }
                 .map { entity ->
@@ -222,18 +224,19 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                         ?: entity.videos.toSortedMap(compareBy { it.quality }).values.last()
 
                     MediaDownloadTask(
+                        uid = entity.uid!!,
                         url = url,
                         file = destination.path,
                         quality = quality,
                         streamProtocol = repository.streamingType,
                         groupId = entity.actingTeamName,
-                        contentUid = entity.contentUid,
-                        uid = entity.uid
+                        content = content.value!!,
+                        contentUid = entity.contentUid
                     )
             }
 
             context.startService(Intent(context, MediaDownloadsService::class.java))
-            MediaDownloadsService.helper.enqueue(*tasks.toTypedArray())
+            DownloadsServiceHelper.enqueue(*tasks.toTypedArray())
         }
     }
 
