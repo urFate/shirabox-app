@@ -22,15 +22,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import org.shirabox.app.service.media.model.EnqueuedTask
+import org.shirabox.app.service.media.model.TaskState
 import org.shirabox.app.ui.activity.downloads.DownloadsViewModel
+import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTaskItem
 import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTeamItem
+import org.shirabox.core.model.Content
 
 @Composable
 fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
@@ -63,7 +71,9 @@ fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
                 exit = fadeOut()
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(0.dp, 128.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp, 128.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -92,16 +102,11 @@ fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
                             }
 
                             if (!isEmpty) {
-                                Column {
-                                    EnqueuedTeamItem(
-                                        modifier = Modifier.padding(0.dp, 16.dp),
-                                        title = contentEntry.key.name,
-                                        team = team,
-                                        tasks = enqueuedTasks
-                                    )
-
-                                    HorizontalDivider(modifier = Modifier.padding(32.dp, 4.dp).fillMaxWidth())
-                                }
+                                TeamSectionItem(
+                                    content = contentEntry.key,
+                                    team = team,
+                                    enqueuedTasks = enqueuedTasks
+                                )
                             }
                         }
                     }
@@ -109,4 +114,72 @@ fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
             }
         }
     }
+}
+
+@Composable
+internal fun TeamSectionItem(
+    content: Content,
+    team: String,
+    enqueuedTasks: List<EnqueuedTask>,
+    model: DownloadsViewModel = hiltViewModel()
+) {
+    val finishedTasks = remember { mutableIntStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
+
+    EnqueuedTeamItem(
+        modifier = Modifier.padding(0.dp, 16.dp),
+        title = content.name,
+        tasksAmount = enqueuedTasks.size,
+        team = team,
+        finished = finishedTasks.intValue
+    ) {
+        enqueuedTasks.forEach { task ->
+            val episodeFlow =
+                model.episodesFlow(task.mediaDownloadTask.uid)
+                    .collectAsStateWithLifecycle(null)
+            val taskProgressFlow =
+                task.progressState.collectAsStateWithLifecycle(0f)
+            val taskStateFlow =
+                task.state.collectAsStateWithLifecycle(TaskState.ENQUEUED)
+
+            LaunchedEffect(taskStateFlow.value) {
+                if (taskStateFlow.value == TaskState.FINISHED) {
+                    finishedTasks.intValue++
+                }
+            }
+
+            episodeFlow.value?.let { episode ->
+                when (taskStateFlow.value) {
+                    TaskState.STOPPED, TaskState.FINISHED, TaskState.PAUSED -> return@let
+                    else -> {
+                        EnqueuedTaskItem(
+                            modifier = Modifier
+                                .padding(16.dp, 0.dp)
+                                .fillMaxWidth(),
+                            episode = episode.episode,
+                            name = episode.name
+                                ?: "Серия #${episode.episode}",
+                            progress = taskProgressFlow.value,
+                            onPause = {
+                                model.pauseTask(task)
+                            },
+                            onCancel = {
+                                coroutineScope.launch {
+                                    task.state.emit(
+                                        TaskState.STOPPED
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    HorizontalDivider(
+        modifier = Modifier
+            .padding(16.dp, 4.dp)
+            .fillMaxWidth()
+    )
 }

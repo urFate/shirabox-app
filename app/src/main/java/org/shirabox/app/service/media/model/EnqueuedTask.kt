@@ -5,5 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 data class EnqueuedTask(
     val mediaDownloadTask: MediaDownloadTask,
     val state: MutableStateFlow<TaskState> = MutableStateFlow(TaskState.ENQUEUED),
-    val progressState: MutableStateFlow<Float> = MutableStateFlow(0.0f)
+    val progressState: MutableStateFlow<Float> = MutableStateFlow(0.0f),
+    var pausedBytes: Long? = null,
+    var pausedHlsFragment: Int? = null,
 )

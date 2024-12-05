@@ -81,6 +81,7 @@ import org.shirabox.app.ComposeUtils.bottomSheetDynamicNavColor
 import org.shirabox.app.R
 import org.shirabox.app.service.media.DownloadsServiceHelper
 import org.shirabox.app.service.media.model.TaskState
+import org.shirabox.app.ui.activity.downloads.DownloadsActivity
 import org.shirabox.app.ui.activity.player.PlayerActivity
 import org.shirabox.app.ui.component.general.ExtendedListItem
 import org.shirabox.app.ui.component.general.QualityDialog
@@ -103,7 +104,7 @@ fun ResourceBottomSheet(
         mutableStateOf<ResourceSheetScreen>(ResourceSheetScreen.Sources(model))
     }
 
-    val episodesState = model.fetchCachedEpisodes().collectAsState(initial = emptyList())
+    val episodesState = model.cachedEpisodesFlow().collectAsState(initial = emptyList())
 
     val episodes = remember(episodesState.value, model.internalContentUid) {
         model.internalContentUid.longValue.let { uid ->
@@ -295,6 +296,7 @@ fun EpisodesSheetScreen(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
     val coroutineScope = rememberCoroutineScope()
+    val pausedTasks = model.pausedTasksFlow().collectAsStateWithLifecycle(emptyList())
 
     bottomSheetDynamicNavColor(state)
 
@@ -428,7 +430,7 @@ fun EpisodesSheetScreen(
                         } else episodeEntity.name.toString()
 
                         val isViewed = episodeEntity.watchingTime > 0
-                        val isOffline = episodeEntity.offlineVideos?.isNotEmpty() ?: false
+                        val isOffline = episodeEntity.offlineVideos?.isNotEmpty() == true
                         val textColor = if (isViewed)
                             Color.Gray else Color.Unspecified
 
@@ -444,6 +446,10 @@ fun EpisodesSheetScreen(
 
                         val isTaskEnqueued = remember(taskState?.value) {
                             taskState?.value == TaskState.ENQUEUED || taskState?.value == TaskState.IN_PROGRESS
+                        }
+
+                        val pausedTask = remember(pausedTasks.value.size) {
+                            pausedTasks.value.firstOrNull { it.episodeUid == episodeEntity.uid }
                         }
 
                         ListItem(
@@ -496,15 +502,19 @@ fun EpisodesSheetScreen(
                                         )
                                     }
                                 } else {
-                                    DownloadButton(
-                                        isDownloading = isTaskEnqueued,
-                                        progress = downloadProgress?.value ?: 0.0f
-                                    ) {
-                                        if (!isTaskEnqueued) {
-                                            qualityDialogVisible.value = true
-                                        } else {
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                enqueuedDownloadingTask?.value?.state?.emit(TaskState.STOPPED)
+                                    if (pausedTask != null) {
+                                        PausedTaskButton(pausedTask.pausedProgress)
+                                    } else {
+                                        DownloadButton(
+                                            isDownloading = isTaskEnqueued,
+                                            progress = downloadProgress?.value ?: 0.0f
+                                        ) {
+                                            if (!isTaskEnqueued) {
+                                                qualityDialogVisible.value = true
+                                            } else {
+                                                coroutineScope.launch(Dispatchers.IO) {
+                                                    enqueuedDownloadingTask.value?.state?.emit(TaskState.STOPPED)
+                                                }
                                             }
                                         }
                                     }
@@ -585,8 +595,6 @@ private fun TeamListItem(
     }
 
     LaunchedEffect(enqueuedDownloadingTasks) {
-        println("Enqueued tasks list fired effect")
-
         if (isGroupEnqueued) {
             val summaryProgress = mutableMapOf<Int, Float>()
 
@@ -725,6 +733,40 @@ private fun DownloadButton(isDownloading: Boolean, progress: Float, onClick: () 
                     ImageVector.vectorResource(id = R.drawable.download_for_offline)
                 },
                 contentDescription = "download"
+            )
+        }
+    }
+}
+
+@Composable
+fun PausedTaskButton(pausedProgress: Float) {
+    val context = LocalContext.current
+
+    IconButton(
+        onClick = {
+            context.startActivity(
+                Intent(
+                    context,
+                    DownloadsActivity::class.java
+                ).apply { putExtra("tab", 1) })
+        }
+    ) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                progress = { pausedProgress },
+                trackColor = ProgressIndicatorDefaults.circularDeterminateTrackColor,
+                strokeWidth = 2.dp
+            )
+
+            Icon(
+                modifier = Modifier
+                    .animateContentSize()
+                    .size(16.dp),
+                imageVector = Icons.Rounded.PlayArrow,
+                contentDescription = "resume"
             )
         }
     }

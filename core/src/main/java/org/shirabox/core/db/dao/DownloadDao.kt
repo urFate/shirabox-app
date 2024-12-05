@@ -13,6 +13,12 @@ import org.shirabox.core.entity.relation.DownloadAndContent
 
 @Dao
 interface DownloadDao {
+    @Query("SELECT * FROM download")
+    fun all(): Flow<List<DownloadEntity>>
+
+    @Query("SELECT * FROM download")
+    fun allSingleWithContent(): List<DownloadAndContent>
+
     @Transaction
     @Query("SELECT * FROM download")
     fun allWithContent(): Flow<List<DownloadAndContent>>

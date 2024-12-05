@@ -28,6 +28,7 @@ import org.shirabox.app.service.media.model.MediaDownloadTask
 import org.shirabox.core.datastore.AppDataStore
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.db.AppDatabase
+import org.shirabox.core.entity.DownloadEntity
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.ActingTeam
 import org.shirabox.core.model.Content
@@ -107,7 +108,12 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                         var anime = shikimoriContent
 
                         // Set shirabox API data
-                        anime = shiraBoxAnime.value?.let { anime.copy(shiraboxId = it.id, image = it.image) } ?: anime
+                        anime = shiraBoxAnime.value?.let {
+                            anime.copy(
+                                shiraboxId = it.id,
+                                image = it.image
+                            )
+                        } ?: anime
 
                         when(cachedData){
                             null -> {
@@ -157,8 +163,10 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         }
     }
 
-    fun fetchCachedEpisodes():
+    fun cachedEpisodesFlow():
             Flow<List<EpisodeEntity>> = db.episodeDao().all()
+
+    fun pausedTasksFlow(): Flow<List<DownloadEntity>> = db.downloadDao().all()
 
     fun fetchEpisodes(content: Content) {
         val finishedDeferred = viewModelScope.async(Dispatchers.IO) {
@@ -236,7 +244,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
             }
 
             context.startService(Intent(context, MediaDownloadsService::class.java))
-            DownloadsServiceHelper.enqueue(*tasks.toTypedArray())
+            DownloadsServiceHelper.enqueue(db = db, *tasks.toTypedArray())
         }
     }
 

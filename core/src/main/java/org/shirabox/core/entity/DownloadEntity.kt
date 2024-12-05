@@ -12,6 +12,8 @@ data class DownloadEntity(
     @ColumnInfo(name = "uid") val uid: Long = 0,
     @ColumnInfo(name = "url") val url: String,
     @ColumnInfo(name = "file") val file: String,
+    @ColumnInfo(name = "mpeg_bytes") val mpegBytes: Long,
+    @ColumnInfo(name = "hls_fragment") val hlsFragment: Int?,
     @ColumnInfo(name = "paused_progress") val pausedProgress: Float,
     @ColumnInfo(name = "quality") val quality: Quality,
     @ColumnInfo(name = "stream_protocol") val streamProtocol: StreamProtocol,

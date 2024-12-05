@@ -11,10 +11,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okio.buffer
-import okio.sink
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
@@ -24,6 +20,7 @@ import org.shirabox.core.entity.DownloadEntity
 import org.shirabox.core.media.HlsParser
 import org.shirabox.core.media.MpegTools
 import org.shirabox.core.model.StreamProtocol
+import org.shirabox.core.util.Util
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -34,16 +31,46 @@ object DownloadsServiceHelper {
     private val _queriesList: MutableStateFlow<List<EnqueuedTask>> = MutableStateFlow(emptyList())
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val listeners: MutableList<DownloadsListener> = mutableListOf()
-    private val okHttpClient = OkHttpClient()
 
-    fun enqueue(vararg tasks: MediaDownloadTask) {
+    fun enqueue(db: AppDatabase, vararg tasks: MediaDownloadTask) {
         coroutineScope.launch {
             println("Initialing new query...")
-            val query = tasks.map {
-                EnqueuedTask(
-                    mediaDownloadTask = it,
-                )
-            }
+
+            val pausedTasks = db.downloadDao().allSingleWithContent()
+                .filter { pausedTask -> tasks.any { it.uid == pausedTask.downloadEntity.episodeUid } }
+
+            val query = tasks
+                .filter { task -> pausedTasks.none { it.downloadEntity.episodeUid == task.uid } }
+                .map {
+                    EnqueuedTask(
+                        mediaDownloadTask = it,
+                    )
+                }
+                .toMutableList()
+                .apply {
+                    addAll(
+                        pausedTasks.map {
+                            val mediaDownloadTask = MediaDownloadTask(
+                                uid = it.downloadEntity.episodeUid,
+                                url = it.downloadEntity.url,
+                                file = it.downloadEntity.file,
+                                startFrom = it.downloadEntity.mpegBytes,
+                                startFromFragment = it.downloadEntity.hlsFragment,
+                                quality = it.downloadEntity.quality,
+                                streamProtocol = it.downloadEntity.streamProtocol,
+                                groupId = it.downloadEntity.group,
+                                content = Util.mapEntityToContent(it.contentEntity),
+                                contentUid = it.contentEntity.uid
+                            )
+
+                            EnqueuedTask(
+                                mediaDownloadTask = mediaDownloadTask,
+                                pausedBytes = mediaDownloadTask.startFrom,
+                                pausedHlsFragment = mediaDownloadTask.startFromFragment
+                            )
+                        }
+                    )
+                }
 
             _queriesList.update {
                 it.toMutableList().apply { addAll(query) }
@@ -123,32 +150,32 @@ object DownloadsServiceHelper {
     private suspend fun download(enqueuedTask: EnqueuedTask) {
         withContext(Dispatchers.IO) {
             val mediaDownloadTask = enqueuedTask.mediaDownloadTask
+            val pausedBytes = enqueuedTask.pausedBytes ?: 0L
 
             val url = URL(mediaDownloadTask.url)
             val file = File(mediaDownloadTask.file)
 
-            file.mkdirs()
-            if (file.exists()) file.delete()
-            file.createNewFile()
+            file.parentFile?.mkdirs()
+            if (!file.exists()) file.createNewFile()
 
             val length = url.openConnection().apply {
+                if (pausedBytes > 0L) setRequestProperty("Range", "bytes=$pausedBytes-")
                 connect()
-            }.contentLength
+            }.contentLengthLong
 
             val input = BufferedInputStream(url.openStream(), 8192)
-            val output = FileOutputStream(mediaDownloadTask.file)
+            val output = FileOutputStream(file, true)
             val bytes = ByteArray(1024)
             var count = input.read(bytes)
-            var total = 0L
+            var total = pausedBytes
 
             while (count != -1) {
-                val pausedProgress = enqueuedTask.mediaDownloadTask.pausedProgress
-                val currentProgress = total.toFloat() / length
-
                 when (enqueuedTask.state.value) {
                     TaskState.PAUSED -> {
                         input.close()
                         output.close()
+                        enqueuedTask.pausedBytes = total
+
                         throw ForcedInterruptionException()
                     }
                     TaskState.STOPPED -> {
@@ -159,20 +186,17 @@ object DownloadsServiceHelper {
                         throw ForcedInterruptionException()
                     }
                     else -> {
-                        if (pausedProgress != null && (pausedProgress <= currentProgress) ) {
-                            total += count
-                            count = input.read(bytes)
-                            continue
-                        }
+                        total += count
+                        output.write(bytes, 0, count)
+                        count = input.read(bytes)
+
+
+                        val progress = total.toFloat() / length
+                        println("Progress updated: $progress - $total / $length")
+
+                        enqueuedTask.progressState.emit(progress)
                     }
                 }
-
-                total += count
-                output.write(bytes, 0, count)
-                count = input.read(bytes)
-
-                val progress = total.toFloat() / length
-                enqueuedTask.progressState.emit(progress)
             }
 
             output.flush()
@@ -184,57 +208,78 @@ object DownloadsServiceHelper {
     private suspend fun downloadHLS(enqueuedTask: EnqueuedTask) {
         withContext(Dispatchers.IO) {
             val mediaDownloadTask = enqueuedTask.mediaDownloadTask
-            val pausedProgress = enqueuedTask.mediaDownloadTask.pausedProgress
-
-            val segmentsList = HlsParser.parseUrl(mediaDownloadTask.url)
+            val pausedBytes = enqueuedTask.pausedBytes ?: 0L
+            val pausedHlsFragment = enqueuedTask.pausedHlsFragment
 
             val file = File(mediaDownloadTask.file)
-            file.mkdirs()
-            if (file.exists()) file.delete()
-            file.createNewFile()
+            file.parentFile?.mkdirs()
+            if (!file.exists()) file.createNewFile()
 
-            val sink = file.sink().buffer()
+            val segmentsList = HlsParser.parseUrl(mediaDownloadTask.url)
+            val output = FileOutputStream(file, true)
 
             segmentsList.forEachIndexed { index, segmentUrl ->
+                // Skip downloaded fragments
+                pausedHlsFragment?.let { fragment ->
+                    if (fragment > index) {
+                        println("Skipping $index fragment...")
+                        return@forEachIndexed
+                    }
+                }
+
+                val isPausedFragment = pausedBytes > 0L && pausedHlsFragment == index
+
+                val url = URL(segmentUrl)
                 val progress = index.inc() / segmentsList.size.toFloat()
 
-                // Skip cycle until we reach previous progress
-                pausedProgress?.let {
-                    if (progress <= pausedProgress) return@forEachIndexed
+                url.openConnection().apply {
+                    if (isPausedFragment) setRequestProperty("Range", "bytes=$pausedBytes-")
+                    connect()
                 }
 
-                val request = Request.Builder().url(segmentUrl).build()
-                val response = okHttpClient.newCall(request).execute()
+                val input = BufferedInputStream(url.openStream(), 8192)
+                val bytes = ByteArray(1024)
+                var count = input.read(bytes)
+                var total = pausedBytes
 
-                if (response.isSuccessful) {
-                    response.body.bytes().forEach { byte ->
-                        when (enqueuedTask.state.value) {
-                            TaskState.PAUSED -> {
-                                response.close()
-                                sink.close()
+                while (count != -1) {
+                    when (enqueuedTask.state.value) {
+                        TaskState.PAUSED -> {
+                            input.close()
+                            output.flush()
+                            output.close()
+                            enqueuedTask.pausedBytes = total
+                            enqueuedTask.pausedHlsFragment = index
 
-                                throw ForcedInterruptionException()
-                            }
-                            TaskState.STOPPED -> {
-                                response.close()
-                                sink.close()
-                                if (file.exists()) file.delete()
+                            throw ForcedInterruptionException()
+                        }
 
-                                throw ForcedInterruptionException()
-                            }
-                            else -> sink.writeByte(byte.toInt())
+                        TaskState.STOPPED -> {
+                            input.close()
+                            output.flush()
+                            output.close()
+                            if (file.exists()) file.delete()
+
+                            throw ForcedInterruptionException()
+                        }
+
+                        else -> {
+                            total += count
+                            output.write(bytes, 0, count)
+                            count = input.read(bytes)
+
+                            enqueuedTask.progressState.emit(progress)
                         }
                     }
-
-                    sink.flush()
-                    response.close()
                 }
 
-                enqueuedTask.progressState.emit(progress)
+                output.flush()
+                input.close()
             }
 
-            sink.close()
+            output.close()
 
+            enqueuedTask.progressState.emit(0F)
             MpegTools.repairMpeg(mediaDownloadTask.file) { isSuccessful ->
                 if (!isSuccessful) throw MpegRepairmentFailureException()
             }
@@ -266,15 +311,17 @@ object DownloadsServiceHelper {
     fun pauseEnqueuedTask(db: AppDatabase, task: EnqueuedTask) {
         coroutineScope.launch {
             task.state.value = TaskState.PAUSED
+            val mediaDownloadTask = task.mediaDownloadTask
 
             task.state.collect { state ->
-                if (state == TaskState.FINISHED) {
-                    val mediaDownloadTask = task.mediaDownloadTask
+                if (state == TaskState.FINISHED && task.pausedBytes != null) {
 
                     db.downloadDao().insertDownload(
                         DownloadEntity(
                             url = mediaDownloadTask.url,
                             file = mediaDownloadTask.file,
+                            mpegBytes = task.pausedBytes!!,
+                            hlsFragment = task.pausedHlsFragment,
                             pausedProgress = task.progressState.value,
                             quality = mediaDownloadTask.quality,
                             streamProtocol = mediaDownloadTask.streamProtocol,

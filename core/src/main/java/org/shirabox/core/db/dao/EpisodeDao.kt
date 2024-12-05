@@ -5,9 +5,11 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import org.shirabox.core.entity.EpisodeEntity
+import org.shirabox.core.entity.relation.EpisodeAndContent
 
 @Dao
 interface EpisodeDao {
@@ -28,6 +30,10 @@ interface EpisodeDao {
 
     @Query("SELECT * FROM episode WHERE uid = :uid")
     fun getEpisodeByUid(uid: Int): EpisodeEntity
+
+    @Query("SELECT * FROM episode WHERE offline_videos IS NOT NULL AND offline_videos IS NOT 'null'")
+    @Transaction
+    fun getOfflineEpisodesWithContent(): Flow<List<EpisodeAndContent>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertEpisodes(vararg episodeEntity: EpisodeEntity)

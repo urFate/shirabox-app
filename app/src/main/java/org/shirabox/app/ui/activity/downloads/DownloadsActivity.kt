@@ -15,6 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,8 +31,10 @@ class DownloadsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val initialTab = this.intent.getIntExtra("tab", 0)
+
             ShiraBoxTheme {
-                DownloadsScreen()
+                DownloadsScreen(initialTab)
             }
         }
     }
@@ -39,9 +42,13 @@ class DownloadsActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DownloadsScreen() {
+fun DownloadsScreen(initialTab: Int) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState { DownloadsTabsItems.items.size }
+
+    LaunchedEffect(Unit) {
+        pagerState.scrollToPage(initialTab, 0f)
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

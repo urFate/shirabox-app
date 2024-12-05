@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -22,12 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun EnqueuedTaskItem(
+fun PausedTaskItem(
     modifier: Modifier = Modifier,
-    episode: Int,
     name: String,
+    episode: Int,
     progress: Float,
-    onPause: () -> Unit,
+    onResume: () -> Unit,
     onCancel: () -> Unit
 ) {
     Row(
@@ -60,24 +60,14 @@ fun EnqueuedTaskItem(
                 )
             }
 
-            if (progress > 0.001F) {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(100)),
-                    progress = { progress },
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            } else {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(100)),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            }
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(100)),
+                progress = { progress },
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         }
 
         Row(
@@ -85,9 +75,9 @@ fun EnqueuedTaskItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onPause) {
+            IconButton(onClick = onResume) {
                 Icon(
-                    imageVector = Icons.Rounded.Pause,
+                    imageVector = Icons.Rounded.PlayArrow,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     contentDescription = "pause"
                 )

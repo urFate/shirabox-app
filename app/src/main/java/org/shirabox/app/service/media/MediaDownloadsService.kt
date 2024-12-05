@@ -2,7 +2,9 @@ package org.shirabox.app.service.media
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.app.TaskStackBuilder
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -18,6 +20,7 @@ import org.shirabox.app.R
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
+import org.shirabox.app.ui.activity.downloads.DownloadsActivity
 import org.shirabox.core.db.AppDatabase
 import kotlin.math.roundToInt
 
@@ -59,15 +62,22 @@ class MediaDownloadsService : Service() {
     }
 
     private fun initNotification() {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(notificationChannel(this))
         }
 
+        val activityIntent = Intent(this, DownloadsActivity::class.java)
+        val activityPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
+            addNextIntentWithParentStack(activityIntent)
+            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
+
         val builder = NotificationCompat.Builder(this, CHANNEL_ID).apply {
             setContentTitle(getString(R.string.episodes_downloading))
             setSmallIcon(R.drawable.ic_stat_shirabox_notification)
+            setContentIntent(activityPendingIntent)
             setPriority(NotificationCompat.PRIORITY_LOW)
         }
 
@@ -146,8 +156,17 @@ class MediaDownloadsService : Service() {
         override fun onLifecycleEnd() {
             val finishNotificationId = System.currentTimeMillis().div(1000).toInt()
 
+            val activityIntent = Intent(service, DownloadsActivity::class.java).apply {
+                putExtra("tab", 2)
+            }
+            val activityPendingIntent: PendingIntent? = TaskStackBuilder.create(service).run {
+                addNextIntentWithParentStack(activityIntent)
+                getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            }
+
             baseBuilder
                 .setProgress(0, 0, false)
+                .setContentIntent(activityPendingIntent)
                 .apply {
                     if (exception == null) {
                         setContentText(service.getString(R.string.episodes_downloading_finished))
