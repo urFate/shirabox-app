@@ -23,7 +23,6 @@
         <activity
             android:name=".ui.activity.downloads.DownloadsActivity"
             android:exported="false"
-            android:label="@string/title_activity_downloads"
             android:theme="@style/Theme.ShiraBox" />
         <activity
             android:name=".ui.activity.update.AppUpdateActivity"
@@ -89,7 +88,7 @@
         <service
             android:name=".service.media.MediaDownloadsService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false"/>
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"

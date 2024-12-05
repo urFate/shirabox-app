@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,10 +40,11 @@ import org.shirabox.app.ui.activity.downloads.DownloadsViewModel
 import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTaskItem
 import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTeamItem
 import org.shirabox.core.model.Content
+import org.shirabox.app.R
 
 @Composable
 fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
-    val queryState = model.queryFlow().collectAsStateWithLifecycle(emptyMap())
+    val queryState = model.sortedQueryFlow().collectAsStateWithLifecycle(emptyMap())
     val listState = rememberLazyListState()
 
     Scaffold(
@@ -52,7 +54,7 @@ fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
             ) {
                 ExtendedFloatingActionButton(
                     icon = { Icon(Icons.Filled.Pause, "Pause") },
-                    text = { Text(text = "Приостановить") },
+                    text = { Text(text = stringResource(R.string.downloads_pause)) },
                     expanded = !listState.canScrollBackward,
                     onClick = {
                         model.pauseQuery()
@@ -84,7 +86,7 @@ fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
                         contentDescription = "Fresh"
                     )
                     Text(
-                        text = "Очередь пуста. \nМожет скачаем чего-нибудь?",
+                        text = stringResource(R.string.downloads_empty_query),
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -148,7 +150,7 @@ internal fun TeamSectionItem(
                 }
             }
 
-            episodeFlow.value?.let { episode ->
+            episodeFlow.value?.let { entity ->
                 when (taskStateFlow.value) {
                     TaskState.STOPPED, TaskState.FINISHED, TaskState.PAUSED -> return@let
                     else -> {
@@ -156,19 +158,15 @@ internal fun TeamSectionItem(
                             modifier = Modifier
                                 .padding(16.dp, 0.dp)
                                 .fillMaxWidth(),
-                            episode = episode.episode,
-                            name = episode.name
-                                ?: "Серия #${episode.episode}",
+                            episode = entity.episode,
+                            name = entity.name
+                                ?: stringResource(R.string.episode_string, entity.episode),
                             progress = taskProgressFlow.value,
                             onPause = {
                                 model.pauseTask(task)
                             },
                             onCancel = {
-                                coroutineScope.launch {
-                                    task.state.emit(
-                                        TaskState.STOPPED
-                                    )
-                                }
+                                coroutineScope.launch { task.state.emit(TaskState.STOPPED) }
                             }
                         )
                     }

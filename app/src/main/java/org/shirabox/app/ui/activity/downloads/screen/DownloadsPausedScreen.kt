@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.shirabox.app.ui.activity.downloads.DownloadsViewModel
 import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTeamItem
 import org.shirabox.app.ui.activity.downloads.presentation.PausedTaskItem
+import org.shirabox.app.R
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.forEach
@@ -52,21 +54,10 @@ fun DownloadsPausedScreen(model: DownloadsViewModel = hiltViewModel()) {
             ) {
                 ExtendedFloatingActionButton(
                     icon = { Icon(Icons.Rounded.PlayArrow, "Resume All") },
-                    text = { Text(text = "Возобновить") },
+                    text = { Text(text = stringResource(R.string.downloads_resume)) },
                     expanded = !listState.canScrollBackward,
                     onClick = {
-                        model.resumeTasks(
-                            context,
-                            *pausedQueryState.value
-                                .mapValues { it.value.values.flatten() }
-                                .map { entry ->
-                                    entry.value.map {
-                                        entry.key to it
-                                    }
-                                }
-                                .flatten()
-                                .toTypedArray()
-                        )
+                        model.resumeAllTasks(context)
                     }
                 )
             }
@@ -93,7 +84,7 @@ fun DownloadsPausedScreen(model: DownloadsViewModel = hiltViewModel()) {
                         contentDescription = "Fresh"
                     )
                     Text(
-                        text = "Очередь пуста. \nМожет скачаем чего-нибудь? paused",
+                        text = stringResource(R.string.downloads_empty_query),
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -118,18 +109,18 @@ fun DownloadsPausedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                     tasksAmount = pausedEntities.size,
                                     finished = null
                                 ) {
-                                    pausedEntities.forEach { entity ->
-                                        val episodeFlow = model.episodesFlow(entity.episodeUid)
+                                    pausedEntities.forEach { downloadEntity ->
+                                        val episodeFlow = model.episodesFlow(downloadEntity.episodeUid)
                                             .collectAsStateWithLifecycle(null)
 
-                                        episodeFlow.value?.let { episode ->
+                                        episodeFlow.value?.let { episodeEntity ->
                                             PausedTaskItem(
                                                 modifier = Modifier.padding(16.dp, 0.dp),
-                                                name = episode.name ?: "Серия ${episode.episode}",
-                                                episode = episode.episode,
-                                                progress = entity.pausedProgress,
-                                                onResume = { model.resumeTasks(context, contentEntry.key to entity) },
-                                                onCancel = { model.cancelPausedTasks(contentEntry.key to entity) }
+                                                name = episodeEntity.name ?: stringResource(R.string.episode_string, episodeEntity.episode),
+                                                episode = episodeEntity.episode,
+                                                progress = downloadEntity.pausedProgress,
+                                                onResume = { model.resumeTasks(context, contentEntry.key to downloadEntity) },
+                                                onCancel = { model.cancelPausedTasks(contentEntry.key to downloadEntity) }
                                             )
                                         }
                                     }

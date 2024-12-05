@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAddCheck
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Hd
@@ -43,6 +42,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +57,7 @@ import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Quality
 import kotlin.collections.component1
 import kotlin.collections.component2
+import org.shirabox.app.R
 
 @Composable
 fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
@@ -74,7 +77,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
             ) {
                 ExtendedFloatingActionButton(
                     icon = { Icon(Icons.Filled.DeleteSweep, "Delete all") },
-                    text = { Text(text = "Удалить всё") },
+                    text = { Text(text = stringResource(R.string.downloads_delete_all)) },
                     expanded = !listState.canScrollBackward,
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     onClick = {
@@ -106,12 +109,12 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                 ) {
                     Icon(
                         modifier = Modifier.size(64.dp),
-                        imageVector = Icons.AutoMirrored.Rounded.PlaylistAddCheck,
+                        painter = painterResource(R.drawable.ic_self_improvement),
                         tint = MaterialTheme.colorScheme.outline,
                         contentDescription = "Fresh"
                     )
                     Text(
-                        text = "Очередь пуста. \nМожет скачаем чего-нибудь? saved",
+                        text = stringResource(R.string.downloads_empty_library),
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -150,7 +153,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = "${episodes.size} Серии ($teamFilesSizeText)",
+                                        text = "${episodes.size} ${pluralStringResource(R.plurals.episodes_plurals, episodes.size)} ($teamFilesSizeText)",
                                         fontSize = 12.sp
                                     )
                                 }
@@ -183,7 +186,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                     )
                                 },
                                 headlineContent = {
-                                    val episodeName = if (episode.name.isNullOrEmpty()) "Серия #${episode.episode}" else episode.name
+                                    val episodeName = if (episode.name.isNullOrEmpty()) stringResource(R.string.episode_string, episode.episode) else episode.name
 
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -239,9 +242,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                         }
 
                         item {
-                            HorizontalDivider(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp))
+                            HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(16.dp))
                         }
                     }
                 }

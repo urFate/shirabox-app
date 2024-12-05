@@ -18,8 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.shirabox.app.R
 
 @Composable
 fun PausedTaskItem(
@@ -46,7 +48,7 @@ fun PausedTaskItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val episodeName = if (name.isBlank()) "Серия #$episode" else name
+                val episodeName = if (name.isBlank()) stringResource(R.string.episode_string, episode) else name
 
                 Text(
                     text = "#$episode",

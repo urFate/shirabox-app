@@ -31,7 +31,7 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
     val db = AppDatabase.getAppDataBase(context)!!
     private val helper = DownloadsServiceHelper
 
-    fun queryFlow(): Flow<Map<Content, Map<String, List<EnqueuedTask>>>> =
+    fun sortedQueryFlow(): Flow<Map<Content, Map<String, List<EnqueuedTask>>>> =
         helper.getQuery().map { taskList ->
             taskList
                 .groupBy { it.mediaDownloadTask.content }
@@ -77,26 +77,38 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
     )
 
     fun resumeTasks(context: Context, vararg entities: Pair<ContentEntity, DownloadEntity>) {
-        context.startService(Intent(context, MediaDownloadsService::class.java))
+        viewModelScope.launch(Dispatchers.IO) {
+            context.startService(Intent(context, MediaDownloadsService::class.java))
 
-        entities.forEach { contentAndDownload ->
-            helper.enqueue(
-                db = db,
-                MediaDownloadTask(
-                    uid = contentAndDownload.second.episodeUid,
-                    url = contentAndDownload.second.url,
-                    file = contentAndDownload.second.file,
-                    quality = contentAndDownload.second.quality,
-                    streamProtocol = contentAndDownload.second.streamProtocol,
-                    groupId = contentAndDownload.second.group,
-                    content = Util.mapEntityToContent(contentAndDownload.first),
-                    contentUid = contentAndDownload.first.uid
+            entities.forEach { contentAndDownload ->
+                helper.enqueue(
+                    db = db,
+                    MediaDownloadTask(
+                        uid = contentAndDownload.second.episodeUid,
+                        url = contentAndDownload.second.url,
+                        file = contentAndDownload.second.file,
+                        quality = contentAndDownload.second.quality,
+                        streamProtocol = contentAndDownload.second.streamProtocol,
+                        groupId = contentAndDownload.second.group,
+                        content = Util.mapEntityToContent(contentAndDownload.first),
+                        contentUid = contentAndDownload.first.uid
+                    )
                 )
-            )
 
-            viewModelScope.launch(Dispatchers.IO) {
-                db.downloadDao().deleteDownload(contentAndDownload.second)
+                launch {
+                    db.downloadDao().deleteDownload(contentAndDownload.second)
+                }
             }
+        }
+    }
+
+    fun resumeAllTasks(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            resumeTasks(
+                context = context,
+                entities = db.downloadDao().allSingleWithContent()
+                    .map { it.contentEntity to it.downloadEntity }.toTypedArray()
+            )
         }
     }
 
@@ -125,5 +137,4 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
     }
 
     fun episodesFlow(uid: Int) = db.episodeDao().getEpisodeFlowByUid(uid)
-
 }

@@ -261,6 +261,12 @@
     <string name="downloads_query">Очередь</string>
     <string name="downloads_suspended">Отложено</string>
     <string name="downloads_saved">Загружено</string>
+    <string name="downloads_pause">Приостановить</string>
+    <string name="downloads_stop_all">Остановить все</string>
+    <string name="downloads_empty_query">Очередь пуста. \nМожет скачаем чего-нибудь?"</string>
+    <string name="downloads_resume">Возобновить</string>
+    <string name="downloads_delete_all">Удалить всё</string>
+    <string name="downloads_empty_library">Загрузок здесь нет. \nДавай скачаем твоё любимое аниме!</string>
 
     <!--
         Notifications & services
@@ -288,5 +294,4 @@
         <item quantity="many">%d секунд</item>
         <item quantity="other">%d секунды</item>
     </plurals>
-    <string name="title_activity_downloads">DownloadsActivity</string>
 </resources>

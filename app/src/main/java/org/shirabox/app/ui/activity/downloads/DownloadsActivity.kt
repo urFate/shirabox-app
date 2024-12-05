@@ -52,7 +52,7 @@ fun DownloadsScreen(initialTab: Int) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { DownloadsTopBar() },
+        topBar = { DownloadsTopBar(pagerState.currentPage) },
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)
