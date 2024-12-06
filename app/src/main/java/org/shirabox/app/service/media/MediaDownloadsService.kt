@@ -20,6 +20,7 @@ import org.shirabox.app.R
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
+import org.shirabox.app.service.media.model.TaskState
 import org.shirabox.app.ui.activity.downloads.DownloadsActivity
 import org.shirabox.core.db.AppDatabase
 import kotlin.math.roundToInt
@@ -124,10 +125,20 @@ class MediaDownloadsService : Service() {
                         val querySize = list?.size ?: 0
 
                         task.progressState.collect { progress ->
+                            val percentProgress = progress.times(100).roundToInt()
+                            val indeterminate = progress < 0.001F || task.state.value == TaskState.CONVERTING
+
                             baseBuilder
                                 .setContentTitle("$title (${task.mediaDownloadTask.groupId})")
-                                .setContentText(service.getString(R.string.episodes_downloading_counter, currentPosition, querySize))
-                                .setProgress(100, progress.times(100).roundToInt(), progress < 0.001F)
+                                .setContentText(
+                                    service.getString(
+                                        R.string.episodes_downloading_counter,
+                                        currentPosition,
+                                        querySize,
+                                        percentProgress
+                                    )
+                                )
+                                .setProgress(100, percentProgress, indeterminate)
 
                             manager.notify(notificationId, baseBuilder.build())
                         }
