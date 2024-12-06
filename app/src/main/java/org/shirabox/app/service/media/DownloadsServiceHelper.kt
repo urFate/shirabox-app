@@ -170,8 +170,8 @@ object DownloadsServiceHelper {
             try {
                 val inputStream = url.openStream()
 
-                BufferedInputStream(inputStream, 8192).use { input ->
-                    val bytes = ByteArray(1024)
+                BufferedInputStream(inputStream, 65536).use { input ->
+                    val bytes = ByteArray(65536)
                     var count = input.read(bytes)
 
                     while (count != -1) {
@@ -262,8 +262,8 @@ object DownloadsServiceHelper {
                 try {
                     val inputStream = url.openStream()
 
-                    BufferedInputStream(inputStream, 8192).use { input ->
-                        val bytes = ByteArray(1024)
+                    BufferedInputStream(inputStream).use { input ->
+                        val bytes = ByteArray(8192)
                         var count = input.read(bytes)
 
                         while (count != -1) {
@@ -393,14 +393,6 @@ object DownloadsServiceHelper {
         output.close()
         enqueuedTask.pausedBytes = total
         fragment?.let { enqueuedTask.pausedHlsFragment = fragment }
-    }
-
-    fun pauseGroup(db: AppDatabase, contentUid: Long, groupId: String) {
-        coroutineScope.launch {
-            getQueryByGroupId(contentUid, groupId).last()?.forEach {
-                pauseEnqueuedTask(db, it)
-            }
-        }
     }
 
     fun stopByGroupId(contentUid: Long, groupId: String) {
