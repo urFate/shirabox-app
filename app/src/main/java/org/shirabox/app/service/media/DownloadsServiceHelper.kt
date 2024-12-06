@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.shirabox.app.App
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
@@ -163,45 +164,64 @@ object DownloadsServiceHelper {
                 connect()
             }.contentLengthLong
 
-            val input = BufferedInputStream(url.openStream(), 8192)
-            val output = FileOutputStream(file, true)
-            val bytes = ByteArray(1024)
-            var count = input.read(bytes)
+            val outputStream = FileOutputStream(file, true)
             var total = pausedBytes
 
-            while (count != -1) {
-                when (enqueuedTask.state.value) {
-                    TaskState.PAUSED -> {
-                        input.close()
-                        output.close()
-                        enqueuedTask.pausedBytes = total
+            try {
+                val inputStream = url.openStream()
 
-                        throw ForcedInterruptionException()
-                    }
-                    TaskState.STOPPED -> {
-                        input.close()
-                        output.close()
-                        if (file.exists()) file.delete()
+                BufferedInputStream(inputStream, 8192).use { input ->
+                    val bytes = ByteArray(1024)
+                    var count = input.read(bytes)
 
-                        throw ForcedInterruptionException()
-                    }
-                    else -> {
-                        total += count
-                        output.write(bytes, 0, count)
-                        count = input.read(bytes)
+                    while (count != -1) {
+                        when (enqueuedTask.state.value) {
+                            TaskState.PAUSED -> {
+                                preparePausing(
+                                    output = outputStream,
+                                    enqueuedTask = enqueuedTask,
+                                    total = total,
+                                    fragment = null
+                                )
 
+                                throw ForcedInterruptionException()
+                            }
+                            TaskState.STOPPED -> {
+                                input.close()
+                                outputStream.close()
+                                if (file.exists()) file.delete()
 
-                        val progress = total.toFloat() / length
-                        println("Progress updated: $progress - $total / $length")
+                                throw ForcedInterruptionException()
+                            }
+                            else -> {
+                                total += count
+                                outputStream.write(bytes, 0, count)
+                                count = input.read(bytes)
 
-                        enqueuedTask.progressState.emit(progress)
+                                val progress = total.toFloat() / length
+                                println("Progress updated: $progress - $total / $length")
+
+                                enqueuedTask.progressState.emit(progress)
+                            }
+                        }
                     }
                 }
+            } catch (exception: Exception) {
+                if (exception !is ForcedInterruptionException) {
+                    preparePausing(
+                        output = outputStream,
+                        enqueuedTask = enqueuedTask,
+                        total = total,
+                        fragment = null
+                    )
+
+                    pauseEnqueuedTask(App.appDatabase, enqueuedTask)
+                }
+                throw exception
             }
 
-            output.flush()
-            output.close()
-            input.close()
+            outputStream.flush()
+            outputStream.close()
         }
     }
 
@@ -216,7 +236,7 @@ object DownloadsServiceHelper {
             if (!file.exists()) file.createNewFile()
 
             val segmentsList = HlsParser.parseUrl(mediaDownloadTask.url)
-            val output = FileOutputStream(file, true)
+            val outputStream = FileOutputStream(file, true)
 
             segmentsList.forEachIndexed { index, segmentUrl ->
                 // Skip downloaded fragments
@@ -237,49 +257,69 @@ object DownloadsServiceHelper {
                     connect()
                 }
 
-                val input = BufferedInputStream(url.openStream(), 8192)
-                val bytes = ByteArray(1024)
-                var count = input.read(bytes)
                 var total = pausedBytes
 
-                while (count != -1) {
-                    when (enqueuedTask.state.value) {
-                        TaskState.PAUSED -> {
-                            input.close()
-                            output.flush()
-                            output.close()
-                            enqueuedTask.pausedBytes = total
-                            enqueuedTask.pausedHlsFragment = index
+                try {
+                    val inputStream = url.openStream()
 
-                            throw ForcedInterruptionException()
+                    BufferedInputStream(inputStream, 8192).use { input ->
+                        val bytes = ByteArray(1024)
+                        var count = input.read(bytes)
+
+                        while (count != -1) {
+                            when (enqueuedTask.state.value) {
+                                TaskState.PAUSED -> {
+                                    preparePausing(
+                                        output = outputStream,
+                                        enqueuedTask = enqueuedTask,
+                                        total = total,
+                                        fragment = index
+                                    )
+                                    throw ForcedInterruptionException()
+                                }
+
+                                TaskState.STOPPED -> {
+                                    input.close()
+                                    outputStream.flush()
+                                    outputStream.close()
+                                    if (file.exists()) file.delete()
+
+                                    throw ForcedInterruptionException()
+                                }
+
+                                else -> {
+                                    total += count
+                                    outputStream.write(bytes, 0, count)
+                                    count = input.read(bytes)
+
+                                    enqueuedTask.progressState.emit(progress)
+                                }
+                            }
                         }
 
-                        TaskState.STOPPED -> {
-                            input.close()
-                            output.flush()
-                            output.close()
-                            if (file.exists()) file.delete()
-
-                            throw ForcedInterruptionException()
-                        }
-
-                        else -> {
-                            total += count
-                            output.write(bytes, 0, count)
-                            count = input.read(bytes)
-
-                            enqueuedTask.progressState.emit(progress)
-                        }
+                        outputStream.flush()
                     }
-                }
 
-                output.flush()
-                input.close()
+                } catch (exception: Exception) {
+                    if (exception !is ForcedInterruptionException) {
+                        preparePausing(
+                            output = outputStream,
+                            enqueuedTask = enqueuedTask,
+                            total = total,
+                            fragment = index
+                        )
+
+                        pauseEnqueuedTask(App.appDatabase, enqueuedTask)
+                    }
+                    throw exception
+                }
             }
 
-            output.close()
+
+            outputStream.close()
 
             enqueuedTask.progressState.emit(0F)
+            enqueuedTask.state.emit(TaskState.CONVERTING)
             MpegTools.repairMpeg(mediaDownloadTask.file) { isSuccessful ->
                 if (!isSuccessful) throw MpegRepairmentFailureException()
             }
@@ -341,6 +381,18 @@ object DownloadsServiceHelper {
                 pauseEnqueuedTask(db, it)
             }
         }
+    }
+
+    private fun preparePausing(
+        output: FileOutputStream,
+        enqueuedTask: EnqueuedTask,
+        total: Long,
+        fragment: Int?
+    ) {
+        output.flush()
+        output.close()
+        enqueuedTask.pausedBytes = total
+        fragment?.let { enqueuedTask.pausedHlsFragment = fragment }
     }
 
     fun pauseGroup(db: AppDatabase, contentUid: Long, groupId: String) {

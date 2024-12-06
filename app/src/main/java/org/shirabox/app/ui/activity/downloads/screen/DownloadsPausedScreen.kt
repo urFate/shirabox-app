@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAddCheck
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -23,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,18 +33,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import org.shirabox.app.R
 import org.shirabox.app.ui.activity.downloads.DownloadsViewModel
 import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTeamItem
 import org.shirabox.app.ui.activity.downloads.presentation.PausedTaskItem
-import org.shirabox.app.R
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.forEach
 
 @Composable
-fun DownloadsPausedScreen(model: DownloadsViewModel = hiltViewModel()) {
+fun DownloadsPausedScreen(pagerState: PagerState, model: DownloadsViewModel = hiltViewModel()) {
     val pausedQueryState = model.pausedTasksFlow().collectAsStateWithLifecycle(emptyMap())
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
     Scaffold(
@@ -58,6 +62,7 @@ fun DownloadsPausedScreen(model: DownloadsViewModel = hiltViewModel()) {
                     expanded = !listState.canScrollBackward,
                     onClick = {
                         model.resumeAllTasks(context)
+                        coroutineScope.launch { pagerState.scrollToPage(0) }
                     }
                 )
             }

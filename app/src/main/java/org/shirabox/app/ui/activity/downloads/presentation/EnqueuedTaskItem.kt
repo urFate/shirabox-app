@@ -15,6 +15,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +30,7 @@ fun EnqueuedTaskItem(
     episode: Int,
     name: String,
     progress: Float,
+    buttonsEnabled: Boolean,
     onPause: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -87,18 +89,23 @@ fun EnqueuedTaskItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onPause) {
+            val baseButtonColor = MaterialTheme.colorScheme.onSurfaceVariant
+            val buttonsTint = remember(buttonsEnabled) {
+                if (buttonsEnabled) baseButtonColor else baseButtonColor.copy(0.5f)
+            }
+
+            IconButton(enabled = buttonsEnabled, onClick = onPause) {
                 Icon(
                     imageVector = Icons.Rounded.Pause,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = buttonsTint,
                     contentDescription = "pause"
                 )
             }
 
-            IconButton(onClick = onCancel) {
+            IconButton(enabled = buttonsEnabled, onClick = onCancel) {
                 Icon(
                     imageVector = Icons.Outlined.Cancel,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = buttonsTint,
                     contentDescription = "cancel"
                 )
             }

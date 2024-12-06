@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAddCheck
 import androidx.compose.material.icons.filled.Pause
@@ -34,17 +35,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import org.shirabox.app.R
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.TaskState
 import org.shirabox.app.ui.activity.downloads.DownloadsViewModel
 import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTaskItem
 import org.shirabox.app.ui.activity.downloads.presentation.EnqueuedTeamItem
 import org.shirabox.core.model.Content
-import org.shirabox.app.R
 
 @Composable
-fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
+fun DownloadsQueryScreen(pagerState: PagerState, model: DownloadsViewModel = hiltViewModel()) {
     val queryState = model.sortedQueryFlow().collectAsStateWithLifecycle(emptyMap())
+    val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
     Scaffold(
@@ -58,6 +60,7 @@ fun DownloadsQueryScreen(model: DownloadsViewModel = hiltViewModel()) {
                     expanded = !listState.canScrollBackward,
                     onClick = {
                         model.pauseQuery()
+                        coroutineScope.launch { pagerState.scrollToPage(1) }
                     }
                 )
             }
@@ -162,6 +165,7 @@ internal fun TeamSectionItem(
                             name = entity.name
                                 ?: stringResource(R.string.episode_string, entity.episode),
                             progress = taskProgressFlow.value,
+                            buttonsEnabled = taskStateFlow.value != TaskState.CONVERTING,
                             onPause = {
                                 model.pauseTask(task)
                             },

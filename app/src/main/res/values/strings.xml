@@ -85,7 +85,7 @@
     <string name="episodes_downloading">Скачивание серий…</string>
     <string name="episodes_downloading_counter">Скачивание серий… (%d из %d)</string>
     <string name="episodes_downloading_finished">Скачивание завершено.</string>
-    <string name="episodes_downloading_failed">Скачивание завершено с ошибками.</string>
+    <string name="episodes_downloading_failed">Скачивание завершено с ошибками.\nНезавершённые загрузки отложены.</string>
 
     <!--
         Login Card

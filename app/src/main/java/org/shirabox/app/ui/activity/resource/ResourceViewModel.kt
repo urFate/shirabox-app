@@ -2,7 +2,7 @@ package org.shirabox.app.ui.activity.resource
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.shirabox.app.R
 import org.shirabox.app.ValuesHelper
 import org.shirabox.app.service.media.DownloadsServiceHelper
 import org.shirabox.app.service.media.MediaDownloadsService
@@ -35,6 +36,7 @@ import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType.ANIME
 import org.shirabox.core.model.Quality
 import org.shirabox.core.model.ShiraBoxAnime
+import org.shirabox.core.util.Util
 import org.shirabox.core.util.Util.Companion.mapContentToEntity
 import org.shirabox.core.util.Util.Companion.mapEntityToContent
 import org.shirabox.data.EpisodesHelper
@@ -206,7 +208,15 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     }
 
     fun saveEpisodes(context: Context, quality: Quality, vararg episodes: EpisodeEntity) {
-        Log.d("DOWNLOAD_D", "Saving episodes...")
+        if (!Util.isNetworkAvailable(context)) {
+            Toast.makeText(
+                context,
+                R.string.no_internet_connection,
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             val tasks = episodes
                 .filter {

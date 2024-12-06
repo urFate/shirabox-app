@@ -83,7 +83,7 @@ fun DownloadsScreen(initialTab: Int) {
             HorizontalPager(
                 state = pagerState
             ) { index ->
-                DownloadsTabsItems.items[index].content()
+                DownloadsTabsItems.items[index].content(pagerState)
             }
         }
     }

@@ -5,5 +5,6 @@ enum class TaskState() {
     IN_PROGRESS,
     PAUSED,
     STOPPED,
-    FINISHED
+    FINISHED,
+    CONVERTING
 }

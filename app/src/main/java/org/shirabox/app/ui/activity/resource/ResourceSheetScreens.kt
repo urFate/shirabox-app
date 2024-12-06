@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.OfflinePin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material.icons.rounded.Hd
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -73,6 +74,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastAny
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Dispatchers
@@ -507,6 +509,7 @@ fun EpisodesSheetScreen(
                                     } else {
                                         DownloadButton(
                                             isDownloading = isTaskEnqueued,
+                                            isAnyEpisodeOffline = false,
                                             progress = downloadProgress?.value ?: 0.0f
                                         ) {
                                             if (!isTaskEnqueued) {
@@ -581,6 +584,7 @@ private fun TeamListItem(
     var downloadingProgress by remember { mutableFloatStateOf(0f) }
     var isGroupEnqueued by remember { mutableStateOf(false) }
 
+    val isAnyEpisodeOffline = remember(episodes) { episodes.fastAny { !it.offlineVideos.isNullOrEmpty() }}
     val isAllEpisodesOffline = remember(episodes) { episodes.all { !it.offlineVideos.isNullOrEmpty() } }
 
     val enqueuedDownloadingTasks by
@@ -646,6 +650,7 @@ private fun TeamListItem(
                 } else {
                     DownloadButton(
                         isDownloading = isGroupEnqueued,
+                        isAnyEpisodeOffline = isAnyEpisodeOffline,
                         progress = downloadingProgress
                     ) {
                         if(!isGroupEnqueued) {
@@ -691,7 +696,12 @@ private fun TeamListItem(
 }
 
 @Composable
-private fun DownloadButton(isDownloading: Boolean, progress: Float, onClick: () -> Unit) {
+private fun DownloadButton(
+    isAnyEpisodeOffline: Boolean,
+    isDownloading: Boolean,
+    progress: Float,
+    onClick: () -> Unit
+) {
     val iconSize = remember(isDownloading) {
         if (!isDownloading) 24.dp else 16.dp
     }
@@ -723,15 +733,19 @@ private fun DownloadButton(isDownloading: Boolean, progress: Float, onClick: () 
                 }
             }
 
+            val vector = if (isDownloading) {
+                Icons.Rounded.Stop
+            } else if (isAnyEpisodeOffline) {
+                Icons.Rounded.Downloading
+            } else {
+                ImageVector.vectorResource(id = R.drawable.download_for_offline)
+            }
+
             Icon(
                 modifier = Modifier
                     .animateContentSize()
                     .size(iconSize),
-                imageVector = if (isDownloading) {
-                    Icons.Rounded.Stop
-                } else {
-                    ImageVector.vectorResource(id = R.drawable.download_for_offline)
-                },
+                imageVector = vector,
                 contentDescription = "download"
             )
         }

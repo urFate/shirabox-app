@@ -1,10 +1,12 @@
 package org.shirabox.app.ui.activity.downloads.screen
 
+import android.content.Intent
 import android.text.format.DateUtils
 import android.text.format.Formatter
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,12 +54,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.shirabox.app.R
 import org.shirabox.app.ui.activity.downloads.DownloadsViewModel
+import org.shirabox.app.ui.activity.player.PlayerActivity
+import org.shirabox.app.ui.activity.resource.ResourceActivity
 import org.shirabox.core.entity.EpisodeEntity
+import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.Quality
+import org.shirabox.core.util.IntentExtras
+import org.shirabox.core.util.Util
 import kotlin.collections.component1
 import kotlin.collections.component2
-import org.shirabox.app.R
 
 @Composable
 fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
@@ -122,6 +129,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
             }
 
             LazyColumn(
+                modifier = Modifier.padding(0.dp, 8.dp),
                 state = listState
             ) {
                 offlineEpisodesState.value.entries.forEach { contentEntry ->
@@ -143,7 +151,18 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                             if (!isEmpty) {
                                 Column(
                                     modifier = Modifier
-                                        .padding(16.dp, 16.dp, 16.dp, 0.dp)
+                                        .clickable {
+                                            context.startActivity(
+                                                Intent(
+                                                    context,
+                                                    ResourceActivity::class.java
+                                                ).apply {
+                                                    putExtra("id", contentEntry.key.shikimoriID)
+                                                    putExtra("type", ContentType.ANIME)
+                                                }
+                                            )
+                                        }
+                                        .padding(16.dp, 8.dp)
                                         .fillMaxWidth()
                                 ) {
                                     Text(
@@ -153,7 +172,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = "${episodes.size} ${pluralStringResource(R.plurals.episodes_plurals, episodes.size)} ($teamFilesSizeText)",
+                                        text = "${pluralStringResource(R.plurals.episodes_plurals, episodes.size, episodes.size)} ($teamFilesSizeText)",
                                         fontSize = 12.sp
                                     )
                                 }
@@ -178,7 +197,15 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                             }
 
                             ListItem(
-                                modifier = Modifier,
+                                modifier = Modifier.clickable {
+                                    context.startActivity(Intent(context, PlayerActivity::class.java).apply {
+                                        putExtras(IntentExtras.playerIntentExtras(
+                                            content = Util.mapEntityToContent(contentEntry.key),
+                                            episodeEntity = episode,
+                                            team = team
+                                        ))
+                                    })
+                                },
                                 overlineContent = {
                                     Text(
                                         text = "#${episode.episode} (${uploadTimestamp})",
@@ -193,7 +220,10 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = episodeName.toString()
+                                            modifier = Modifier.weight(weight = 1f, fill = false),
+                                            text = episodeName.toString(),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
 
                                         Icon(

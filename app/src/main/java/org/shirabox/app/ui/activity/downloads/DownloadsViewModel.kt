@@ -2,6 +2,9 @@ package org.shirabox.app.ui.activity.downloads
 
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.shirabox.app.R
 import org.shirabox.app.service.media.DownloadsServiceHelper
 import org.shirabox.app.service.media.MediaDownloadsService
 import org.shirabox.app.service.media.model.EnqueuedTask
@@ -77,6 +81,18 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
     )
 
     fun resumeTasks(context: Context, vararg entities: Pair<ContentEntity, DownloadEntity>) {
+        if (!Util.isNetworkAvailable(context)) {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(
+                    context,
+                    R.string.no_internet_connection,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            return
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             context.startService(Intent(context, MediaDownloadsService::class.java))
 
