@@ -3,6 +3,7 @@ package org.shirabox.app.ui.activity.resource
 import android.content.Context
 import android.content.Intent
 import android.text.format.DateUtils
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -95,6 +96,7 @@ import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.Quality
 import org.shirabox.core.util.IntentExtras
 import org.shirabox.data.content.AbstractContentRepository
+import kotlin.math.roundToInt
 
 @Composable
 fun ResourceBottomSheet(
@@ -491,22 +493,37 @@ fun EpisodesSheetScreen(
                             trailingContent = {
                                 val qualityDialogVisible = remember { mutableStateOf(false) }
 
-                                if (isOffline) {
-                                    IconButton(
-                                        onClick = {
-                                            model.deleteOfflineEpisodes(episodeEntity)
-                                        }
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(24.dp),
-                                            imageVector = Icons.Rounded.DeleteOutline,
-                                            contentDescription = "download"
-                                        )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val percentProgress = remember(downloadProgress?.value) {
+                                        downloadProgress?.value?.times(100)?.roundToInt() ?: 0
                                     }
-                                } else {
-                                    if (pausedTask != null) {
-                                        PausedTaskButton(pausedTask.pausedProgress)
-                                    } else {
+
+                                    AnimatedVisibility(visible = percentProgress > 0, enter = fadeIn(), exit = fadeOut()) {
+                                        Text("$percentProgress%")
+                                    }
+
+                                    AnimatedVisibility(visible = isOffline, enter = fadeIn(), exit = fadeOut()) {
+                                        IconButton(
+                                            onClick = {
+                                                model.deleteOfflineEpisodes(episodeEntity)
+                                            }
+                                        ) {
+                                            Icon(
+                                                modifier = Modifier.size(24.dp),
+                                                imageVector = Icons.Rounded.DeleteOutline,
+                                                contentDescription = "download"
+                                            )
+                                        }
+                                    }
+
+                                    AnimatedVisibility(visible = pausedTask != null, enter = fadeIn(), exit = fadeOut()) {
+                                        PausedTaskButton(pausedTask?.pausedProgress ?: 0f)
+                                    }
+
+                                    AnimatedVisibility(visible = !isOffline, enter = fadeIn(), exit = fadeOut()) {
                                         DownloadButton(
                                             isDownloading = isTaskEnqueued,
                                             isAnyEpisodeOffline = false,
@@ -712,7 +729,7 @@ private fun DownloadButton(
         Box(
             contentAlignment = Alignment.Center
         ) {
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = isDownloading,
                 enter = fadeIn(),
                 exit = fadeOut()
