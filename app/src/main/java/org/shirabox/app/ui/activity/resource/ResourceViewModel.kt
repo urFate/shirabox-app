@@ -254,7 +254,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
             }
 
             context.startService(Intent(context, MediaDownloadsService::class.java))
-            DownloadsServiceHelper.enqueue(db = db, *tasks.toTypedArray())
+            DownloadsServiceHelper.enqueue(db = db, tasks)
         }
     }
 

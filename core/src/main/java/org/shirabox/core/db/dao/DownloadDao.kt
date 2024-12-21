@@ -17,6 +17,9 @@ interface DownloadDao {
     fun all(): Flow<List<DownloadEntity>>
 
     @Query("SELECT * FROM download")
+    fun allSingle(): List<DownloadEntity>
+
+    @Query("SELECT * FROM download")
     fun allSingleWithContent(): List<DownloadAndContent>
 
     @Transaction

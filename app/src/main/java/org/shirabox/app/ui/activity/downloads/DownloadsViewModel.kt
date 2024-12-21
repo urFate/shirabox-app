@@ -12,6 +12,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.shirabox.app.R
@@ -19,6 +20,8 @@ import org.shirabox.app.service.media.DownloadsServiceHelper
 import org.shirabox.app.service.media.MediaDownloadsService
 import org.shirabox.app.service.media.model.EnqueuedTask
 import org.shirabox.app.service.media.model.MediaDownloadTask
+import org.shirabox.app.service.media.model.PauseData
+import org.shirabox.app.service.media.model.TaskState
 import org.shirabox.core.db.AppDatabase
 import org.shirabox.core.entity.ContentEntity
 import org.shirabox.core.entity.DownloadEntity
@@ -48,7 +51,8 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
 
     fun pausedTasksFlow(): Flow<Map<ContentEntity, Map<String, List<DownloadEntity>>>> =
         db.downloadDao().allWithContent().map { list ->
-            list.groupBy { it.contentEntity }
+            list.sortedByDescending { it.downloadEntity.pausedProgress }
+                .groupBy { it.contentEntity }
                 .mapValues {
                     it.value.map { it.downloadEntity }
                         .groupBy { it.group }
@@ -94,27 +98,32 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            context.startService(Intent(context, MediaDownloadsService::class.java))
-
-            entities.forEach { contentAndDownload ->
-                helper.enqueue(
-                    db = db,
+            helper.enqueue(
+                db = db,
+                entities.map { contentAndDownload ->
                     MediaDownloadTask(
                         uid = contentAndDownload.second.episodeUid,
                         url = contentAndDownload.second.url,
                         file = contentAndDownload.second.file,
                         quality = contentAndDownload.second.quality,
+                        pauseData = PauseData(
+                            progress = contentAndDownload.second.pausedProgress,
+                            bytes = contentAndDownload.second.mpegBytes,
+                            fragment = contentAndDownload.second.hlsFragment,
+                        ),
                         streamProtocol = contentAndDownload.second.streamProtocol,
                         groupId = contentAndDownload.second.group,
                         content = Util.mapEntityToContent(contentAndDownload.first),
                         contentUid = contentAndDownload.first.uid
                     )
-                )
-
-                launch {
-                    db.downloadDao().deleteDownload(contentAndDownload.second)
                 }
+            )
+
+            entities.forEach { contentAndDownload ->
+                launch { db.downloadDao().deleteDownload(contentAndDownload.second) }
             }
+
+            context.startService(Intent(context, MediaDownloadsService::class.java))
         }
     }
 
@@ -135,6 +144,23 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
                 if (file.exists()) file.delete()
 
                 db.downloadDao().deleteDownload(contentAndDownload.second)
+            }
+        }
+    }
+
+    fun cancelEnqueuedTasks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            helper.getQuery().last().forEach { it.state.emit(TaskState.STOPPED) }
+        }
+    }
+
+    fun cancelAllPausedTasks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            db.downloadDao().allSingle().forEach {
+                val file = File(it.file)
+                if (file.exists()) file.delete()
+
+                db.downloadDao().deleteDownload(it)
             }
         }
     }
