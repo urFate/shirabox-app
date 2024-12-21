@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.combine
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.downloads.DownloadsViewModel
 import org.shirabox.app.ui.activity.player.PlayerActivity
@@ -68,7 +69,9 @@ import kotlin.collections.component2
 
 @Composable
 fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
-    val offlineEpisodesState = model.offlineEpisodesFlow().collectAsStateWithLifecycle(emptyMap())
+    val offlineEpisodesState = model.offlineEpisodesFlow()
+        .combine(model.offlineFlowFilter) { entry, s -> entry.filterKeys { it.name.contains(s, true) } }
+        .collectAsStateWithLifecycle(emptyMap())
     val removalDialogState = remember { mutableStateOf(false) }
     val removalDialogEpisodes = remember { mutableStateListOf<EpisodeEntity>() }
     val multipleRemoval = remember(removalDialogEpisodes.size) {
@@ -272,7 +275,9 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                         }
 
                         item {
-                            HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(16.dp))
+                            HorizontalDivider(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp))
                         }
                     }
                 }
