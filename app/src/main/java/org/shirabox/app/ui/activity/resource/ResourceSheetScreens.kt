@@ -519,11 +519,19 @@ fun EpisodesSheetScreen(
                                         }
                                     }
 
-                                    AnimatedVisibility(visible = pausedTask != null, enter = fadeIn(), exit = fadeOut()) {
+                                    AnimatedVisibility(
+                                        visible = pausedTask != null,
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
+                                    ) {
                                         PausedTaskButton(pausedTask?.pausedProgress ?: 0f)
                                     }
 
-                                    AnimatedVisibility(visible = !isOffline, enter = fadeIn(), exit = fadeOut()) {
+                                    AnimatedVisibility(
+                                        visible = !isOffline && pausedTask == null,
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
+                                    ) {
                                         DownloadButton(
                                             isDownloading = isTaskEnqueued,
                                             isAnyEpisodeOffline = false,
