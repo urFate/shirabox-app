@@ -48,9 +48,7 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
         actions = {
             if (currentPage < 2) {
                 IconButton(
-                    onClick = {
-                        dropdownExpanded.value = true
-                    }
+                    onClick = { dropdownExpanded.value = true }
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.MoreVert,
@@ -62,14 +60,15 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
 
             DropdownMenu(
                 expanded = dropdownExpanded.value,
-                onDismissRequest = {
-                    dropdownExpanded.value = false
-                },
+                onDismissRequest = { dropdownExpanded.value = false },
             ) {
                 DropdownMenuItem(
                     text = {  Text(text = stringResource(R.string.downloads_stop_all)) },
                     onClick = {
-                        model.pauseQuery()
+                        when (currentPage) {
+                            0 -> model.cancelEnqueuedTasks()
+                            1 -> model.cancelAllPausedTasks()
+                        }
                         dropdownExpanded.value = false
                     }
                 )

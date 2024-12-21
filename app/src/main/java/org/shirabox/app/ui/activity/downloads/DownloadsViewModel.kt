@@ -11,8 +11,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.shirabox.app.R
@@ -150,7 +150,7 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
 
     fun cancelEnqueuedTasks() {
         viewModelScope.launch(Dispatchers.IO) {
-            helper.getQuery().last().forEach { it.state.emit(TaskState.STOPPED) }
+            helper.getQuery().first().forEach { it.state.emit(TaskState.STOPPED) }
         }
     }
 
