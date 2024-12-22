@@ -70,8 +70,11 @@ import kotlin.collections.component2
 @Composable
 fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
     val offlineEpisodesState = model.offlineEpisodesFlow()
-        .combine(model.offlineFlowFilter) { entry, s -> entry.filterKeys { it.name.contains(s, true) } }
+        .combine(model.offlineFlowFilter) { entry, s ->
+            entry.filterKeys { it.name.contains(s, true) }
+        }
         .collectAsStateWithLifecycle(emptyMap())
+
     val removalDialogState = remember { mutableStateOf(false) }
     val removalDialogEpisodes = remember { mutableStateListOf<EpisodeEntity>() }
     val multipleRemoval = remember(removalDialogEpisodes.size) {

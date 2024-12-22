@@ -180,8 +180,6 @@ internal fun TeamSectionItem(
     }
 
     HorizontalDivider(
-        modifier = Modifier
-            .padding(16.dp, 4.dp)
-            .fillMaxWidth()
+        modifier = Modifier.padding(16.dp, 4.dp).fillMaxWidth()
     )
 }

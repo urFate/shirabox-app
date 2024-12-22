@@ -136,9 +136,7 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
 
                 IconButton(onClick = {
                     searchMode.value = searchMode.value.not()
-                    coroutineScope.launch {
-                        model.offlineFlowFilter.emit("")
-                    }
+                    coroutineScope.launch { model.offlineFlowFilter.emit("") }
                 }) {
                     Icon(
                         imageVector = vector,
@@ -162,14 +160,16 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
                 expanded = dropdownExpanded.value,
                 onDismissRequest = { dropdownExpanded.value = false },
             ) {
-                DropdownMenuItem(text = { Text(text = stringResource(R.string.downloads_stop_all)) },
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.downloads_stop_all)) },
                     onClick = {
                         when (currentPage) {
                             0 -> model.cancelEnqueuedTasks()
                             1 -> model.cancelAllPausedTasks()
                         }
                         dropdownExpanded.value = false
-                    })
+                    }
+                )
             }
         })
 

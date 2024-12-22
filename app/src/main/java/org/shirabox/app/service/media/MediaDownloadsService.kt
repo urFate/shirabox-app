@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
@@ -39,8 +38,6 @@ class MediaDownloadsService : Service() {
     private var initStartId: Int? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("DOWNLOADS_D", "Service started.")
-        
         scope.launch {
             if (initStartId == null) {
                 db = AppDatabase.getAppDataBase(this@MediaDownloadsService)!!
@@ -148,7 +145,6 @@ class MediaDownloadsService : Service() {
 
         override fun onTaskFinish(task: EnqueuedTask, exception: Exception?) {
             if (exception == null) {
-                println("Task finished without errors.")
                 val mediaDownloadTask = task.mediaDownloadTask
 
                 scope.launch {
@@ -197,7 +193,6 @@ class MediaDownloadsService : Service() {
             val offlinePath = episode.offlineVideos?.toMutableMap() ?: mutableMapOf()
 
             offlinePath[task.quality] = task.file
-            println("Writing video path: ${offlinePath[task.quality]}")
 
             db.episodeDao().updateEpisodes(episode.copy(offlineVideos = offlinePath))
         }

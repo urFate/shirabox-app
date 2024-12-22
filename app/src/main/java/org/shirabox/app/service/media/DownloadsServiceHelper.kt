@@ -1,6 +1,5 @@
 package org.shirabox.app.service.media
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,18 +35,12 @@ object DownloadsServiceHelper {
 
     fun enqueue(db: AppDatabase, tasks: List<MediaDownloadTask>) {
         coroutineScope.launch {
-            println("Initialing new query...")
-
             val pausedTasks = db.downloadDao().allSingleWithContent()
                 .filter { pausedTask -> tasks.any { it.uid == pausedTask.downloadEntity.episodeUid } }
 
             val query = tasks
                 .filter { task -> pausedTasks.none { it.downloadEntity.episodeUid == task.uid } }
-                .map {
-                    EnqueuedTask(
-                        mediaDownloadTask = it,
-                    )
-                }
+                .map(::EnqueuedTask)
                 .toMutableList()
                 .apply {
                     addAll(
@@ -77,20 +70,12 @@ object DownloadsServiceHelper {
                 }
 
             _queriesList.update {
-                it.toMutableList().apply { addAll(query) }
-                    .sortedByDescending {
-                        it.mediaDownloadTask.pauseData?.progress
-                    }
+                it.toMutableList()
+                    .apply { addAll(query) }
+                    .sortedByDescending { it.mediaDownloadTask.pauseData?.progress }
             }
 
-            query.forEach {
-                it.state.emit(TaskState.ENQUEUED)
-            }
-
-            println("Queries:")
-            _queriesList.value.forEach {
-                println(it)
-            }
+            query.forEach { it.state.emit(TaskState.ENQUEUED) }
         }
     }
 
@@ -106,8 +91,6 @@ object DownloadsServiceHelper {
                 val enqueuedTask = queryListIterator.next()
                 val exceptions: MutableMap<EnqueuedTask, Exception> = mutableMapOf()
 
-                println("Started cycle: ${enqueuedTask.state.value}")
-
                 when (enqueuedTask.state.value) {
                     TaskState.STOPPED, TaskState.FINISHED -> continue
                     TaskState.PAUSED -> {
@@ -117,15 +100,9 @@ object DownloadsServiceHelper {
                     else -> enqueuedTask.state.emit(TaskState.IN_PROGRESS)
                 }
 
-                Log.d("MDSH", "Started task")
-
                 launch {
                     // Notify listeners about current task
-                    Log.d("MDSH", "Trying to notify listeners")
-
-                    listeners.forEach {
-                        it.onCurrentTaskChanged(enqueuedTask)
-                    }
+                    listeners.forEach { it.onCurrentTaskChanged(enqueuedTask) }
                 }
 
                 try {
@@ -151,7 +128,6 @@ object DownloadsServiceHelper {
                 queryListIterator = _queriesList.value.listIterator()
             }
 
-            println("Out of the cycle")
 
             listeners.forEach { it.onLifecycleEnd() }
             _queriesList.update {
@@ -164,7 +140,7 @@ object DownloadsServiceHelper {
         withContext(Dispatchers.IO) {
             val mediaDownloadTask = enqueuedTask.mediaDownloadTask
             val pauseData = mediaDownloadTask.pauseData
-            val pausedBytes = pauseData?.bytes ?: 0L // 10_000_000
+            val pausedBytes = pauseData?.bytes ?: 0L
             val append = pauseData != null
 
             val url = URL(mediaDownloadTask.url)
@@ -180,7 +156,7 @@ object DownloadsServiceHelper {
             val length = connection.contentLengthLong
 
             val outputStream = FileOutputStream(file, append)
-            var total = pausedBytes // 10_000_000
+            var total = pausedBytes
 
             val inputStream = connection.inputStream
 
@@ -255,12 +231,9 @@ object DownloadsServiceHelper {
             val outputStream = FileOutputStream(file, true)
 
             segmentsList.forEachIndexed { index, segmentUrl ->
-                // Skip downloaded fragments
+                // Skip saved fragments
                 pausedHlsFragment?.let { fragment ->
-                    if (fragment > index) {
-                        println("Skipping $index fragment...")
-                        return@forEachIndexed
-                    }
+                    if (fragment > index) return@forEachIndexed
                 }
 
                 val isPausedFragment = pausedBytes > 0L && pausedHlsFragment == index
@@ -338,10 +311,9 @@ object DownloadsServiceHelper {
                 }
             }
 
-
             outputStream.close()
-
             enqueuedTask.state.emit(TaskState.CONVERTING)
+
             MpegTools.repairMpeg(mediaDownloadTask.file) { isSuccessful ->
                 if (!isSuccessful) throw MpegRepairmentFailureException()
             }
@@ -405,9 +377,7 @@ object DownloadsServiceHelper {
         coroutineScope.launch {
             _queriesList.value
                 .filter { it.state.value != TaskState.FINISHED }
-                .forEach {
-                    pauseEnqueuedTask(db, it)
-                }
+                .forEach { pauseEnqueuedTask(db, it) }
         }
     }
 
