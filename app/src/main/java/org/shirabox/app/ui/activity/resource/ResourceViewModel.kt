@@ -218,13 +218,12 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         }
 
         viewModelScope.launch(Dispatchers.IO) {
+            val suspendedDownloads = db.downloadDao().allSingle()
+
             val tasks = episodes
-                .filter {
-                    it.uid != null
-                }
-                .filter {
-                    it.offlineVideos.isNullOrEmpty()
-                }
+                .filter { it.uid != null }
+                .filter { it.offlineVideos.isNullOrEmpty() }
+                .filter { episode -> !suspendedDownloads.any { it.episodeUid == episode.uid} }
                 .map { entity ->
                     val uuid = UUID.randomUUID()
                     val repository = ContentRepositoryRegistry.getRepositoryByName(entity.source)!!
