@@ -276,11 +276,24 @@ fun UpdateDialog(
     LaunchedEffect(dialogVisibilityState.value) {
         if (dialogVisibilityState.value) {
             launch(Dispatchers.IO) {
-                val packageFile = File(cacheDir, "sb-${appUpdateState.release.tag}.apk")
+                val cpuArch = System.getProperty("os.arch")
+                val packageFile = File(cacheDir, "update.apk")
                 downloadFinished = false
 
+                val uploadUrl = cpuArch?.let {
+                    if (cpuArch.contains("aarch64", true)) {
+                        appUpdateState.release.uploads.armV8
+                    } else if (cpuArch.contains("armv7", true)) {
+                        appUpdateState.release.uploads.armV7
+                    } else if (cpuArch.contains("x86_64", true)) {
+                        appUpdateState.release.uploads.amd64
+                    } else {
+                        appUpdateState.release.uploads.universal
+                    }
+                } ?: appUpdateState.release.uploads.universal
+
                 UpdateManager.downloadFile(
-                    url = URL(appUpdateState.release.downloadUrl),
+                    url = URL(uploadUrl),
                     file = packageFile,
                     onProgress = {
                         progress = it
