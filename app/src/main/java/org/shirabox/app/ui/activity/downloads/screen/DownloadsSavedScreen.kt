@@ -168,12 +168,23 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                         .padding(16.dp, 8.dp)
                                         .fillMaxWidth()
                                 ) {
-                                    Text(
-                                        text = "${contentEntry.key.name} ($team)",
-                                        fontWeight = FontWeight.Medium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            modifier = Modifier.weight(weight = 1f, fill = false),
+                                            text = contentEntry.key.name,
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = "($team)",
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
                                     Text(
                                         text = "${pluralStringResource(R.plurals.episodes_plurals, episodes.size, episodes.size)} ($teamFilesSizeText)",
                                         fontSize = 12.sp
