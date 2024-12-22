@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "org.shirabox.core"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24

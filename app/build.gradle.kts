@@ -12,7 +12,7 @@ plugins {
 
 android {
     namespace = "org.shirabox.app"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "org.shirabox.app"
