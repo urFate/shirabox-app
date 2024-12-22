@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SystemUpdate
@@ -37,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.shirabox.app.R
+import org.shirabox.app.ui.activity.downloads.DownloadsActivity
 import org.shirabox.app.ui.activity.settings.SettingsActivity
 import org.shirabox.app.ui.activity.update.AppUpdateActivity
 import org.shirabox.app.ui.component.navigation.base.NestedNavItems
@@ -120,6 +122,22 @@ fun ProfileScreen(navController: NavController){
                         Icon(
                             Icons.Outlined.Savings,
                             contentDescription = "Savings icon",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                )
+            }
+
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(id = R.string.downloads_activity_title)) },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, DownloadsActivity::class.java))
+                    },
+                    leadingContent = {
+                        Icon(
+                            Icons.Outlined.FileDownload,
+                            contentDescription = "Downloads icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

@@ -3,6 +3,7 @@ package org.shirabox.app.ui.activity.resource
 import android.content.Context
 import android.content.Intent
 import android.text.format.DateUtils
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.OfflinePin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material.icons.rounded.Hd
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -55,6 +57,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,13 +75,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastAny
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.shirabox.app.ComposeUtils.bottomSheetDynamicNavColor
 import org.shirabox.app.R
-import org.shirabox.app.service.media.MediaDownloadsService
+import org.shirabox.app.service.media.DownloadsServiceHelper
+import org.shirabox.app.service.media.model.TaskState
+import org.shirabox.app.ui.activity.downloads.DownloadsActivity
 import org.shirabox.app.ui.activity.player.PlayerActivity
 import org.shirabox.app.ui.component.general.ExtendedListItem
 import org.shirabox.app.ui.component.general.QualityDialog
@@ -90,6 +96,7 @@ import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.Quality
 import org.shirabox.core.util.IntentExtras
 import org.shirabox.data.content.AbstractContentRepository
+import kotlin.math.roundToInt
 
 @Composable
 fun ResourceBottomSheet(
@@ -101,7 +108,7 @@ fun ResourceBottomSheet(
         mutableStateOf<ResourceSheetScreen>(ResourceSheetScreen.Sources(model))
     }
 
-    val episodesState = model.fetchCachedEpisodes().collectAsState(initial = emptyList())
+    val episodesState = model.cachedEpisodesFlow().collectAsState(initial = emptyList())
 
     val episodes = remember(episodesState.value, model.internalContentUid) {
         model.internalContentUid.longValue.let { uid ->
@@ -286,13 +293,14 @@ fun EpisodesSheetScreen(
     model: ResourceViewModel = hiltViewModel()
     ) {
     val context = LocalContext.current
-    val mediaHelper = MediaDownloadsService.helper
+    val downloadsHelper = DownloadsServiceHelper
 
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
     val coroutineScope = rememberCoroutineScope()
+    val pausedTasks = model.pausedTasksFlow().collectAsStateWithLifecycle(emptyList())
 
     bottomSheetDynamicNavColor(state)
 
@@ -426,18 +434,27 @@ fun EpisodesSheetScreen(
                         } else episodeEntity.name.toString()
 
                         val isViewed = episodeEntity.watchingTime > 0
-                        val isOffline = episodeEntity.offlineVideos?.isNotEmpty() ?: false
+                        val isOffline = episodeEntity.offlineVideos?.isNotEmpty() == true
                         val textColor = if (isViewed)
                             Color.Gray else Color.Unspecified
 
                         val maxQuality = remember { episodeEntity.videos.keys.max() }
+
                         val enqueuedDownloadingTask =
-                            mediaHelper.getEnqueuedTask(model.internalContentUid.longValue, episodeEntity.uid)
+                            downloadsHelper.getEnqueuedTask(model.internalContentUid.longValue, episodeEntity.uid)
                                 .collectAsStateWithLifecycle(null)
-                        val stoppedState =
-                            enqueuedDownloadingTask.value?.stopState?.collectAsStateWithLifecycle()
+                        val taskState =
+                            enqueuedDownloadingTask.value?.state?.collectAsStateWithLifecycle()
                         val downloadProgress =
                             enqueuedDownloadingTask.value?.progressState?.collectAsStateWithLifecycle()
+
+                        val isTaskEnqueued = remember(taskState?.value) {
+                            taskState?.value == TaskState.ENQUEUED || taskState?.value == TaskState.IN_PROGRESS
+                        }
+
+                        val pausedTask = remember(pausedTasks.value.size) {
+                            pausedTasks.value.firstOrNull { it.episodeUid == episodeEntity.uid }
+                        }
 
                         ListItem(
                             overlineContent = {
@@ -457,8 +474,6 @@ fun EpisodesSheetScreen(
                                     )
 
                                     if (isOffline) {
-
-
                                         val qualityVector = when(episodeEntity.offlineVideos?.keys?.firstOrNull()) {
                                             Quality.SD -> Icons.Rounded.Sd
                                             Quality.HD -> Icons.Rounded.Hd
@@ -478,28 +493,56 @@ fun EpisodesSheetScreen(
                             trailingContent = {
                                 val qualityDialogVisible = remember { mutableStateOf(false) }
 
-                                if (isOffline) {
-                                    IconButton(
-                                        onClick = {
-                                            model.deleteOfflineEpisodes(episodeEntity)
-                                        }
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(24.dp),
-                                            imageVector = Icons.Rounded.DeleteOutline,
-                                            contentDescription = "download"
-                                        )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val percentProgress = remember(downloadProgress?.value) {
+                                        downloadProgress?.value?.times(100)?.roundToInt() ?: 0
                                     }
-                                } else {
-                                    DownloadButton(
-                                        isDownloading = stoppedState?.value == false,
-                                        progress = downloadProgress?.value ?: 0.0f
+
+                                    AnimatedVisibility(visible = percentProgress > 0, enter = fadeIn(), exit = fadeOut()) {
+                                        Text("$percentProgress%")
+                                    }
+
+                                    AnimatedVisibility(visible = isOffline, enter = fadeIn(), exit = fadeOut()) {
+                                        IconButton(
+                                            onClick = {
+                                                model.deleteOfflineEpisodes(episodeEntity)
+                                            }
+                                        ) {
+                                            Icon(
+                                                modifier = Modifier.size(24.dp),
+                                                imageVector = Icons.Rounded.DeleteOutline,
+                                                contentDescription = "download"
+                                            )
+                                        }
+                                    }
+
+                                    AnimatedVisibility(
+                                        visible = pausedTask != null,
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
                                     ) {
-                                        if (stoppedState?.value != false) {
-                                            qualityDialogVisible.value = true
-                                        } else {
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                enqueuedDownloadingTask.value?.stopState?.emit(true)
+                                        PausedTaskButton(pausedTask?.pausedProgress ?: 0f)
+                                    }
+
+                                    AnimatedVisibility(
+                                        visible = !isOffline && pausedTask == null,
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
+                                    ) {
+                                        DownloadButton(
+                                            isDownloading = isTaskEnqueued,
+                                            isAnyEpisodeOffline = false,
+                                            progress = downloadProgress?.value ?: 0.0f
+                                        ) {
+                                            if (!isTaskEnqueued) {
+                                                qualityDialogVisible.value = true
+                                            } else {
+                                                coroutineScope.launch(Dispatchers.IO) {
+                                                    enqueuedDownloadingTask.value?.state?.emit(TaskState.STOPPED)
+                                                }
                                             }
                                         }
                                     }
@@ -549,11 +592,13 @@ private fun TeamListItem(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val mediaHelper = MediaDownloadsService.helper
+    val contentUid = model.internalContentUid.longValue
+    val downloadsHelper = DownloadsServiceHelper
 
     val isPinned = remember(model.pinnedTeams.size) {
         derivedStateOf { model.pinnedTeams.contains(team.name) }
     }
+
     val updatedTimestamp = remember {
         DateUtils.getRelativeTimeSpanString(
             context,
@@ -561,35 +606,39 @@ private fun TeamListItem(
         )
     }
 
-    val enqueuedDownloadingTasks =
-        mediaHelper.getQueryByGroupId(model.internalContentUid.longValue, team.name)
-            .collectAsStateWithLifecycle(emptyList())
+    var downloadingProgress by remember { mutableFloatStateOf(0f) }
+    var isGroupEnqueued by remember { mutableStateOf(false) }
 
-    val isDownloading = remember { mutableStateOf(false) }
+    val isAnyEpisodeOffline = remember(episodes) { episodes.fastAny { !it.offlineVideos.isNullOrEmpty() }}
+    val isAllEpisodesOffline = remember(episodes) { episodes.all { !it.offlineVideos.isNullOrEmpty() } }
 
-    val progress = remember { mutableFloatStateOf(0f) }
+    val enqueuedDownloadingTasks by
+        downloadsHelper.getQueryByGroupId(contentUid, team.name).collectAsStateWithLifecycle(emptyList())
 
-    LaunchedEffect(enqueuedDownloadingTasks.value) {
-        isDownloading.value = enqueuedDownloadingTasks.value?.any { !it.stopState.value } ?: false
-        println("Enqueued tasks list fired effect")
+    LaunchedEffect(enqueuedDownloadingTasks) {
+        enqueuedDownloadingTasks?.forEach { enqueuedTask ->
+            enqueuedTask.state.collect {
+                isGroupEnqueued = (it == TaskState.ENQUEUED) || (it == TaskState.IN_PROGRESS)
+            }
+        }
+    }
 
-        if (isDownloading.value) {
+    LaunchedEffect(enqueuedDownloadingTasks) {
+        if (isGroupEnqueued) {
             val summaryProgress = mutableMapOf<Int, Float>()
 
-            enqueuedDownloadingTasks.value?.let { list ->
-                list.forEach { enqueuedTask ->
-                    launch {
-                        enqueuedTask.progressState.collect {
-                            summaryProgress[enqueuedTask.mediaDownloadTask.uid ?: -1] = it
+            enqueuedDownloadingTasks?.forEach { enqueuedTask ->
+                launch {
+                    enqueuedTask.progressState.collect {
+                        summaryProgress[enqueuedTask.mediaDownloadTask.uid] = it
 
-                            val tasksAmount = list.size
-                            progress.floatValue = summaryProgress.values.sum().div(tasksAmount)
-                        }
+                        val tasksAmount = enqueuedDownloadingTasks?.size ?: 0
+                        downloadingProgress = summaryProgress.values.sum().div(tasksAmount)
                     }
                 }
             }
         } else {
-            progress.floatValue = 0f
+            downloadingProgress = 0f
         }
     }
 
@@ -611,12 +660,30 @@ private fun TeamListItem(
             ) {
                 val qualityDialogVisible = remember { mutableStateOf(false) }
 
-                DownloadButton(isDownloading = isDownloading.value, progress = progress.floatValue) {
-                    if(!isDownloading.value) {
-                        qualityDialogVisible.value = true
-                    } else {
-                        coroutineScope.launch(Dispatchers.IO) {
-                            mediaHelper.stopByGroupId(model.internalContentUid.longValue, team.name)
+                if (isAllEpisodesOffline) {
+                    IconButton(
+                        onClick = {
+                            model.deleteOfflineEpisodes(*episodes.toTypedArray())
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            imageVector = Icons.Rounded.DeleteOutline,
+                            contentDescription = "download"
+                        )
+                    }
+                } else {
+                    DownloadButton(
+                        isDownloading = isGroupEnqueued,
+                        isAnyEpisodeOffline = isAnyEpisodeOffline,
+                        progress = downloadingProgress
+                    ) {
+                        if(!isGroupEnqueued) {
+                            qualityDialogVisible.value = true
+                        } else {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                downloadsHelper.stopByGroupId(model.internalContentUid.longValue, team.name)
+                            }
                         }
                     }
                 }
@@ -654,7 +721,12 @@ private fun TeamListItem(
 }
 
 @Composable
-private fun DownloadButton(isDownloading: Boolean, progress: Float, onClick: () -> Unit) {
+private fun DownloadButton(
+    isAnyEpisodeOffline: Boolean,
+    isDownloading: Boolean,
+    progress: Float,
+    onClick: () -> Unit
+) {
     val iconSize = remember(isDownloading) {
         if (!isDownloading) 24.dp else 16.dp
     }
@@ -665,7 +737,7 @@ private fun DownloadButton(isDownloading: Boolean, progress: Float, onClick: () 
         Box(
             contentAlignment = Alignment.Center
         ) {
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = isDownloading,
                 enter = fadeIn(),
                 exit = fadeOut()
@@ -686,16 +758,54 @@ private fun DownloadButton(isDownloading: Boolean, progress: Float, onClick: () 
                 }
             }
 
+            val vector = if (isDownloading) {
+                Icons.Rounded.Stop
+            } else if (isAnyEpisodeOffline) {
+                Icons.Rounded.Downloading
+            } else {
+                ImageVector.vectorResource(id = R.drawable.download_for_offline)
+            }
+
             Icon(
                 modifier = Modifier
                     .animateContentSize()
                     .size(iconSize),
-                imageVector = if (isDownloading) {
-                    Icons.Rounded.Stop
-                } else {
-                    ImageVector.vectorResource(id = R.drawable.download_for_offline)
-                },
+                imageVector = vector,
                 contentDescription = "download"
+            )
+        }
+    }
+}
+
+@Composable
+fun PausedTaskButton(pausedProgress: Float) {
+    val context = LocalContext.current
+
+    IconButton(
+        onClick = {
+            context.startActivity(
+                Intent(
+                    context,
+                    DownloadsActivity::class.java
+                ).apply { putExtra("tab", 1) })
+        }
+    ) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                progress = { pausedProgress },
+                trackColor = ProgressIndicatorDefaults.circularDeterminateTrackColor,
+                strokeWidth = 2.dp
+            )
+
+            Icon(
+                modifier = Modifier
+                    .animateContentSize()
+                    .size(16.dp),
+                imageVector = Icons.Rounded.PlayArrow,
+                contentDescription = "resume"
             )
         }
     }

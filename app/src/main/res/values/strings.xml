@@ -83,9 +83,9 @@
     <string name="downloads_notification_channel">Загрузка серий</string>
     <string name="downloads_notification_channel_desc">Состояние загрузки серий</string>
     <string name="episodes_downloading">Скачивание серий…</string>
-    <string name="episodes_downloading_counter">Скачивание серий… (%d из %d)</string>
+    <string name="episodes_downloading_counter">Скачивание серий… (%d из %d) %d%%</string>
     <string name="episodes_downloading_finished">Скачивание завершено.</string>
-    <string name="episodes_downloading_failed">Скачивание завершено с ошибками.</string>
+    <string name="episodes_downloading_failed">Скачивание завершено с ошибками.\nНезавершённые загрузки отложены.</string>
 
     <!--
         Login Card
@@ -253,7 +253,26 @@
     <string name="cancel_installation">Отменить загрузку</string>
     <string name="download_error">Произшла ошибка. Повторите попытку позже.</string>
     <string name="remaining">Осталось %s</string>
-    
+
+    <!--
+        Downloads Activity
+    -->
+    <string name="downloads_activity_title">Загрузки</string>
+    <string name="downloads_query">Очередь</string>
+    <string name="downloads_suspended">Отложено</string>
+    <string name="downloads_saved">Загружено</string>
+    <string name="downloads_pause">Приостановить</string>
+    <string name="downloads_stop_all">Отменить всё</string>
+    <string name="downloads_empty_query">Очередь пуста. \nМожет скачаем чего-нибудь?"</string>
+    <string name="downloads_resume">Возобновить</string>
+    <string name="downloads_delete_all">Удалить всё</string>
+    <string name="downloads_remove_dialog_title">Погоди-ка…</string>
+    <string name="downloads_multiple_removal">Удалить все сохранённые серии? Это действие нельзя будет отменить!</string>
+    <string name="downloads_single_removal">Удалить сохранённую серию? Это действие нельзя будет отменить!</string>
+    <string name="downloads_delete_action">Удалить с устройства</string>
+    <string name="downloads_cancel_action">Отмена</string>
+    <string name="downloads_empty_library">Загрузок здесь нет. \nДавай скачаем твоё любимое аниме!</string>
+
     <!--
         Notifications & services
     -->

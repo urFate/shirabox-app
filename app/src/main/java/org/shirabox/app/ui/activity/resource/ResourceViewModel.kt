@@ -2,8 +2,7 @@ package org.shirabox.app.ui.activity.resource
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
-import androidx.compose.runtime.mutableIntStateOf
+import android.widget.Toast
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,17 +21,22 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.shirabox.app.R
+import org.shirabox.app.ValuesHelper
+import org.shirabox.app.service.media.DownloadsServiceHelper
 import org.shirabox.app.service.media.MediaDownloadsService
 import org.shirabox.app.service.media.model.MediaDownloadTask
 import org.shirabox.core.datastore.AppDataStore
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.db.AppDatabase
+import org.shirabox.core.entity.DownloadEntity
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.ActingTeam
 import org.shirabox.core.model.Content
 import org.shirabox.core.model.ContentType.ANIME
 import org.shirabox.core.model.Quality
 import org.shirabox.core.model.ShiraBoxAnime
+import org.shirabox.core.util.Util
 import org.shirabox.core.util.Util.Companion.mapContentToEntity
 import org.shirabox.core.util.Util.Companion.mapEntityToContent
 import org.shirabox.data.EpisodesHelper
@@ -52,7 +56,6 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     val relatedContents = mutableStateListOf<Content>()
 
     val internalContentUid = mutableLongStateOf(-1)
-    val downloadGroupId = mutableIntStateOf(-1)
 
     val isFavourite = mutableStateOf(false)
     val episodesNotifications = mutableStateOf(false)
@@ -107,7 +110,12 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                         var anime = shikimoriContent
 
                         // Set shirabox API data
-                        anime = shiraBoxAnime.value?.let { anime.copy(shiraboxId = it.id, image = it.image) } ?: anime
+                        anime = shiraBoxAnime.value?.let {
+                            anime.copy(
+                                shiraboxId = it.id,
+                                image = it.image
+                            )
+                        } ?: anime
 
                         when(cachedData){
                             null -> {
@@ -157,8 +165,10 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
         }
     }
 
-    fun fetchCachedEpisodes():
+    fun cachedEpisodesFlow():
             Flow<List<EpisodeEntity>> = db.episodeDao().all()
+
+    fun pausedTasksFlow(): Flow<List<DownloadEntity>> = db.downloadDao().all()
 
     fun fetchEpisodes(content: Content) {
         val finishedDeferred = viewModelScope.async(Dispatchers.IO) {
@@ -198,34 +208,52 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
     }
 
     fun saveEpisodes(context: Context, quality: Quality, vararg episodes: EpisodeEntity) {
-        Log.d("DOWNLOAD_D", "Saving episodes...")
+        if (!Util.isNetworkAvailable(context)) {
+            Toast.makeText(
+                context,
+                R.string.no_internet_connection,
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
+            val suspendedDownloads = db.downloadDao().allSingle()
+
             val tasks = episodes
-                .filter {
-                    it.offlineVideos.isNullOrEmpty()
-                }
+                .filter { it.uid != null }
+                .filter { it.offlineVideos.isNullOrEmpty() }
+                .filter { episode -> !suspendedDownloads.any { it.episodeUid == episode.uid} }
                 .map { entity ->
                     val uuid = UUID.randomUUID()
                     val repository = ContentRepositoryRegistry.getRepositoryByName(entity.source)!!
 
-                    val destination = File(context.filesDir, "/${entity.contentUid}/${quality.quality}/$uuid.mp4")
+                    val destination = File(
+                        context.filesDir,
+                        ValuesHelper.buildOfflineMediaPath(
+                            contentUid = entity.contentUid,
+                            quality = quality,
+                            fileName = uuid.toString()
+                        )
+                    )
 
                     val url = entity.videos[quality]
                         ?: entity.videos.toSortedMap(compareBy { it.quality }).values.last()
 
                     MediaDownloadTask(
+                        uid = entity.uid!!,
                         url = url,
                         file = destination.path,
                         quality = quality,
                         streamProtocol = repository.streamingType,
-                        group = entity.actingTeamName,
-                        contentUid = entity.contentUid,
-                        uid = entity.uid
+                        groupId = entity.actingTeamName,
+                        content = content.value!!,
+                        contentUid = entity.contentUid
                     )
             }
 
             context.startService(Intent(context, MediaDownloadsService::class.java))
-            MediaDownloadsService.helper.enqueue(internalContentUid.longValue, *tasks.toTypedArray())
+            DownloadsServiceHelper.enqueue(db = db, tasks)
         }
     }
 

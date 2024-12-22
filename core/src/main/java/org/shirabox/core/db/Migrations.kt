@@ -22,7 +22,7 @@ object Migrations {
             val contentCursor = db.query("SELECT * FROM 'content'")
 
             // Divide [acting_team] column on two columns
-            if(episodesCursor.moveToFirst()) {
+            if (episodesCursor.moveToFirst()) {
                 do {
                     val uidIndex = episodesCursor.getColumnIndex("uid")
                     val teamIndex = episodesCursor.getColumnIndex("acting_team")
@@ -45,7 +45,7 @@ object Migrations {
             }
 
             // Map content cyrillic values to enum classes
-            if(contentCursor.moveToFirst()) {
+            if (contentCursor.moveToFirst()) {
                 do {
                     val uidIndex = contentCursor.getColumnIndex("uid")
                     val statusIndex = contentCursor.getColumnIndex("status")
@@ -98,7 +98,7 @@ object Migrations {
 
             val contentCursor = db.query("SELECT * FROM 'content'")
 
-            if(contentCursor.moveToFirst()) {
+            if (contentCursor.moveToFirst()) {
                 do {
                     val uidIndex = contentCursor.getColumnIndex("uid")
                     val isFavouriteIndex = contentCursor.getColumnIndex("favourite")
@@ -124,6 +124,20 @@ object Migrations {
         override fun migrate(db: SupportSQLiteDatabase) {
             // Initialize new columns
             db.execSQL("ALTER TABLE 'episode' ADD COLUMN 'offline_videos' TEXT NULL")
+            db.execSQL(
+                "CREATE TABLE download ( " +
+                        "uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "file TEXT NOT NULL, " +
+                        "url TEXT NOT NULL, " +
+                        "mpeg_bytes INTEGER NOT NULL, " +
+                        "hls_fragment INTEGER, " +
+                        "paused_progress REAL NOT NULL, " +
+                        "quality TEXT NOT NULL, " +
+                        "stream_protocol TEXT NOT NULL, " +
+                        "'group' TEXT NOT NULL, " +
+                        "content_uid INTEGER NOT NULL, " +
+                        "episode_uid INTEGER NOT NULL );"
+            )
         }
     }
 }

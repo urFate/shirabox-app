@@ -3,6 +3,7 @@ package org.shirabox.app
 import android.content.Context
 import org.shirabox.app.ui.screen.favourites.SortType
 import org.shirabox.core.model.ContentKind
+import org.shirabox.core.model.Quality
 import org.shirabox.core.model.ReleaseStatus
 
 object ValuesHelper {
@@ -32,4 +33,7 @@ object ValuesHelper {
         SortType.RECENT -> context.getString(R.string.recent_order)
         SortType.STATUS -> context.getString(R.string.status_order)
     }
+
+    fun buildOfflineMediaPath(contentUid: Long, quality: Quality, fileName: String) =
+        "/$contentUid/$quality/$fileName.mp4"
 }

@@ -22,6 +22,10 @@ class App : Application(), ImageLoaderFactory {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
+    companion object {
+        lateinit var appDatabase: AppDatabase
+    }
+
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
             .diskCache {
@@ -37,11 +41,11 @@ class App : Application(), ImageLoaderFactory {
         super.onCreate()
 
         FirebaseApp.initializeApp(this)
-        val db = AppDatabase.getAppDataBase(this)!!
+        appDatabase = AppDatabase.getAppDataBase(this)!!
 
         // Subscribe to notifications
         scope.launch {
-            db.contentDao().getFavourites().collectLatest { list ->
+            appDatabase.contentDao().getFavourites().collectLatest { list ->
                 list.forEach { favouriteAnime ->
                     if (favouriteAnime.shiraboxId != null) {
                         val topic = "id-${favouriteAnime.shiraboxId}"
