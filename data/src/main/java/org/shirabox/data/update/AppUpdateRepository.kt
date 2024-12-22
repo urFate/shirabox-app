@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 
 object AppUpdateRepository {
-    private const val API_ENDPOINT = "https://api.shirabox.org/v1"
+    private const val API_ENDPOINT = "https://api.shirabox.org/v2"
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
     fun checkAppUpdates(currentVersionTag: String): Flow<AppUpdateState> = flow {
