@@ -311,9 +311,9 @@ internal fun RemovalConfirmDialog(
     onConfirm: () -> Unit
 ) {
     if (dialogVisibilityState.value) {
-        val text = remember(multipleRemoval) {
-            if (multipleRemoval) "Удалить все сохранённые серии?" else "Удалить сохранённую серию?"
-        }
+        val text = stringResource(
+            if (multipleRemoval) R.string.downloads_multiple_removal else R.string.downloads_single_removal
+        )
 
         AlertDialog(
             icon = {
@@ -324,14 +324,12 @@ internal fun RemovalConfirmDialog(
                 )
             },
             title = {
-                Text(text = "Погоди-ка...")
+                Text(text = stringResource(R.string.downloads_remove_dialog_title))
             },
             text = {
                 Text(text = text)
             },
-            onDismissRequest = {
-                dialogVisibilityState.value = false
-            },
+            onDismissRequest = { dialogVisibilityState.value = false },
             confirmButton = {
                 Button(
                     onClick = {
@@ -344,16 +342,14 @@ internal fun RemovalConfirmDialog(
                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                         )
                 ) {
-                    Text("Удалить")
+                    Text(text = stringResource(R.string.downloads_delete_action))
                 }
             },
             dismissButton = {
                 TextButton (
-                    onClick = {
-                        dialogVisibilityState.value = false
-                    }
+                    onClick = { dialogVisibilityState.value = false }
                 ) {
-                    Text("Отмена")
+                    Text(text = stringResource(R.string.downloads_cancel_action))
                 }
             }
         )
