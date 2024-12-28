@@ -122,6 +122,8 @@ class ExploreViewModel @Inject constructor(@ApplicationContext context: Context)
         }
     }
 
+    fun cachedContentFlow(id: Int) = db.contentDao().getContentByShiraboxId(id)
+
     fun refresh(coldStartCheck: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             /**
