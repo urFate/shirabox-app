@@ -1,7 +1,6 @@
 package org.shirabox.app.ui.activity.resource
 
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -252,7 +251,7 @@ class ResourceViewModel @Inject constructor(@ApplicationContext context: Context
                     )
             }
 
-            context.startService(Intent(context, MediaDownloadsService::class.java))
+            Util.startForegroundService(context, MediaDownloadsService::class.java)
             DownloadsServiceHelper.enqueue(db = db, tasks)
         }
     }

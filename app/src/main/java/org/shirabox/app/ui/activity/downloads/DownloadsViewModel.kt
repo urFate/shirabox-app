@@ -1,7 +1,6 @@
 package org.shirabox.app.ui.activity.downloads
 
 import android.content.Context
-import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -125,7 +124,7 @@ class DownloadsViewModel @Inject constructor(@ApplicationContext context: Contex
                 launch { db.downloadDao().deleteDownload(contentAndDownload.second) }
             }
 
-            context.startService(Intent(context, MediaDownloadsService::class.java))
+            Util.startForegroundService(context, MediaDownloadsService::class.java)
         }
     }
 

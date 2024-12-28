@@ -177,7 +177,7 @@ class Util {
                 }
 
                 packageInfo.versionName
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
@@ -205,6 +205,14 @@ class Util {
                 }
             }
             return false
+        }
+
+        fun startForegroundService(context: Context, clazz: Class<*>) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(Intent(context, clazz))
+            } else {
+                context.startService(Intent(context, clazz))
+            }
         }
     }
 }
