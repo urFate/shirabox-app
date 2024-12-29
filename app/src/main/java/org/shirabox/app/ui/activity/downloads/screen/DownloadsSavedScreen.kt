@@ -172,7 +172,8 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                         .fillMaxWidth()
                                 ) {
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Text(
                                             modifier = Modifier.weight(weight = 1f, fill = false),
