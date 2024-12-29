@@ -8,6 +8,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING"
+        android:minSdkVersion="35"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        android:minSdkVersion="29"/>
 
     <application
         android:name=".App"
@@ -19,7 +23,7 @@
         android:label="@string/app_name"
         android:supportsRtl="false"
         android:theme="@style/Theme.App.Starting"
-        tools:targetApi="34">
+        tools:targetApi="35">
         <activity
             android:name=".ui.activity.downloads.DownloadsActivity"
             android:exported="false"
@@ -62,7 +66,6 @@
             android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -88,7 +91,8 @@
         <service
             android:name=".service.media.MediaDownloadsService"
             android:enabled="true"
-            android:exported="false"/>
+            android:exported="false"
+            android:foregroundServiceType="mediaProcessing|mediaPlayback" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
