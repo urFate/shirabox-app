@@ -28,6 +28,7 @@ import com.google.accompanist.placeholder.material3.fade
 import com.google.accompanist.placeholder.material3.placeholder
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.player.PlayerActivity
+import org.shirabox.app.ui.activity.resource.ResourceActivity
 import org.shirabox.app.ui.component.general.ContentCardPlaceholder
 import org.shirabox.app.ui.component.general.PreviewCard
 import org.shirabox.core.entity.EpisodeEntity
@@ -87,10 +88,10 @@ internal fun PrimaryHistoryFeed(
                             kind = combinedContent.content.kind,
                             imagePath = combinedContent.content.image,
                             watchingTime = entity.watchingTime,
-                            streamLength = entity.videoLength ?: 1200000
-                        ) {
-                            onClick(combinedContent, context, entity)
-                        }
+                            streamLength = entity.videoLength ?: 1200000,
+                            onLongClick = { onLongClick(combinedContent, context) },
+                            onClick = { onClick(combinedContent, context, entity) }
+                        )
                     }
                 }
             }
@@ -100,6 +101,21 @@ internal fun PrimaryHistoryFeed(
             )
         }
     }
+}
+
+private fun onLongClick(
+    combinedContent: CombinedContent,
+    context: Context
+) {
+    context.startActivity(
+        Intent(
+            context,
+            ResourceActivity::class.java
+        ).apply {
+            putExtra("id", combinedContent.content.shikimoriID)
+            putExtra("type", combinedContent.content.type)
+        }
+    )
 }
 
 private fun onClick(

@@ -1,8 +1,9 @@
 package org.shirabox.app.ui.component.general
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +44,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PreviewCard(
     modifier: Modifier = Modifier,
@@ -53,6 +55,7 @@ fun PreviewCard(
     imagePath: String,
     watchingTime: Long,
     streamLength: Long,
+    onLongClick: () -> Unit,
     onClick: () -> Unit
     ) {
     val remainingTime = streamLength.minus(watchingTime)
@@ -69,7 +72,10 @@ fun PreviewCard(
         shape = RoundedCornerShape(10)
     ) {
         Box(
-            modifier = Modifier.clickable { onClick() }
+            modifier = Modifier.combinedClickable(
+                onClick = { onClick() },
+                onLongClick = { onLongClick() }
+            )
         ) {
             AsyncImage(
                 modifier = Modifier.fillMaxSize().blur(3.dp),
