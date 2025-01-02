@@ -3,9 +3,6 @@ package org.shirabox.app.ui.activity.settings.category.playback
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FastForward
-import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -68,7 +66,7 @@ fun AnimeSkipDialog(visibilityState: MutableState<Boolean>) {
                 Icon(
                     modifier = Modifier.size(32.dp),
                     tint = MaterialTheme.colorScheme.primary,
-                    imageVector = Icons.Outlined.Key,
+                    painter = painterResource(R.drawable.lock_keyhole),
                     contentDescription = "key"
                 )
             },
@@ -125,7 +123,7 @@ fun InstantSeekDialog(visibilityState: MutableState<Boolean>) {
                 Icon(
                     modifier = Modifier.size(32.dp),
                     tint = MaterialTheme.colorScheme.primary,
-                    imageVector = Icons.Outlined.FastForward,
+                    painter = painterResource(R.drawable.forward),
                     contentDescription = "fast forward"
                 )
             },

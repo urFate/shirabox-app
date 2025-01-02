@@ -1,12 +1,7 @@
 package org.shirabox.app.ui.activity.downloads
 
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.rounded.FileDownloadDone
-import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.vector.ImageVector
 import org.shirabox.app.R
 import org.shirabox.app.ui.activity.downloads.screen.DownloadsPausedScreen
 import org.shirabox.app.ui.activity.downloads.screen.DownloadsQueryScreen
@@ -14,7 +9,7 @@ import org.shirabox.app.ui.activity.downloads.screen.DownloadsSavedScreen
 
 sealed class DownloadsTabsItems(
     val name: Int,
-    val icon: ImageVector,
+    val icon: Int,
     val content: @Composable (pagerState: PagerState) -> Unit
 ) {
     companion object {
@@ -24,21 +19,21 @@ sealed class DownloadsTabsItems(
     data object QueryTab :
         DownloadsTabsItems(
             name = R.string.downloads_query,
-            icon = Icons.Outlined.FileDownload,
+            icon = R.drawable.download,
             content = { DownloadsQueryScreen(pagerState = it) }
         )
 
     data object SuspendedTab :
         DownloadsTabsItems(
             name = R.string.downloads_suspended,
-            icon = Icons.Rounded.Pause,
+            icon = R.drawable.pause,
             content = { DownloadsPausedScreen(pagerState = it) }
         )
 
     data object SavedTab :
         DownloadsTabsItems(
             name = R.string.downloads_saved,
-            icon = Icons.Rounded.FileDownloadDone,
+            icon = R.drawable.hard_drive,
             content = { DownloadsSavedScreen() }
         )
 }

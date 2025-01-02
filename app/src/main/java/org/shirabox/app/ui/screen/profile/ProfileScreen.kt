@@ -16,13 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.Savings
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -59,9 +52,14 @@ fun ProfileScreen(navController: NavController){
         ) {
             item {
                 Box(
-                    modifier = Modifier.fillMaxWidth().padding(0.dp, 4.dp).clickable {
-                        Toast.makeText(context, "В разработке...", Toast.LENGTH_SHORT).show()
-                    }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp, 4.dp)
+                        .clickable {
+                            Toast
+                                .makeText(context, "В разработке...", Toast.LENGTH_SHORT)
+                                .show()
+                        }
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -100,11 +98,11 @@ fun ProfileScreen(navController: NavController){
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.history)) },
                     modifier = Modifier.clickable(onClick = {
-                        navController.navigate(NestedNavItems.History.route) }),
-
+                        navController.navigate(NestedNavItems.History.route)
+                    }),
                     leadingContent = {
                         Icon(
-                            Icons.Filled.History,
+                            painter = painterResource(R.drawable.inbox_archive),
                             contentDescription = "History Icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -120,7 +118,7 @@ fun ProfileScreen(navController: NavController){
                     },
                     leadingContent = {
                         Icon(
-                            Icons.Outlined.Savings,
+                            painter = painterResource(R.drawable.euro),
                             contentDescription = "Savings icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -136,7 +134,7 @@ fun ProfileScreen(navController: NavController){
                     },
                     leadingContent = {
                         Icon(
-                            Icons.Outlined.FileDownload,
+                            painter = painterResource(R.drawable.download),
                             contentDescription = "Downloads icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -152,7 +150,7 @@ fun ProfileScreen(navController: NavController){
                     },
                     leadingContent = {
                         Icon(
-                            Icons.Outlined.Settings,
+                            painter = painterResource(R.drawable.cog),
                             contentDescription = "Settings icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -175,7 +173,7 @@ fun ProfileScreen(navController: NavController){
                     },
                     leadingContent = {
                         Icon(
-                            Icons.Outlined.SystemUpdate,
+                            painter = painterResource(R.drawable.refresh),
                             contentDescription = "SystemUpdate icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -191,7 +189,7 @@ fun ProfileScreen(navController: NavController){
                     },
                     leadingContent = {
                         Icon(
-                            Icons.AutoMirrored.Outlined.HelpOutline,
+                            painter = painterResource(R.drawable.support),
                             contentDescription = "Help icon",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )

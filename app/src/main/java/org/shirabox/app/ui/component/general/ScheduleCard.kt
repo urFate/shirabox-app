@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,10 +37,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import org.shirabox.app.R
 import org.shirabox.app.ui.screen.explore.ExploreViewModel
 import org.shirabox.core.model.ScheduleEntry
 import org.shirabox.core.util.getDuration
-import org.shirabox.app.R
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -115,7 +114,7 @@ fun ScheduleCard(
                     AnimatedVisibility(visible = isFavourite, enter = fadeIn(), exit = fadeOut()) {
                         Icon(
                             modifier = Modifier.size(22.dp),
-                            imageVector = Icons.Rounded.Star,
+                            painter = painterResource(R.drawable.star_filled),
                             contentDescription = "favourite",
                             tint = Color(0xFFFFD700)
                         )

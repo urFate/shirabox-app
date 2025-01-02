@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -19,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,7 +94,7 @@ fun EnqueuedTaskItem(
 
             IconButton(enabled = buttonsEnabled, onClick = onPause) {
                 Icon(
-                    imageVector = Icons.Rounded.Pause,
+                    painter = painterResource(R.drawable.pause_filled),
                     tint = buttonsTint,
                     contentDescription = "pause"
                 )
@@ -104,7 +102,7 @@ fun EnqueuedTaskItem(
 
             IconButton(enabled = buttonsEnabled, onClick = onCancel) {
                 Icon(
-                    imageVector = Icons.Outlined.Cancel,
+                    painter = painterResource(R.drawable.close_circle),
                     tint = buttonsTint,
                     contentDescription = "cancel"
                 )

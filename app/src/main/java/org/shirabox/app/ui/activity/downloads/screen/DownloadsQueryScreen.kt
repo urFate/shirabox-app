@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAddCheck
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -29,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,7 +53,7 @@ fun DownloadsQueryScreen(pagerState: PagerState, model: DownloadsViewModel = hil
                 visible = queryState.value.isNotEmpty()
             ) {
                 ExtendedFloatingActionButton(
-                    icon = { Icon(Icons.Filled.Pause, "Pause") },
+                    icon = { Icon(painter = painterResource(R.drawable.pause_filled), "Pause") },
                     text = { Text(text = stringResource(R.string.downloads_pause)) },
                     expanded = !listState.canScrollBackward,
                     onClick = {
@@ -84,7 +82,7 @@ fun DownloadsQueryScreen(pagerState: PagerState, model: DownloadsViewModel = hil
                 ) {
                     Icon(
                         modifier = Modifier.size(64.dp),
-                        imageVector = Icons.AutoMirrored.Rounded.PlaylistAddCheck,
+                        painter = painterResource(R.drawable.inbox_check),
                         tint = MaterialTheme.colorScheme.outline,
                         contentDescription = "Fresh"
                     )

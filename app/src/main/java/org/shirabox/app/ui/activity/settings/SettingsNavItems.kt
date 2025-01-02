@@ -1,49 +1,42 @@
 package org.shirabox.app.ui.activity.settings
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.ui.graphics.vector.ImageVector
 import org.shirabox.app.R
 
 sealed class SettingsNavItems(
     val name: Int,
     val description: Int,
     val route: String,
-    val icon: ImageVector
+    val icon: Int
 ) {
     data object Root :
-        SettingsNavItems(R.string.title_activity_settings, 0, "root", Icons.Default.Settings)
+        SettingsNavItems(R.string.title_activity_settings, 0, "root", R.drawable.config)
 
     data object General : SettingsNavItems(
         R.string.general_settings,
         R.string.general_setting_contents,
         "general",
-        Icons.Default.Tune
+        R.drawable.config
     )
 
     data object Appearance : SettingsNavItems(
         R.string.theme_settings,
         R.string.theme_settings_description,
         "appearance",
-        Icons.Outlined.Palette
+        R.drawable.swatches
     )
 
     data object Playback : SettingsNavItems(
         R.string.playback_settings,
         R.string.reader_and_player_settings_description,
         "playback",
-        Icons.AutoMirrored.Outlined.PlaylistPlay
+        R.drawable.video
     )
 
     data object About : SettingsNavItems(
         R.string.about_app,
         R.string.about_settings_description,
         "about",
-        Icons.Outlined.Info
+        R.drawable.info_square
     )
 }
 

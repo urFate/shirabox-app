@@ -16,11 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.RocketLaunch
-import androidx.compose.material.icons.outlined.Verified
-import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -138,7 +134,7 @@ fun AppUpdateScreen(
                     navigationIcon = {
                         IconButton(onClick = { activity.finish() }) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                painter = painterResource(R.drawable.arrow_left),
                                 contentDescription = "Finish",
                             )
                         }
@@ -147,6 +143,13 @@ fun AppUpdateScreen(
             }
 
             item {
+                val icon = remember(appUpdateState.updateAvailable) {
+                    when (appUpdateState.updateAvailable) {
+                        true -> R.drawable.rocket
+                        false -> R.drawable.check_waves
+                    }
+                }
+
                 Column(
                     modifier = Modifier
                         .padding(24.dp, 0.dp, 24.dp, 128.dp),
@@ -159,10 +162,7 @@ fun AppUpdateScreen(
                     ) {
                         Icon(
                             modifier = Modifier.size(64.dp),
-                            imageVector = when (appUpdateState.updateAvailable) {
-                                true -> Icons.Outlined.RocketLaunch
-                                false -> Icons.Outlined.Verified
-                            },
+                            painter = painterResource(icon),
                             tint = MaterialTheme.colorScheme.primary,
                             contentDescription = "rocket"
                         )
@@ -349,7 +349,7 @@ fun UpdateDialog(
             icon = {
                 Icon(
                     modifier = Modifier.size(48.dp),
-                    imageVector = Icons.Rounded.Downloading,
+                    painter = painterResource(R.drawable.refresh),
                     contentDescription = "Downloading",
                     tint = MaterialTheme.colorScheme.primary
                 )

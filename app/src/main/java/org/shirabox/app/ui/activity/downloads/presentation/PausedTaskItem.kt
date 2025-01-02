@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -18,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,7 +77,7 @@ fun PausedTaskItem(
         ) {
             IconButton(onClick = onResume) {
                 Icon(
-                    imageVector = Icons.Rounded.PlayArrow,
+                    painter = painterResource(R.drawable.play_filled),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     contentDescription = "pause"
                 )
@@ -87,7 +85,7 @@ fun PausedTaskItem(
 
             IconButton(onClick = onCancel) {
                 Icon(
-                    imageVector = Icons.Outlined.Cancel,
+                    painter = painterResource(R.drawable.close_circle),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     contentDescription = "cancel"
                 )

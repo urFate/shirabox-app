@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Fullscreen
-import androidx.compose.material.icons.rounded.FullscreenExit
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,10 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
+import org.shirabox.app.R
 import org.shirabox.app.ui.activity.player.PlayerViewModel
 import org.shirabox.core.util.Util
 
@@ -147,10 +147,11 @@ internal fun PlayerBottomBar(
                     }
                 ) {
                     Icon(
-                        imageVector = if (isLandscape) {
-                            Icons.Rounded.FullscreenExit
+                        modifier = Modifier.size(18.dp),
+                        painter = if (isLandscape) {
+                            painterResource(R.drawable.minimize)
                         } else {
-                            Icons.Rounded.Fullscreen
+                            painterResource(R.drawable.maximize)
                         },
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.inverseOnSurface

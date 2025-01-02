@@ -4,10 +4,6 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FastForward
-import androidx.compose.material.icons.outlined.HighQuality
-import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,9 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -96,7 +94,7 @@ fun PlaybackSettingsScreen() {
             },
             leadingContent = {
                 Icon(
-                    imageVector = Icons.Outlined.HighQuality,
+                    painter = painterResource(R.drawable.badge_fhd),
                     tint = MaterialTheme.colorScheme.primary,
                     contentDescription = "quality"
                 )
@@ -119,7 +117,7 @@ fun PlaybackSettingsScreen() {
                 },
                 leadingContent = {
                     Icon(
-                        imageVector = Icons.Outlined.SkipNext,
+                        painter = painterResource(R.drawable.player_skip_forward),
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "animeskip"
                     )
@@ -202,7 +200,7 @@ fun PlaybackSettingsScreen() {
                 leadingContent = {
                     Icon(
                         modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Outlined.FastForward,
+                        painter = painterResource(R.drawable.forward),
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "instant seek"
                     )
@@ -216,7 +214,7 @@ fun PlaybackSettingsScreen() {
     QualityDialog(
         title = stringResource(id = R.string.playback_default_quality),
         description = stringResource(id = R.string.playback_default_quality_desc),
-        icon = Icons.Outlined.HighQuality,
+        icon = ImageVector.vectorResource(R.drawable.badge_fhd),
         visibilityState = qualityVisibilityState,
         maxQuality = Quality.FHD,
         autoSelect = Quality.valueOfInt(currentQualityFlowState.value ?: 1080)

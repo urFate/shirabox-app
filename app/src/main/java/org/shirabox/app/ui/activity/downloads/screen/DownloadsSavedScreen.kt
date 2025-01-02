@@ -18,12 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.Hd
-import androidx.compose.material.icons.rounded.HighQuality
-import androidx.compose.material.icons.rounded.Sd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -89,7 +83,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                 visible = offlineEpisodesState.value.isNotEmpty()
             ) {
                 ExtendedFloatingActionButton(
-                    icon = { Icon(Icons.Filled.DeleteSweep, "Delete all") },
+                    icon = { Icon(painter = painterResource(R.drawable.trash_x), "Delete all") },
                     text = { Text(text = stringResource(R.string.downloads_delete_all)) },
                     expanded = !listState.canScrollBackward,
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -122,7 +116,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                 ) {
                     Icon(
                         modifier = Modifier.size(64.dp),
-                        painter = painterResource(R.drawable.ic_self_improvement),
+                        painter = painterResource(R.drawable.inbox_archive),
                         tint = MaterialTheme.colorScheme.outline,
                         contentDescription = "Fresh"
                     )
@@ -207,10 +201,10 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
 
                             val qualityVector = remember {
                                 when(episode.offlineVideos?.keys?.firstOrNull()) {
-                                    Quality.SD -> Icons.Rounded.Sd
-                                    Quality.HD -> Icons.Rounded.Hd
-                                    Quality.FHD -> Icons.Rounded.HighQuality
-                                    null -> Icons.Rounded.HighQuality
+                                    Quality.SD -> R.drawable.badge_sd
+                                    Quality.HD -> R.drawable.badge_hd
+                                    Quality.FHD -> R.drawable.badge_fhd
+                                    null -> R.drawable.badge_sd
                                 }
                             }
 
@@ -246,7 +240,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
 
                                         Icon(
                                             modifier = Modifier.size(21.dp),
-                                            imageVector = qualityVector,
+                                            painter = painterResource(qualityVector),
                                             tint = MaterialTheme.colorScheme.primary,
                                             contentDescription = null
                                         )
@@ -279,7 +273,7 @@ fun DownloadsSavedScreen(model: DownloadsViewModel = hiltViewModel()) {
                                         ) {
                                             Icon(
                                                 modifier = Modifier.size(24.dp),
-                                                imageVector = Icons.Rounded.DeleteOutline,
+                                                painter = painterResource(R.drawable.trash),
                                                 tint = MaterialTheme.colorScheme.error,
                                                 contentDescription = "delete"
                                             )
@@ -320,7 +314,7 @@ internal fun RemovalConfirmDialog(
             icon = {
                 Icon(
                     modifier = Modifier.size(32.dp),
-                    imageVector = Icons.Filled.DeleteSweep,
+                    painter = painterResource(R.drawable.trash_x),
                     contentDescription = "Delete sweep"
                 )
             },

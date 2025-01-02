@@ -11,13 +11,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-internal fun DownloadsTab(text: String, icon: ImageVector, selected: Boolean, onClick: () -> Unit) {
+internal fun DownloadsTab(text: String, icon: Int, selected: Boolean, onClick: () -> Unit) {
     Tab(
         selected = selected,
         unselectedContentColor = MaterialTheme.colorScheme.outline,
@@ -30,7 +30,7 @@ internal fun DownloadsTab(text: String, icon: ImageVector, selected: Boolean, on
         ) {
             Icon(
                 modifier = Modifier.size(20.dp),
-                imageVector = icon,
+                painter = painterResource(icon),
                 tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 contentDescription = "downloads"
             )

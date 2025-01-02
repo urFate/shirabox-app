@@ -9,13 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Hd
-import androidx.compose.material.icons.outlined.HighQuality
-import androidx.compose.material.icons.outlined.NotificationsActive
-import androidx.compose.material.icons.outlined.NotificationsOff
-import androidx.compose.material.icons.outlined.Sd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
@@ -30,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +42,7 @@ fun NotificationsRequestDialog(isOpen: MutableState<Boolean>, onConfirm: () -> U
             icon = {
                 Icon(
                     modifier = Modifier.size(48.dp),
-                    imageVector = Icons.Outlined.NotificationsActive,
+                    painter = painterResource(R.drawable.reception_bell),
                     tint = MaterialTheme.colorScheme.primary,
                     contentDescription = null
                 )
@@ -97,7 +92,7 @@ fun NotificationsDismissDialog(context: Context, isOpen: MutableState<Boolean>) 
             icon = {
                 Icon(
                     modifier = Modifier.size(48.dp),
-                    imageVector = Icons.Outlined.NotificationsOff,
+                    painter = painterResource(R.drawable.bell_slash),
                     tint = MaterialTheme.colorScheme.primary,
                     contentDescription = null
                 )
@@ -150,7 +145,7 @@ fun DisposableScheduleDialog(isOpen: MutableState<Boolean>, onConfirm: () -> Uni
             icon = {
                 Icon(
                     modifier = Modifier.size(48.dp),
-                    imageVector = Icons.Outlined.CalendarMonth,
+                    painter = painterResource(R.drawable.calendar_check),
                     tint = MaterialTheme.colorScheme.primary,
                     contentDescription = null
                 )
@@ -244,11 +239,13 @@ fun QualityDialog(
                                             Quality.HD -> stringResource(id = R.string.medium_quality)
                                             Quality.FHD -> stringResource(id = R.string.high_quality)
                                         },
-                                        icon = when (it) {
-                                            Quality.SD -> Icons.Outlined.Sd
-                                            Quality.HD -> Icons.Outlined.Hd
-                                            Quality.FHD -> Icons.Outlined.HighQuality
-                                        },
+                                        icon = ImageVector.vectorResource(
+                                            when (it) {
+                                                Quality.SD -> R.drawable.badge_sd
+                                                Quality.HD -> R.drawable.badge_hd
+                                                Quality.FHD -> R.drawable.badge_fhd
+                                            }
+                                        ),
                                         description = "${it.quality}p",
                                         selected = (selectedQuality.value == it)
                                     ) {

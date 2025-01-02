@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -133,21 +131,21 @@ fun AboutSettingsScreen() {
                 IconButton(onClick = { openUri(context, siteUri) }) {
                     Icon(
                         modifier = Modifier.size(26.dp),
-                        imageVector = Icons.Outlined.Public,
+                        painter = painterResource(R.drawable.globe),
                         contentDescription = "website"
                     )
                 }
                 IconButton(onClick = { openUri(context, githubUri) }) {
                     Icon(
                         modifier = Modifier.size(26.dp),
-                        painter = painterResource(id = R.drawable.github),
+                        painter = painterResource(id = R.drawable.brand_github),
                         contentDescription = "github"
                     )
                 }
                 IconButton(onClick = { openUri(context, telegramUri) }) {
                     Icon(
                         modifier = Modifier.size(26.dp),
-                        painter = painterResource(id = R.drawable.telegram),
+                        painter = painterResource(id = R.drawable.brand_telegram),
                         contentDescription = "website"
                     )
                 }

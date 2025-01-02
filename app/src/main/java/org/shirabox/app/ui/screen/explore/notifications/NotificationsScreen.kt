@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -23,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
@@ -117,8 +116,8 @@ fun NotificationsScreen(
                 ) {
                     Icon(
                         modifier = Modifier.size(64.dp),
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "awesome",
+                        painter = painterResource(R.drawable.fire),
+                        contentDescription = "fire",
                         tint = MaterialTheme.colorScheme.surfaceTint.copy(0.4f)
                     )
                     Text(

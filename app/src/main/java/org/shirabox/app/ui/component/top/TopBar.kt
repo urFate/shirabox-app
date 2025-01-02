@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -83,7 +81,7 @@ fun TopBar(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "Search icon")
+                Icon(painter = painterResource(R.drawable.search), contentDescription = "Search icon")
                 Text(text = stringResource(id = R.string.search_by_name))
             }
         }
@@ -100,7 +98,7 @@ fun TopBar(
             }) {
                 Icon(
                     modifier = Modifier.size(24.dp),
-                    imageVector = Icons.Rounded.NotificationsNone,
+                    painter = painterResource(R.drawable.bell),
                     contentDescription = "Notifications",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

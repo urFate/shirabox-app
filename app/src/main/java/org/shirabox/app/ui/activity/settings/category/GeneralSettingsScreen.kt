@@ -6,15 +6,13 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import org.shirabox.app.R
@@ -42,7 +40,7 @@ fun GeneralSettingsScreen() {
             },
             leadingContent = {
                 Icon(
-                    imageVector = Icons.Outlined.Notifications,
+                    painter = painterResource(R.drawable.bell),
                     tint = MaterialTheme.colorScheme.primary,
                     contentDescription = "notifications"
                 )
@@ -77,7 +75,7 @@ fun GeneralSettingsScreen() {
             },
             leadingContent = {
                 Icon(
-                    imageVector = Icons.Outlined.Subscriptions,
+                    painter = painterResource(R.drawable.inbox_check),
                     contentDescription = "subscribe",
                     tint = MaterialTheme.colorScheme.primary
                 )

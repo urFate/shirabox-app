@@ -33,17 +33,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.EventNote
-import androidx.compose.material.icons.outlined.EventAvailable
-import androidx.compose.material.icons.outlined.LiveTv
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.MovieCreation
 import androidx.compose.material.icons.outlined.NotificationAdd
 import androidx.compose.material.icons.outlined.NotificationsOff
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -84,9 +75,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -279,7 +272,7 @@ fun Resource(
                             IconButton(
                                 onClick = { activity?.finish() },
                             ) {
-                                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "ArrowBack Icon")
+                                Icon(painter = painterResource(R.drawable.arrow_left), "ArrowBack Icon")
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
@@ -287,7 +280,11 @@ fun Resource(
                             IconButton(
                                 onClick = { dropdownExpanded = true },
                             ) {
-                                Icon(Icons.Outlined.MoreVert, "MoreVert Icon")
+                                Icon(
+                                    modifier = Modifier.size(32.dp),
+                                    painter = painterResource(R.drawable.dots_vertical),
+                                    contentDescription = "More"
+                                )
                             }
 
                             DropdownMenu(
@@ -375,7 +372,7 @@ fun Resource(
 
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.PlayArrow,
+                            painter = painterResource(R.drawable.play_filled),
                             contentDescription = "Play button icon",
                             modifier = Modifier.size(24.dp)
                         )
@@ -395,7 +392,7 @@ fun Resource(
                     ) {
                         Icon(
                             modifier = Modifier.size(ButtonDefaults.IconSize),
-                            imageVector = if (isFavourite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                            painter = if (isFavourite) painterResource(R.drawable.heart_filled) else painterResource(R.drawable.heart),
                             contentDescription = "Localized description",
                             tint = onErrorContainerLight
                         )
@@ -423,11 +420,11 @@ fun Resource(
                             ?: stringResource(id = R.string.unknown_production)
 
                         ResourceDataLabel(
-                            icon = Icons.Outlined.MovieCreation,
+                            painter = painterResource(R.drawable.film),
                             text = "$production, ${content.releaseYear}"
                         )
                         ResourceDataLabel(
-                            icon = Icons.Outlined.EventAvailable,
+                            painter = painterResource(R.drawable.calendar_check),
                             text = "${
                                 ValuesHelper.decodeKind(content.kind, context)
                             }, ${
@@ -457,7 +454,7 @@ fun Resource(
                                 }
 
                                 ResourceDataLabel(
-                                    icon = Icons.AutoMirrored.Outlined.EventNote,
+                                    painter = painterResource(R.drawable.ticket),
                                     text = stringResource(
                                         id = R.string.schedule_announcement,
                                         getWeekDayTitle(day = weekDay),
@@ -476,7 +473,7 @@ fun Resource(
                             val episodeDuration = content.episodeDuration ?: 20
 
                             ResourceDataLabel(
-                                icon = Icons.Outlined.LiveTv,
+                                painter = painterResource(R.drawable.tv),
                                 text = stringResource(
                                     id = R.string.resource_status,
                                     episodesAired,
@@ -644,13 +641,13 @@ fun Resource(
 }
 
 @Composable
-fun ResourceDataLabel(icon: ImageVector, text: String){
+fun ResourceDataLabel(painter: Painter, text: String){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
-            imageVector = icon,
+            painter = painter,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant

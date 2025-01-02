@@ -6,12 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.rounded.Hd
-import androidx.compose.material.icons.rounded.HighQuality
-import androidx.compose.material.icons.rounded.Sd
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,9 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,14 +60,19 @@ internal fun PlayerTopBar(title: String, episode: Int, offlineQuality: Quality?,
                         fontSize = 14.sp
                     )
 
+                    val qualityIcon = remember(offlineQuality) {
+                        when (offlineQuality) {
+                            Quality.SD -> R.drawable.badge_sd
+                            Quality.HD -> R.drawable.badge_hd
+                            Quality.FHD -> R.drawable.badge_fhd
+                            null -> R.drawable.badge_sd
+                        }
+                    }
+
                     if (offlineQuality != null) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            imageVector = when (offlineQuality) {
-                                Quality.SD -> Icons.Rounded.Sd
-                                Quality.HD -> Icons.Rounded.Hd
-                                Quality.FHD -> Icons.Rounded.HighQuality
-                            },
+                            painter = painterResource(qualityIcon),
                             tint = Color.White.copy(0.7f),
                             contentDescription = "quality"
                         )
@@ -82,7 +83,7 @@ internal fun PlayerTopBar(title: String, episode: Int, offlineQuality: Quality?,
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    painter = painterResource(R.drawable.arrow_left),
                     contentDescription = null
                 )
             }
@@ -90,7 +91,7 @@ internal fun PlayerTopBar(title: String, episode: Int, offlineQuality: Quality?,
         actions = {
             IconButton(onClick = onSettingsClick) {
                 Icon(
-                    imageVector = Icons.Outlined.Settings,
+                    painter = painterResource(R.drawable.cog),
                     contentDescription = null
                 )
             }

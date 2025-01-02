@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -32,7 +33,7 @@ fun SettingsRootScreen(navController: NavController) {
                 },
                 leadingContent = {
                     Icon(
-                        imageVector = it.icon,
+                        painter = painterResource(it.icon),
                         contentDescription = it.route,
                         tint = MaterialTheme.colorScheme.primary
                     )

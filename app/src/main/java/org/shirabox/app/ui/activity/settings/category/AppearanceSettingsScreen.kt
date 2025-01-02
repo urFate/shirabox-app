@@ -3,15 +3,13 @@ package org.shirabox.app.ui.activity.settings.category
 import android.os.Build
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import org.shirabox.app.R
@@ -40,7 +38,7 @@ fun AppearanceSettingsScreen() {
                     },
                     leadingContent = {
                         Icon(
-                            imageVector = Icons.Outlined.DarkMode,
+                            painter = painterResource(R.drawable.moon_star),
                             contentDescription = "dark mode",
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -75,7 +73,7 @@ fun AppearanceSettingsScreen() {
                     },
                     leadingContent = {
                         Icon(
-                            imageVector = Icons.Outlined.Palette,
+                            painter = painterResource(R.drawable.swatches),
                             contentDescription = "dynamic color",
                             tint = iconColor
                         )

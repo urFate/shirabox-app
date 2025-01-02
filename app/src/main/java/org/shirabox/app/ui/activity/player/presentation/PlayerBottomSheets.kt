@@ -10,13 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ClosedCaption
-import androidx.compose.material.icons.outlined.Hd
-import androidx.compose.material.icons.outlined.HighQuality
-import androidx.compose.material.icons.outlined.OfflinePin
-import androidx.compose.material.icons.outlined.Sd
-import androidx.compose.material.icons.outlined.SlowMotionVideo
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -129,16 +122,20 @@ private fun SettingsOptions(
                     )
                 },
                 leadingContent = {
-                    Icon(
-                        imageVector = if (!model.isCurrentItemOffline.value) {
+                    val qualityIcon = remember(model.currentQuality, model.isCurrentItemOffline.value) {
+                        if (!model.isCurrentItemOffline.value) {
                             when (model.currentQuality) {
-                                Quality.SD -> Icons.Outlined.Sd
-                                Quality.HD -> Icons.Outlined.Hd
-                                Quality.FHD -> Icons.Outlined.HighQuality
+                                Quality.SD -> R.drawable.badge_sd
+                                Quality.HD -> R.drawable.badge_hd
+                                Quality.FHD -> R.drawable.badge_fhd
                             }
                         } else {
-                            Icons.Outlined.OfflinePin
-                        },
+                            R.drawable.wifi_slash
+                        }
+                    }
+
+                    Icon(
+                        painter = painterResource(qualityIcon),
                         tint = if (!model.isCurrentItemOffline.value) {
                             MaterialTheme.colorScheme.primary
                         } else {
@@ -171,7 +168,7 @@ private fun SettingsOptions(
                 },
                 leadingContent = {
                     Icon(
-                        imageVector = Icons.Outlined.SlowMotionVideo,
+                        painter = painterResource(R.drawable.speed),
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = null
                     )
@@ -193,7 +190,7 @@ private fun SettingsOptions(
                 headlineContent = { Text(stringResource(id = R.string.subtitles)) },
                 leadingContent = {
                     Icon(
-                        imageVector = Icons.Outlined.ClosedCaption,
+                        painter = painterResource(R.drawable.closed_captions),
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = null
                     )
@@ -242,12 +239,16 @@ fun QualityBottomSheet(
                         }
                     ) },
                     leadingContent = {
+                        val icon = remember {
+                            when (it) {
+                                Quality.SD -> R.drawable.badge_sd
+                                Quality.HD -> R.drawable.badge_hd
+                                Quality.FHD -> R.drawable.badge_fhd
+                            }
+                        }
+
                         Icon(
-                            imageVector = when (it) {
-                                Quality.FHD -> Icons.Outlined.HighQuality
-                                Quality.HD -> Icons.Outlined.Hd
-                                Quality.SD -> Icons.Outlined.Sd
-                            },
+                            painter = painterResource(icon),
                             modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.primary,
                             contentDescription = "${it.quality}"
@@ -308,13 +309,13 @@ fun PlaybackSpeedBottomSheet(
                     leadingContent = {
                         Icon(
                             painter = when (it) {
-                                0.5F -> painterResource(id = R.drawable.slow_speed)
-                                1.0F -> painterResource(id = R.drawable.normal_speed)
-                                1.5F -> painterResource(id = R.drawable.faster_speed)
-                                1.75F -> painterResource(id = R.drawable.bit_faster_speed)
-                                2.0F -> painterResource(id = R.drawable.fast_speed)
-                                3.0F -> painterResource(id = R.drawable.very_fast_speed)
-                                else -> painterResource(id = R.drawable.normal_speed)
+                                0.5F -> painterResource(id = R.drawable.multiplier_0_5x)
+                                1.0F -> painterResource(id = R.drawable.multiplier_1x)
+                                1.5F -> painterResource(id = R.drawable.multiplier_1_5x)
+                                1.75F -> painterResource(id = R.drawable.multiplier_0_75x)
+                                2.0F -> painterResource(id = R.drawable.multiplier_2x)
+                                3.0F -> painterResource(id = R.drawable.multiplier_3x)
+                                else -> painterResource(id = R.drawable.multiplier_1x)
                             },
                             modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.primary,

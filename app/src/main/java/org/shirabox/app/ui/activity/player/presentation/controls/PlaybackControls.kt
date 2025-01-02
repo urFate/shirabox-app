@@ -11,11 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.ripple
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -27,8 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import org.shirabox.app.R
 
 @Composable
 internal fun PlaybackControls(
@@ -67,17 +63,17 @@ internal fun PlaybackControls(
                 horizontalArrangement = Arrangement.spacedBy(48.dp)
             ) {
                 PlaybackIconButton(
-                    imageVector = Icons.Rounded.SkipPrevious,
+                    imageResource = R.drawable.player_skip_back,
                     isActive = hasPreviousMediaItem,
                     onClick = onSkipPrevious
                 )
                 PlaybackIconButton(
-                    imageVector = if (isPlaying)
-                        Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    imageResource = if (isPlaying)
+                        R.drawable.pause_filled else R.drawable.play_filled,
                     onClick = onPlayToggle
                 )
                 PlaybackIconButton(
-                    imageVector = Icons.Rounded.SkipNext,
+                    imageResource = R.drawable.player_skip_forward,
                     isActive = hasNextMediaItem,
                     onClick = onSkipNext
                 )
@@ -89,7 +85,7 @@ internal fun PlaybackControls(
 @Composable
 private fun PlaybackIconButton(
     isActive: Boolean = true,
-    imageVector: ImageVector,
+    imageResource: Int,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -107,8 +103,8 @@ private fun PlaybackIconButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            modifier = Modifier.size(42.dp),
-            imageVector = imageVector,
+            modifier = Modifier.size(32.dp),
+            painter = painterResource(imageResource),
             contentDescription = null,
             tint = if(isActive) MaterialTheme.colorScheme.inverseOnSurface
             else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)

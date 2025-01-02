@@ -23,16 +23,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.outlined.OfflinePin
-import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material.icons.rounded.Hd
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Sd
-import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -67,6 +61,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -513,7 +508,7 @@ fun EpisodesSheetScreen(
                                         ) {
                                             Icon(
                                                 modifier = Modifier.size(24.dp),
-                                                imageVector = Icons.Rounded.DeleteOutline,
+                                                painter = painterResource(R.drawable.trash),
                                                 contentDescription = "download"
                                             )
                                         }
@@ -551,7 +546,7 @@ fun EpisodesSheetScreen(
                                 QualityDialog(
                                     title = stringResource(R.string.offline_quality_dialog_title),
                                     description = stringResource(R.string.offline_quality_dialog_desc),
-                                    icon = Icons.Outlined.OfflinePin,
+                                    icon = ImageVector.vectorResource(R.drawable.wifi_slash),
                                     visibilityState = qualityDialogVisible,
                                     maxQuality = maxQuality,
                                     autoSelect = maxQuality
@@ -668,8 +663,8 @@ private fun TeamListItem(
                     ) {
                         Icon(
                             modifier = Modifier.size(24.dp),
-                            imageVector = Icons.Rounded.DeleteOutline,
-                            contentDescription = "download"
+                            painter = painterResource(R.drawable.trash),
+                            contentDescription = "delete"
                         )
                     }
                 } else {
@@ -688,9 +683,13 @@ private fun TeamListItem(
                     }
                 }
 
+                val pinIconResource = remember(isPinned.value) {
+                    if (isPinned.value) R.drawable.pin_filled else R.drawable.pin
+                }
+
                 IconButton(onClick = { model.switchTeamPinStatus(content.shikimoriId, team) }) {
                     Icon(
-                        imageVector = if (isPinned.value) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                        painter = painterResource(pinIconResource),
                         contentDescription = "Trailing Icon",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -705,7 +704,7 @@ private fun TeamListItem(
                 QualityDialog(
                     title = stringResource(R.string.offline_quality_dialog_title),
                     description = stringResource(R.string.offline_quality_dialog_desc),
-                    icon = Icons.Outlined.OfflinePin,
+                    icon = ImageVector.vectorResource(R.drawable.wifi_slash),
                     visibilityState = qualityDialogVisible,
                     maxQuality = maxQuality,
                     autoSelect = maxQuality
@@ -728,7 +727,7 @@ private fun DownloadButton(
     onClick: () -> Unit
 ) {
     val iconSize = remember(isDownloading) {
-        if (!isDownloading) 24.dp else 16.dp
+        if (!isDownloading) 24.dp else 12.dp
     }
 
     IconButton(
@@ -758,19 +757,21 @@ private fun DownloadButton(
                 }
             }
 
-            val vector = if (isDownloading) {
-                Icons.Rounded.Stop
-            } else if (isAnyEpisodeOffline) {
-                Icons.Rounded.Downloading
-            } else {
-                ImageVector.vectorResource(id = R.drawable.download_for_offline)
+            val iconResource = remember(isDownloading) {
+                if (isDownloading) {
+                    R.drawable.player_stop
+                } else if (isAnyEpisodeOffline) {
+                    R.drawable.progress_down
+                } else {
+                    R.drawable.circle_arrow_down
+                }
             }
 
             Icon(
                 modifier = Modifier
                     .animateContentSize()
                     .size(iconSize),
-                imageVector = vector,
+                painter = painterResource(iconResource),
                 contentDescription = "download"
             )
         }

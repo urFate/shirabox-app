@@ -8,12 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,10 +29,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -122,7 +120,7 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
                 onClick = activity::finish
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    painter = painterResource(R.drawable.arrow_left),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     contentDescription = "back"
                 )
@@ -131,7 +129,7 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
         actions = {
             AnimatedVisibility(visible = currentPage == 2, enter = fadeIn(), exit = fadeOut()) {
                 val vector = remember(searchMode.value) {
-                    if (searchMode.value) Icons.Rounded.Close else Icons.Rounded.Search
+                    if (searchMode.value) R.drawable.close else R.drawable.search
                 }
 
                 IconButton(onClick = {
@@ -139,7 +137,7 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
                     coroutineScope.launch { model.offlineFlowFilter.emit("") }
                 }) {
                     Icon(
-                        imageVector = vector,
+                        painter = painterResource(vector),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         contentDescription = "Search"
                     )
@@ -149,7 +147,8 @@ internal fun DownloadsTopBar(currentPage: Int, model: DownloadsViewModel = hiltV
             if (currentPage < 2) {
                 IconButton(onClick = { dropdownExpanded.value = true }) {
                     Icon(
-                        imageVector = Icons.Rounded.MoreVert,
+                        modifier = Modifier.size(32.dp),
+                        painter = painterResource(R.drawable.dots_vertical),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         contentDescription = "More"
                     )

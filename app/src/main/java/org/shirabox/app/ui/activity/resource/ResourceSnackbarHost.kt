@@ -3,9 +3,6 @@ package org.shirabox.app.ui.activity.resource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
@@ -19,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,7 +55,7 @@ fun ResourceSnackbarHost(
             SpecialSnackBar(
                 icon = {
                     Icon(
-                        imageVector = if (model.isFavourite.value) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                        painter = if (model.isFavourite.value) painterResource(R.drawable.star_filled) else painterResource(R.drawable.star),
                         contentDescription = "star"
                     )
                 },
