@@ -215,7 +215,10 @@ fun Resource(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 ScaredEmoticon(text = errorText)
-                Button(onClick = { activity?.finish() }) {
+                Button(
+                    shape = RoundedCornerShape(32),
+                    onClick = { activity?.finish() }
+                ) {
                     Text(stringResource(id = R.string.go_back))
                 }
             }
@@ -365,6 +368,7 @@ fun Resource(
                             .height(54.dp)
                             .fillMaxWidth()
                             .weight(weight = 1f, fill = false),
+                        shape = RoundedCornerShape(32),
                         onClick = {
                             bottomSheetVisibilityState.value = true
                         },

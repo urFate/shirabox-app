@@ -63,7 +63,7 @@ internal fun PlayerSkipButton(
         OutlinedButton(
             modifier = Modifier.padding(0.dp, 128.dp, endPadding, 0.dp),
             border = BorderStroke(1.dp, Color.White),
-            shape = RoundedCornerShape(40),
+            shape = RoundedCornerShape(32),
             contentPadding = PaddingValues(0.dp),
             onClick = onClick
         ) {

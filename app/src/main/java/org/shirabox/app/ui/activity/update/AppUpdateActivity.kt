@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -224,6 +225,7 @@ fun AppUpdateScreen(
             ) {
                 Button(
                     modifier = Modifier.size(256.dp, 64.dp),
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         isUpdating.value = true
                         dialogVisibilityState.value = true
@@ -333,9 +335,9 @@ fun UpdateDialog(
             },
             confirmButton = {
                 OutlinedButton(
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         UpdateManager.cancelDownload()
-
                         downloadFinished = true
                         updateProcessState.value = false
                         dialogVisibilityState.value = false

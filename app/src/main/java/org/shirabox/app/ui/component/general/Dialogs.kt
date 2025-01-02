@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
@@ -39,6 +40,7 @@ fun NotificationsRequestDialog(isOpen: MutableState<Boolean>, onConfirm: () -> U
             onDismissRequest = {
                 isOpen.value = false
             },
+            shape = RoundedCornerShape(16.dp),
             icon = {
                 Icon(
                     modifier = Modifier.size(48.dp),
@@ -61,6 +63,7 @@ fun NotificationsRequestDialog(isOpen: MutableState<Boolean>, onConfirm: () -> U
             },
             confirmButton = {
                 TextButton(
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         isOpen.value = false
                         onConfirm()
@@ -71,6 +74,7 @@ fun NotificationsRequestDialog(isOpen: MutableState<Boolean>, onConfirm: () -> U
             },
             dismissButton = {
                 TextButton(
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         isOpen.value = false
                     }
@@ -89,6 +93,7 @@ fun NotificationsDismissDialog(context: Context, isOpen: MutableState<Boolean>) 
             onDismissRequest = {
                 isOpen.value = false
             },
+            shape = RoundedCornerShape(16.dp),
             icon = {
                 Icon(
                     modifier = Modifier.size(48.dp),
@@ -111,6 +116,7 @@ fun NotificationsDismissDialog(context: Context, isOpen: MutableState<Boolean>) 
             },
             confirmButton = {
                 TextButton(
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         isOpen.value = false
                     }
@@ -120,14 +126,15 @@ fun NotificationsDismissDialog(context: Context, isOpen: MutableState<Boolean>) 
             },
             dismissButton = {
                 TextButton(
-                        onClick = {
-                            isOpen.value = false
-                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.parse("package:${context.applicationContext.packageName}")
-                            }
-                            context.startActivity(intent)
+                    shape = RoundedCornerShape(32),
+                    onClick = {
+                        isOpen.value = false
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.parse("package:${context.applicationContext.packageName}")
                         }
-                        ) {
+                        context.startActivity(intent)
+                    }
+                ) {
                     Text(stringResource(R.string.notifications_request))
                 }
             }
@@ -142,6 +149,7 @@ fun DisposableScheduleDialog(isOpen: MutableState<Boolean>, onConfirm: () -> Uni
             onDismissRequest = {
                 isOpen.value = false
             },
+            shape = RoundedCornerShape(16.dp),
             icon = {
                 Icon(
                     modifier = Modifier.size(48.dp),
@@ -164,6 +172,7 @@ fun DisposableScheduleDialog(isOpen: MutableState<Boolean>, onConfirm: () -> Uni
             },
             confirmButton = {
                 TextButton(
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         isOpen.value = false
                         onConfirm()
@@ -193,11 +202,15 @@ fun QualityDialog(
             onDismissRequest = {
                 visibilityState.value = false
             },
+            shape = RoundedCornerShape(16.dp),
             confirmButton = {
-                TextButton(onClick = {
-                    onConfirm(selectedQuality.value)
-                    visibilityState.value = false
-                }) {
+                TextButton(
+                    shape = RoundedCornerShape(32),
+                    onClick = {
+                        onConfirm(selectedQuality.value)
+                        visibilityState.value = false
+                    }
+                ) {
                     Text(text = stringResource(id = R.string.confirm))
                 }
             },

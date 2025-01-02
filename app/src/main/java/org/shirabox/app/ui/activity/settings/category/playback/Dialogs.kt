@@ -3,6 +3,7 @@ package org.shirabox.app.ui.activity.settings.category.playback
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,22 +44,32 @@ fun AnimeSkipDialog(visibilityState: MutableState<Boolean>) {
                 visibilityState.value = false
             },
             confirmButton = {
-                TextButton(onClick = { visibilityState.value = false }) {
+                TextButton(
+                    shape = RoundedCornerShape(32),
+                    onClick = { visibilityState.value = false }
+                ) {
                     Text(text = stringResource(id = R.string.confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    coroutineScope.launch {
-                        visibilityState.value = false
-                        AppDataStore.write(
-                            context,
-                            DataStoreScheme.FIELD_ANIMESKIP_USER_CLIENT_ID,
-                            ""
-                        )
-                        AppDataStore.write(context, DataStoreScheme.FIELD_USE_ANIMESKIP.key, false)
-                    }
-                }) {
+                TextButton(
+                    shape = RoundedCornerShape(32),
+                    onClick = {
+                        coroutineScope.launch {
+                            visibilityState.value = false
+                            AppDataStore.write(
+                                context,
+                                DataStoreScheme.FIELD_ANIMESKIP_USER_CLIENT_ID,
+                                "",
+                            )
+                            AppDataStore.write(
+                                context,
+                                DataStoreScheme.FIELD_USE_ANIMESKIP.key,
+                                false,
+                            )
+                        }
+                    },
+                ) {
                     Text(text = stringResource(id = R.string.logout), color = Color.Red)
                 }
             },
@@ -115,7 +126,10 @@ fun InstantSeekDialog(visibilityState: MutableState<Boolean>) {
                 visibilityState.value = false
             },
             confirmButton = {
-                TextButton(onClick = { visibilityState.value = false }) {
+                TextButton(
+                    shape = RoundedCornerShape(32),
+                    onClick = { visibilityState.value = false }
+                ) {
                     Text(text = stringResource(id = R.string.confirm))
                 }
             },

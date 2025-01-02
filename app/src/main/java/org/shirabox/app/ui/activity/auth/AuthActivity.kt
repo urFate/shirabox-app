@@ -190,6 +190,7 @@ fun AuthForm(
             ) {
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(32),
                     onClick = { onRegister() },
                     enabled = !loginInProcess,
                     contentPadding = PaddingValues(12.dp),

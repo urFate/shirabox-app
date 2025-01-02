@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
@@ -97,7 +98,10 @@ fun FavouritesScreen(
                     fontWeight = FontWeight(500)
                 )
 
-                TextButton(onClick = { bottomSheetVisibilityState.value = true }) {
+                TextButton(
+                    shape = RoundedCornerShape(32),
+                    onClick = { bottomSheetVisibilityState.value = true }
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -284,6 +288,7 @@ fun SortingSheetScreen(
                         .fillMaxWidth()
                         .weight(1f)
                         .height(48.dp),
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         coroutineScope.launch {
                             state.hide()
@@ -302,6 +307,7 @@ fun SortingSheetScreen(
                         .fillMaxWidth()
                         .weight(1f)
                         .height(48.dp),
+                    shape = RoundedCornerShape(32),
                     onClick = {
                         coroutineScope.launch {
                             state.hide()

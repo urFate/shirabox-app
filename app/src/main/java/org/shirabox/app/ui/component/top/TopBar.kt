@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,7 +66,7 @@ fun TopBar(
                 .fillMaxWidth()
                 .weight(weight = 1f, fill = false)
                 .height(SearchBarDefaults.InputFieldHeight)
-                .clip(SearchBarDefaults.dockedShape)
+                .clip(RoundedCornerShape(32))
                 .background(MaterialTheme.colorScheme.secondaryContainer)
                 .clickable {
                     context.startActivity(

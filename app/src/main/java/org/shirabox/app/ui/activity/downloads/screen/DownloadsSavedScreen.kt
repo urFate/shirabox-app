@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -324,6 +325,7 @@ internal fun RemovalConfirmDialog(
             text = {
                 Text(text = text)
             },
+            shape = RoundedCornerShape(16.dp),
             onDismissRequest = { dialogVisibilityState.value = false },
             confirmButton = {
                 Button(
@@ -331,6 +333,7 @@ internal fun RemovalConfirmDialog(
                         onConfirm()
                         dialogVisibilityState.value = false
                     },
+                    shape = RoundedCornerShape(32),
                     colors = ButtonDefaults.buttonColors()
                         .copy(
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -342,6 +345,7 @@ internal fun RemovalConfirmDialog(
             },
             dismissButton = {
                 TextButton (
+                    shape = RoundedCornerShape(16.dp),
                     onClick = { dialogVisibilityState.value = false }
                 ) {
                     Text(text = stringResource(R.string.downloads_cancel_action))

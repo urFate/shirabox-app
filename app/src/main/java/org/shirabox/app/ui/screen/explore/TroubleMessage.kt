@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,7 +46,10 @@ fun TroubleMessage(
                     else -> ScaredEmoticon(text = stringResource(id = R.string.no_contents))
                 }
 
-                OutlinedButton(onClick = { model.refresh(false) }) {
+                OutlinedButton(
+                    shape = RoundedCornerShape(32),
+                    onClick = { model.refresh(false) }
+                ) {
                     Text(stringResource(id = R.string.refresh))
                 }
             }
