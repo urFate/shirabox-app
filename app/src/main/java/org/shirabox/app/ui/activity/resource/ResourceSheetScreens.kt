@@ -444,7 +444,12 @@ fun EpisodesSheetScreen(
                             enqueuedDownloadingTask.value?.progressState?.collectAsStateWithLifecycle()
 
                         val isTaskEnqueued = remember(taskState?.value) {
-                            taskState?.value == TaskState.ENQUEUED || taskState?.value == TaskState.IN_PROGRESS
+                            taskState?.value == TaskState.ENQUEUED ||
+                            taskState?.value == TaskState.IN_PROGRESS ||
+                            taskState?.value == TaskState.CONVERTING
+                        }
+                        val isConverting = remember(taskState?.value) {
+                            taskState?.value == TaskState.CONVERTING
                         }
 
                         val pausedTask = remember(pausedTasks.value.size) {
@@ -530,6 +535,7 @@ fun EpisodesSheetScreen(
                                         DownloadButton(
                                             isDownloading = isTaskEnqueued,
                                             isAnyEpisodeOffline = false,
+                                            isConverting = isConverting,
                                             progress = downloadProgress?.value ?: 0.0f
                                         ) {
                                             if (!isTaskEnqueued) {
@@ -723,6 +729,7 @@ private fun TeamListItem(
 private fun DownloadButton(
     isAnyEpisodeOffline: Boolean,
     isDownloading: Boolean,
+    isConverting: Boolean = false,
     progress: Float,
     onClick: () -> Unit
 ) {
@@ -731,6 +738,7 @@ private fun DownloadButton(
     }
 
     IconButton(
+        enabled = !isConverting,
         onClick = { onClick() }
     ) {
         Box(
