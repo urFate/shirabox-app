@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import org.shirabox.core.db.AppDatabase
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Content
@@ -28,12 +29,17 @@ class EpisodesHelper(private val db: AppDatabase) {
         repository: AbstractContentRepository,
         content: Content,
         contentUid: Long,
+        team: String? = null,
         cachedEpisodes: List<EpisodeEntity>,
         range: IntRange
     ) {
         repository.searchEpisodesInRange(content, range).catch {
             it.printStackTrace()
             emitAll(emptyFlow())
+        }.map { results ->
+            team?.let {
+                results.filter { episode -> episode.actingTeamName == it }
+            } ?: results
         }.collectLatest {
             cacheEpisodes(it, cachedEpisodes, contentUid)
         }
