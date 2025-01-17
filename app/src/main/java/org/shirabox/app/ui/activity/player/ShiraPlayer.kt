@@ -28,12 +28,15 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.FileDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
+import ddosGuardBridge
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 import org.shirabox.app.ui.activity.player.presentation.PlayerScaffold
 import org.shirabox.app.ui.activity.player.presentation.SettingsBottomSheet
 import org.shirabox.app.ui.activity.player.presentation.hideControls
@@ -128,9 +131,17 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
                             .createMediaSource(MediaItem.fromUri(uri))
                     }
 
+                    // DDos-Guard.net bypass
+                    val client = OkHttpClient.Builder().addInterceptor { chain ->
+                        val request = chain.request().newBuilder()
+                            .ddosGuardBridge(chain.request().url.toString()).build()
+                        chain.proceed(request)
+                    }.build()
+                    val okHttpDataSourceFactory = OkHttpDataSource.Factory(client)
+
                     val streamMediaSource = when (repository.streamingType) {
                         StreamProtocol.MPEG -> ProgressiveMediaSource
-                            .Factory(DefaultHttpDataSource.Factory())
+                            .Factory(okHttpDataSourceFactory)
                         StreamProtocol.HLS -> HlsMediaSource
                             .Factory(DefaultHttpDataSource.Factory())
                     }.createMediaSource(MediaItem.fromUri(stream.value))

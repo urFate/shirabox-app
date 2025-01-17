@@ -141,9 +141,6 @@ class PlayerViewModel @AssistedInject constructor(
                 }.firstOrNull()
             }
 
-
-
-
             timestamps?.let {
                 val currentValue = animeSkipTimestamps.value.toMutableMap()
                 currentValue[episode] = timestamps.first.toLong() to timestamps.second.toLong()

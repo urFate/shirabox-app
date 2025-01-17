@@ -1,5 +1,6 @@
 package org.shirabox.app.service.media
 
+import ddosGuardBridge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.shirabox.app.App
 import org.shirabox.app.service.media.model.DownloadsListener
 import org.shirabox.app.service.media.model.EnqueuedTask
@@ -24,14 +27,15 @@ import org.shirabox.core.util.Util
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URL
 
 
 object DownloadsServiceHelper {
-    private val _queriesList: MutableStateFlow<List<EnqueuedTask>> = MutableStateFlow(emptyList())
+    private val okHttpClient = OkHttpClient()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val listeners: MutableList<DownloadsListener> = mutableListOf()
     private const val BUFFER_SIZE = 8192
+
+    private val _queriesList: MutableStateFlow<List<EnqueuedTask>> = MutableStateFlow(emptyList())
 
     fun enqueue(db: AppDatabase, tasks: List<MediaDownloadTask>) {
         coroutineScope.launch {
@@ -142,23 +146,25 @@ object DownloadsServiceHelper {
             val pauseData = mediaDownloadTask.pauseData
             val pausedBytes = pauseData?.bytes ?: 0L
             val append = pauseData != null
+            var total = pausedBytes
 
-            val url = URL(mediaDownloadTask.url)
             val file = File(mediaDownloadTask.file)
 
             file.parentFile?.mkdirs()
             if (file.exists() && mediaDownloadTask.pauseData == null) file.delete()
             if (!file.exists()) file.createNewFile()
 
-            val connection = url.openConnection()
-            connection.setRequestProperty("Range", "bytes=$pausedBytes-")
-            connection.connect()
-            val length = connection.contentLengthLong
+            val request = Request.Builder()
+                .url(mediaDownloadTask.url)
+                .addHeader("Range", "bytes=$pausedBytes-")
+                .ddosGuardBridge(mediaDownloadTask.url) // DDoS-Guard.net bypass
+                .build()
 
+            val responseBody = okHttpClient.newCall(request).execute().body
+            val length = responseBody.contentLength()
+
+            val inputStream = responseBody.byteStream()
             val outputStream = FileOutputStream(file, append)
-            var total = pausedBytes
-
-            val inputStream = connection.inputStream
 
             BufferedInputStream(inputStream, BUFFER_SIZE).use { input ->
                 try {
@@ -238,16 +244,14 @@ object DownloadsServiceHelper {
 
                 val isPausedFragment = pausedBytes > 0L && pausedHlsFragment == index
 
-                val url = URL(segmentUrl)
                 val progress = index.inc() / segmentsList.size.toFloat()
                 var total = if (isPausedFragment) pausedBytes else 0
 
-                val connection = url.openConnection()
-                if (isPausedFragment) connection.setRequestProperty("Range", "bytes=$pausedBytes-")
-                connection.connect()
+                val request = Request.Builder().url(segmentUrl).addHeader("Range", "bytes=$pausedBytes-").build()
+                val responseBody = okHttpClient.newCall(request).execute().body
 
                 try {
-                    val inputStream = connection.inputStream
+                    val inputStream = responseBody.byteStream()
 
                     BufferedInputStream(inputStream, BUFFER_SIZE).use { input ->
                         try {

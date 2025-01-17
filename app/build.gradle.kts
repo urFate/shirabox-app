@@ -125,6 +125,7 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.exoplayer.hls)
+    implementation(libs.androidx.media3.datasource.okhttp)
 
     // Firebase
     implementation(platform(libs.com.google.firebase.bom))
@@ -139,6 +140,7 @@ dependencies {
 
     // Network
     implementation(libs.com.github.kittinunf.fuel)
+    implementation(files("../libs/re-bridge-1.0-SNAPSHOT.jar"))
 
     // Datastore
     implementation(libs.androidx.datastore.preferences)
