@@ -82,6 +82,7 @@ class PlayerViewModel @AssistedInject constructor(
                     content = Util.mapEntityToContent(content),
                     contentUid = content.uid,
                     cachedEpisodes = cachedEpisodes,
+                    team = team,
                     range = cachedEpisodes.last().episode.inc()..Int.MAX_VALUE
                 )
             }
