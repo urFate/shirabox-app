@@ -294,19 +294,26 @@ fun Resource(
                                 expanded = dropdownExpanded,
                                 onDismissRequest = { dropdownExpanded = false }
                             ) {
-                                DropdownActionButton(icon = Icons.Rounded.Share, text = stringResource(id = R.string.share)) {
+                                DropdownActionButton(
+                                    painter = painterResource(R.drawable.share),
+                                    text = stringResource(id = R.string.share)
+                                ) {
                                     shareVia(context, content.shikimoriId)
                                     dropdownExpanded = false
                                 }
 
-                                if(model.shiraBoxAnime.value != null) {
-                                    val notificationsActionButtonIcon = remember(model.episodesNotifications.value) {
-                                        if (model.episodesNotifications.value) Icons.Outlined.NotificationsOff else Icons.Outlined.NotificationAdd
+                                if (model.shiraBoxAnime.value != null) {
+                                    val iconResource = remember(model.episodesNotifications.value) {
+                                        if (model.episodesNotifications.value) R.drawable.bell_slash else R.drawable.bell_plus
                                     }
                                     val notificationsActionButtonText = stringResource(
-                                        id = if (model.episodesNotifications.value) R.string.disable_notifications_action else R.string.enable_notifications_action)
+                                        id = if (model.episodesNotifications.value) R.string.disable_notifications_action else R.string.enable_notifications_action
+                                    )
 
-                                    DropdownActionButton(icon = notificationsActionButtonIcon, text = notificationsActionButtonText) {
+                                    DropdownActionButton(
+                                        painter = painterResource(iconResource),
+                                        text = notificationsActionButtonText
+                                    ) {
                                         model.switchNotificationsStatus()
                                     }
                                 }
@@ -665,7 +672,7 @@ fun ResourceDataLabel(painter: Painter, text: String){
 }
 
 @Composable
-fun DropdownActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
+fun DropdownActionButton(painter: Painter, text: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         shape = RectangleShape
@@ -676,7 +683,7 @@ fun DropdownActionButton(icon: ImageVector, text: String, onClick: () -> Unit) {
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
-                imageVector = icon,
+                painter = painter,
                 contentDescription = "share",
                 tint = MaterialTheme.colorScheme.primary
             )
