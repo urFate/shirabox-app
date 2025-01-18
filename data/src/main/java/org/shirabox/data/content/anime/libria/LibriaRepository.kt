@@ -44,6 +44,8 @@ class LibriaRepository : AbstractContentRepository(
         )
     }
 
+    override fun hostHeaders(): Map<String, String> = emptyMap()
+
     private suspend fun lookupEpisodes(content: Content): List<EpisodeEntity> {
         try {
             val id = search(content)?.id

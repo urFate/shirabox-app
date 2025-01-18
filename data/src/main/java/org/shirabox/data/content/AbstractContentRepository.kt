@@ -17,4 +17,5 @@ abstract class AbstractContentRepository (
 
     abstract suspend fun searchEpisodes(content: Content): Flow<List<EpisodeEntity>>
     abstract suspend fun searchEpisodesInRange(content: Content, range: IntRange): Flow<List<EpisodeEntity>>
+    abstract fun hostHeaders(): Map<String, String>
 }

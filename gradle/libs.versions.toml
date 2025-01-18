@@ -79,7 +79,6 @@ androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", versi
 androidx-media3-exoplayer-dash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "androidxMedia3" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "androidxMedia3" }
 androidx-media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "androidxMedia3" }
-androidx-media3-datasource-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.ref = "androidxMedia3"}
 com-google-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "comGoogleFirebase" }
 io-coil-kt-compose = { module = "io.coil-kt:coil-compose", version.ref = "ioCoilKt" }
 io-coil-kt-svg = { module = "io.coil-kt:coil-svg", version.ref = "ioCoilKt" }

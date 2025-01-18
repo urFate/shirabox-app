@@ -28,15 +28,12 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.FileDataSource
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
-import ddosGuardBridge
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 import org.shirabox.app.ui.activity.player.presentation.PlayerScaffold
 import org.shirabox.app.ui.activity.player.presentation.SettingsBottomSheet
 import org.shirabox.app.ui.activity.player.presentation.hideControls
@@ -44,6 +41,7 @@ import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Quality
 import org.shirabox.core.model.StreamProtocol
+import org.shirabox.data.content.AbstractContentRepository
 
 
 @OptIn(UnstableApi::class)
@@ -131,21 +129,12 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
                             .createMediaSource(MediaItem.fromUri(uri))
                     }
 
-                    // DDos-Guard.net bypass
-                    val client = OkHttpClient.Builder().addInterceptor { chain ->
-                        val request = chain.request().newBuilder()
-                            .ddosGuardBridge(chain.request().url.toString()).build()
-                        chain.proceed(request)
-                    }.build()
-                    val okHttpDataSourceFactory = OkHttpDataSource.Factory(client)
-
                     val streamMediaSource = when (repository.streamingType) {
                         StreamProtocol.MPEG -> ProgressiveMediaSource
-                            .Factory(okHttpDataSourceFactory)
+                            .Factory(DefaultHttpDataSource.Factory().setDefaultRequestProperties(repository.hostHeaders()))
                         StreamProtocol.HLS -> HlsMediaSource
-                            .Factory(DefaultHttpDataSource.Factory())
+                            .Factory(DefaultHttpDataSource.Factory().setDefaultRequestProperties(repository.hostHeaders()))
                     }.createMediaSource(MediaItem.fromUri(stream.value))
-
 
                     return@map offlineMediaSource ?: streamMediaSource
                 })
@@ -173,6 +162,7 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
             rebuildExoPlaylist(
                 exoPlayer,
                 playlist,
+                model.currentRepository!!,
                 model.currentQuality
             )
         }
@@ -212,20 +202,29 @@ private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist
     SettingsBottomSheet(exoPlayer = exoPlayer, playlist = playlist, model = model)
 }
 
+@OptIn(UnstableApi::class)
 private fun rebuildExoPlaylist(
     exoPlayer: ExoPlayer,
     playlist: List<EpisodeEntity>,
+    repository: AbstractContentRepository,
     currentQuality: Quality
 ) {
     val currentPosition = exoPlayer.currentPosition
     val currentItemIndex = exoPlayer.currentMediaItemIndex
 
     exoPlayer.apply {
-        setMediaItems(
-            playlist.map { MediaItem.fromUri(it.videos[currentQuality] ?: "") },
-            currentItemIndex,
-            currentPosition
+        setMediaSources(
+            playlist.map {
+                val streamMediaSource = when (repository.streamingType) {
+                    StreamProtocol.MPEG -> ProgressiveMediaSource
+                        .Factory(DefaultHttpDataSource.Factory().setDefaultRequestProperties(repository.hostHeaders()))
+                    StreamProtocol.HLS -> HlsMediaSource
+                        .Factory(DefaultHttpDataSource.Factory().setDefaultRequestProperties(repository.hostHeaders()))
+                }.createMediaSource(MediaItem.fromUri(it.videos[currentQuality] ?: ""))
+                streamMediaSource
+            }
         )
+        seekTo(currentItemIndex, currentPosition)
     }
 }
 

@@ -117,6 +117,21 @@ class AniLibRepository : AbstractContentRepository(
         } catch (ex: Exception) { throw ex }
     }
 
+    override fun hostHeaders(): Map<String, String> = mapOf(
+        "Accept" to "*/*",
+        "Accept-Encoding" to "identity;q=1, *;q=0",
+        "Origin" to "https://anilib.me",
+        "Priority" to "i",
+        "Referer" to "https://anilib.me/",
+        "Sec-Ch-Ua" to "\"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+        "Sec-Ch-Ua-Mobile" to "?0",
+        "Sec-Ch-Ua-Platform" to "\"Windows\"",
+        "Sec-Fetch-Dest" to "video",
+        "Sec-Fetch-Mode" to "cors",
+        "Sec-Fetch-Site" to "same-site",
+        "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    )
+
 
     private fun fetchEpisode(id: Int): Flow<EpisodeObject> = flow {
         try {

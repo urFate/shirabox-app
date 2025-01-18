@@ -1,6 +1,6 @@
 package org.shirabox.app.service.media
 
-import ddosGuardBridge
+import com.google.common.net.InternetDomainName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,6 +27,7 @@ import org.shirabox.core.util.Util
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URI
 
 
 object DownloadsServiceHelper {
@@ -154,10 +155,15 @@ object DownloadsServiceHelper {
             if (file.exists() && mediaDownloadTask.pauseData == null) file.delete()
             if (!file.exists()) file.createNewFile()
 
+            val host = URI(mediaDownloadTask.url).host
+            val topDomain = InternetDomainName.from(host).topPrivateDomain()
+
             val request = Request.Builder()
                 .url(mediaDownloadTask.url)
                 .addHeader("Range", "bytes=$pausedBytes-")
-                .ddosGuardBridge(mediaDownloadTask.url) // DDoS-Guard.net bypass
+                .apply {
+                    mpegHeaders("https://$topDomain/").forEach { addHeader(it.key, it.value) }
+                }
                 .build()
 
             val responseBody = okHttpClient.newCall(request).execute().body
@@ -407,6 +413,21 @@ object DownloadsServiceHelper {
             .filter { it.mediaDownloadTask.groupId == groupId }
             .forEach { it.state.value = TaskState.STOPPED }
     }
+
+    fun mpegHeaders(rootHost: String): Map<String, String> = mapOf(
+        "Accept" to "*/*",
+        "Accept-Encoding" to "identity;q=1, *;q=0",
+        "Origin" to rootHost,
+        "Priority" to "i",
+        "Referer" to rootHost,
+        "Sec-Ch-Ua" to "\"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+        "Sec-Ch-Ua-Mobile" to "?0",
+        "Sec-Ch-Ua-Platform" to "\"Windows\"",
+        "Sec-Fetch-Dest" to "video",
+        "Sec-Fetch-Mode" to "cors",
+        "Sec-Fetch-Site" to "same-site",
+        "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    )
 
     class ForcedInterruptionException : Exception()
 
