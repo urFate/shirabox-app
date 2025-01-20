@@ -91,14 +91,16 @@ class AniLibRepository : AbstractContentRepository(
 
                 val entities = filteredPlayers.map { player ->
                     val createdAt = formatter.parse(player.createdAt)?.time ?: System.currentTimeMillis()
+                    val cover = player.team.cover
+                    val logoUrl = cover.filename?.let { cover.default }
                     val streams = player.video!!.quality
+
                     val timeCodes = player.timeCode.firstOrNull { it.type == "opening" }?.let {
                         val start = timeCodeFormatter.parse(it.from)?.time ?: -1L
                         val end = timeCodeFormatter.parse(it.to)?.time ?: -1L
 
                         start to end
                     } ?: (-1L to -1L)
-                    val logoUrl = player.team.cover.default
 
                     EpisodeEntity(
                         source = this@AniLibRepository.name,
