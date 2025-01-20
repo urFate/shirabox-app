@@ -51,8 +51,20 @@ data class Player(
     val translationType: TranslationType,
     @SerialName("created_at")
     val createdAt: String,
+    @SerialName("timecode")
+    val timeCode: List<TimeCode>,
     @SerialName("video")
     val video: Video? = null
+)
+
+@Serializable
+data class TimeCode(
+    @SerialName("type")
+    val type: String,
+    @SerialName("from")
+    val from: String,
+    @SerialName("to")
+    val to: String
 )
 
 @Serializable

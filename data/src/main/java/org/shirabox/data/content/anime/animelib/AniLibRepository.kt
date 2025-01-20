@@ -52,6 +52,7 @@ class AniLibRepository : AbstractContentRepository(
             }.singleOrNull()?.filter { it.number.toInt() in range }
 
             val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault())
+            val timeCodeFormatter = SimpleDateFormat("mm:ss", Locale.getDefault())
 
             episodesHeaders!!.forEach { headers ->
 
@@ -91,10 +92,12 @@ class AniLibRepository : AbstractContentRepository(
                 val entities = filteredPlayers.map { player ->
                     val createdAt = formatter.parse(player.createdAt)?.time ?: System.currentTimeMillis()
                     val streams = player.video!!.quality
-                    val logoUrl = when(player.team.cover.filename) {
-                        null -> ""
-                        else -> "$url${player.team.cover.thumbnail}"
-                    }
+                    val timeCodes = player.timeCode.firstOrNull { it.type == "opening" }?.let {
+                        val start = timeCodeFormatter.parse(it.from)?.time ?: -1L
+                        val end = timeCodeFormatter.parse(it.to)?.time ?: -1L
+
+                        start to end
+                    } ?: (-1L to -1L)
                     val logoUrl = player.team.cover.default
 
                     EpisodeEntity(
@@ -104,6 +107,7 @@ class AniLibRepository : AbstractContentRepository(
                         name = name,
                         episode = number,
                         uploadTimestamp = createdAt,
+                        videoMarkers = timeCodes,
                         videos = streams.associate {
                             Quality.valueOfInt(it.quality) to VIDEO_HOST_ENDPOINT+it.href
                         },
