@@ -8,12 +8,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.exoplayer.ExoPlayer
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -27,6 +30,7 @@ import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.ContentType
 import org.shirabox.core.model.Quality
 import org.shirabox.core.util.Util
+import org.shirabox.core.util.Values
 import org.shirabox.data.EpisodesHelper
 import org.shirabox.data.animeskip.AnimeSkipRepository
 import org.shirabox.data.content.ContentRepositoryRegistry
@@ -39,6 +43,7 @@ class PlayerViewModel @AssistedInject constructor(
     @Assisted("team") val team: String,
     @Assisted("repository") val repository: String,
     @Assisted val initialEpisode: Int,
+    @Assisted val exoPlayer: ExoPlayer,
     @ApplicationContext context: Context
 ) : ViewModel() {
 
@@ -57,6 +62,8 @@ class PlayerViewModel @AssistedInject constructor(
     val currentRepository = ContentRepositoryRegistry.getRepositoryByName(repository)
     val isCurrentItemOffline = mutableStateOf(false)
 
+    var controlsVisibilityJob: Job? = null
+
     @AssistedFactory
     interface PlayerViewModelFactory {
         fun create(
@@ -65,6 +72,7 @@ class PlayerViewModel @AssistedInject constructor(
             @Assisted("contentEnName") contentEnName: String,
             @Assisted("team") team: String,
             @Assisted("repository") repository: String,
+            exoPlayer: ExoPlayer,
             initialEpisode: Int
         ): PlayerViewModel
     }
@@ -147,6 +155,16 @@ class PlayerViewModel @AssistedInject constructor(
                 currentValue[episode] = timestamps.first.toLong() to timestamps.second.toLong()
 
                 animeSkipTimestamps.emit(currentValue)
+            }
+        }
+    }
+
+    fun hideUi() {
+        controlsVisibilityJob?.cancel()
+        controlsVisibilityJob = viewModelScope.launch {
+            val delayMs = Values.CONTROLS_HIDE_DELAY
+            delay(delayMs).let {
+                if (exoPlayer.isPlaying) controlsVisibilityState = false
             }
         }
     }

@@ -15,7 +15,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.shirabox.app.ui.activity.player.PlayerViewModel
 import org.shirabox.app.ui.activity.player.presentation.controls.InstantSeekArea
 import org.shirabox.app.ui.activity.player.presentation.controls.PlaybackControls
@@ -33,13 +31,15 @@ import org.shirabox.app.ui.activity.player.presentation.controls.PlayerSkipButto
 import org.shirabox.app.ui.activity.player.presentation.controls.PlayerTopBar
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.entity.EpisodeEntity
-import org.shirabox.core.util.Values
 
 @Composable
-fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: PlayerViewModel) {
+fun PlayerScaffold(
+    exoPlayer: ExoPlayer,
+    playlist: List<EpisodeEntity>,
+    model: PlayerViewModel
+) {
     val context = LocalContext.current
     val activity = context as Activity
-    val coroutineScope = rememberCoroutineScope()
 
     var isPlaying by remember { mutableStateOf(exoPlayer.isPlaying) }
     var currentPosition by remember { mutableLongStateOf(exoPlayer.currentPosition) }
@@ -148,10 +148,8 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
             )
         },
         onClick = {
-            coroutineScope.launch {
-                model.controlsVisibilityState = !model.controlsVisibilityState
-                hideControls(exoPlayer, model)
-            }
+            model.controlsVisibilityState = !model.controlsVisibilityState
+            model.hideUi()
         }
     )
 
@@ -202,7 +200,7 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
                     },
                     onPlayToggle = {
                         exoPlayer.playWhenReady = !exoPlayer.isPlaying
-                        coroutineScope.launch { hideControls(exoPlayer, model) }
+                        model.hideUi()
                     },
                     onSkipNext = {
                         model.saveEpisodePosition(currentEpisodeInt, exoPlayer.currentPosition, exoPlayer.duration)
@@ -237,16 +235,5 @@ fun PlayerScaffold(exoPlayer: ExoPlayer, playlist: List<EpisodeEntity>, model: P
                     model.controlsVisibilityState = true
                 }
         })
-    }
-}
-
-suspend fun hideControls(
-    exoPlayer: ExoPlayer,
-    model: PlayerViewModel
-) {
-    val delayMs = Values.CONTROLS_HIDE_DELAY
-
-    delay(delayMs).let {
-        if (exoPlayer.isPlaying) model.controlsVisibilityState = false
     }
 }

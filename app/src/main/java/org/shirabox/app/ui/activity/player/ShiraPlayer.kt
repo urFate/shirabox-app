@@ -33,10 +33,8 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.launch
 import org.shirabox.app.ui.activity.player.presentation.PlayerScaffold
 import org.shirabox.app.ui.activity.player.presentation.SettingsBottomSheet
-import org.shirabox.app.ui.activity.player.presentation.hideControls
 import org.shirabox.core.datastore.DataStoreScheme
 import org.shirabox.core.entity.EpisodeEntity
 import org.shirabox.core.model.Quality
@@ -47,7 +45,6 @@ import org.shirabox.data.content.AbstractContentRepository
 @OptIn(UnstableApi::class)
 @Composable
 fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
-    val coroutineScope = rememberCoroutineScope()
     val interactionSource = remember(::MutableInteractionSource)
 
     val playlist by model.playlistFlow().collectAsStateWithLifecycle(initialValue = emptyList())
@@ -60,10 +57,8 @@ fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
                 .clickable(
                     interactionSource = interactionSource, indication = null
                 ) {
-                    coroutineScope.launch {
-                        model.controlsVisibilityState = !model.controlsVisibilityState
-                        hideControls(exoPlayer, model)
-                    }
+                    model.controlsVisibilityState = !model.controlsVisibilityState
+                    model.hideUi()
                 }
         ) {
             androidx.compose.animation.AnimatedVisibility(
@@ -83,7 +78,11 @@ fun ShiraPlayer(exoPlayer: ExoPlayer, model: PlayerViewModel) {
 
 @OptIn(UnstableApi::class)
 @Composable
-private fun PlayerSurface(exoPlayer: ExoPlayer, model: PlayerViewModel, playlist: List<EpisodeEntity>) {
+private fun PlayerSurface(
+    exoPlayer: ExoPlayer,
+    model: PlayerViewModel,
+    playlist: List<EpisodeEntity>
+) {
     val context = LocalContext.current
     val playerView = PlayerView(context)
     val coroutineScope = rememberCoroutineScope()

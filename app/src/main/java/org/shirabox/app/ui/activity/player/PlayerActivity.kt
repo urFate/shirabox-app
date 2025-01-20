@@ -66,6 +66,8 @@ class PlayerActivity : ComponentActivity() {
 
         rememberSystemUiController().apply { Util.hideSystemUi(this) }
 
+        val exoPlayer = remember { ExoPlayer.Builder(context).build().apply(ExoPlayer::prepare) }
+
         val model = hiltViewModel<PlayerViewModel, PlayerViewModel.PlayerViewModelFactory> {
             it.create(
                 contentUid = arguments!!.getLong("content_uid"),
@@ -74,10 +76,9 @@ class PlayerActivity : ComponentActivity() {
                 team = arguments.getString("acting_team").toString(),
                 repository = arguments.getString("repository").toString(),
                 initialEpisode = arguments.getInt("episode"),
+                exoPlayer = exoPlayer
             )
         }
-
-        val exoPlayer = remember { ExoPlayer.Builder(context).build().apply(ExoPlayer::prepare) }
 
         player = exoPlayer
 
