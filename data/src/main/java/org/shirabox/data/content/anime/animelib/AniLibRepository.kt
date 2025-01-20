@@ -95,6 +95,7 @@ class AniLibRepository : AbstractContentRepository(
                         null -> ""
                         else -> "$url${player.team.cover.thumbnail}"
                     }
+                    val logoUrl = player.team.cover.default
 
                     EpisodeEntity(
                         source = this@AniLibRepository.name,
@@ -131,7 +132,6 @@ class AniLibRepository : AbstractContentRepository(
         "Sec-Fetch-Site" to "same-site",
         "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     )
-
 
     private fun fetchEpisode(id: Int): Flow<EpisodeObject> = flow {
         try {
