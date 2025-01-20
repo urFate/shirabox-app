@@ -132,7 +132,7 @@ fun ExtendedListItem(
                         else -> Monogram(str = headlineText)
                     }
                 }
-            }
+            } ?: Monogram(str = headlineText)
         }
     )
 }

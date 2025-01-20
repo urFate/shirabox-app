@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -19,8 +20,11 @@ fun Monogram(modifier: Modifier = Modifier, str: String) {
     val background = MaterialTheme.colorScheme.primary
     val onPrimary = MaterialTheme.colorScheme.onPrimary
 
-    val text = str.replace(Regex("[a-z]"), "")
-        .replace(Regex("[а-я]"), "").uppercase().take(2)
+    val text = remember {
+        str.filter { it.isUpperCase() }
+            .take(2)
+            .takeIf { it.length == 2 } ?: str.uppercase().take(2)
+    }
 
     Box(
         modifier = Modifier
