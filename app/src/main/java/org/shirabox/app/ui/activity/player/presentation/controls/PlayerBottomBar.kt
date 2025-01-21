@@ -1,8 +1,8 @@
 package org.shirabox.app.ui.activity.player.presentation.controls
 
-import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -61,7 +61,8 @@ internal fun PlayerBottomBar(
 
     val thumbGapSize by animateDpAsState(if (isValueChanging) 8.dp else 0.dp, label = "")
     val cornerSize by animateDpAsState(if (isValueChanging) 4.dp else 0.dp, label = "")
-    val thumbHeight by animateDpAsState(if (isValueChanging) 36.dp else 16.dp, label = "")
+    val thumbSize by animateDpAsState(if (isValueChanging) 24.dp else 16.dp, label = "")
+    val trackHeight by animateDpAsState(if (isValueChanging) 3.dp else 2.dp)
 
     Box(
         contentAlignment = Alignment.BottomCenter
@@ -114,6 +115,7 @@ internal fun PlayerBottomBar(
                     },
                     track = {
                         SliderDefaults.Track(
+                            modifier = Modifier.height(trackHeight),
                             colors = colors,
                             enabled = duration != C.TIME_UNSET,
                             sliderState = it,
@@ -126,19 +128,19 @@ internal fun PlayerBottomBar(
                             interactionSource = interactionSource,
                             colors = colors,
                             enabled = true,
-                            thumbSize = DpSize(6.dp, thumbHeight)
+                            thumbSize = DpSize(thumbSize, thumbSize)
                         )
                     },
                     colors = colors
                 )
 
                 val localConf = LocalConfiguration.current
-                val activity = LocalContext.current as Activity
+                val activity = LocalActivity.current
                 val isLandscape = localConf.orientation == Configuration.ORIENTATION_LANDSCAPE
 
                 IconButton(
                     onClick = {
-                        activity.requestedOrientation =
+                        activity?.requestedOrientation =
                             if (isLandscape) {
                                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                             } else {
