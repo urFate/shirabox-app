@@ -18,7 +18,7 @@
         padding: 5px">
     <img alt="screenshot-2" src="images/resource_activity.png" width="200" style="border-radius: 15px;
         padding: 5px">
-    <img alt="screenshot-3" src="./images/favourites.png" width="200" style="border-radius: 15px;
+    <img alt="screenshot-3" src="./images/schedule.png" width="200" style="border-radius: 15px;
         padding: 5px">
 </div>
 
