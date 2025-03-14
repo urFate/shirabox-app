@@ -324,8 +324,8 @@ object ShikimoriRepository : AbstractCatalogRepository("Shikimori", "https://shi
         val year = calendar.get(Calendar.YEAR)
 
         return when (dayOfYear) {
-            in 1 until 65 -> "winter_$year"
-            in 65 until 186 -> "spring_$year"
+            in 1 until 100 -> "winter_$year"
+            in 100 until 186 -> "spring_$year"
             in 186 until 279 -> "summer_$year"
             else -> "fall_$year"
         }
